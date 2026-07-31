@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <style>
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+    ::selection { background: rgba(89,128,166,0.3); }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#f2f2f3; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; font-size:15px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 28px; border-bottom:1px solid rgba(29,31,32,0.16); flex-wrap:wrap;">
+    <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:26px; margin:0;">PDF-CREATOR</h1>
+    <div style="display:flex; align-items:center; gap:10px; flex:1; max-width:560px; min-width:260px;">
+      <input
+        type="text"
+        value="{{ filename }}"
+        onChange="{{ onFilenameChange }}"
+        onFocus="{{ onFilenameFocus }}"
+        onBlur="{{ onFilenameBlur }}"
+        spellCheck="false"
+        style="flex:1; min-width:0; font-family:'Courier New',monospace; font-size:13px; color:#1d1f20; background:#fff; padding:8px 10px; border:1px solid rgba(29,31,32,0.16); border-radius:0;"
+      />
+      <button
+        onClick="{{ generate }}"
+        disabled="{{ generateDisabled }}"
+        style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 18px; cursor:{{ generateCursor }}; opacity:{{ generateOpacity }}; white-space:nowrap;"
+      >{{ generateLabel }}</button>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:24px; padding:24px 28px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="flex:1; min-width:320px; display:flex; flex-direction:column; gap:20px;">
+
+      <div>
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Upload files</div>
+        <div
+          onClick="{{ onDropzoneClick }}"
+          onDragOver="{{ onDragOver }}"
+          onDragLeave="{{ onDragLeave }}"
+          onDrop="{{ onDrop }}"
+          style="position:relative; border:1px solid {{ dropBorderColor }}; padding:28px; text-align:center; cursor:pointer; background:{{ dropBg }};"
+        >
+          <div style="position:absolute; top:-6px; left:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+          <div style="position:absolute; top:-6px; right:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+          <div style="position:absolute; bottom:-6px; left:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+          <div style="position:absolute; bottom:-6px; right:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+          <div style="font-size:14px; color:rgba(29,31,32,0.7);">Drop PDF, TXT, or images here</div>
+          <div style="font-size:12px; color:rgba(29,31,32,0.5); margin-top:4px;">or click to browse</div>
+          <input ref="{{ fileInputRef }}" type="file" multiple="{{ true }}" accept=".pdf,.txt,image/*" onChange="{{ onFileInput }}" style="display:none" />
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; border:1px solid rgba(29,31,32,0.16); flex:1; min-height:340px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); padding:14px 14px 0;">Pasted input</div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:8px; min-height:100px;">
+          <sc-if value="{{ noChatBubbles }}" hint-placeholder-val="{{ true }}">
+            <div style="text-align:center; color:rgba(29,31,32,0.45); padding:24px; font-size:13px;">Type text or paste an image below</div>
+          </sc-if>
+          <sc-for list="{{ chatBubbles }}" as="bubble" hint-placeholder-count="0">
+            <div style="background:#fff; border:1px solid rgba(29,31,32,0.16); padding:8px 10px; font-size:13px; max-width:90%; align-self:flex-start;">
+              <div style="font-size:10px; font-weight:700; color:#5980a6; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:3px;">{{ bubble.label }}</div>
+              <sc-if value="{{ bubble.text }}" hint-placeholder-val="{{ false }}"><span>{{ bubble.text }}</span></sc-if>
+              <sc-if value="{{ bubble.imgUrl }}" hint-placeholder-val="{{ false }}"><img src="{{ bubble.imgUrl }}" style="max-width:100%; margin-top:4px; display:block;" /></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:8px; padding:12px 14px; border-top:1px solid rgba(29,31,32,0.16);">
+          <textarea
+            value="{{ textInput }}"
+            onChange="{{ onTextInputChange }}"
+            placeholder="Type text, then click Add… (Ctrl+V to paste image)"
+            style="flex:1; resize:vertical; border:1px solid rgba(29,31,32,0.16); padding:8px; font-family:inherit; font-size:13px; height:120px;"
+          ></textarea>
+          <button onClick="{{ handleAddText }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; color:#1d1f20; padding:0 16px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; cursor:pointer;" style-hover="background:rgba(29,31,32,0.07);">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1.3; min-width:380px; display:flex; flex-direction:column;">
+      <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Pages &amp; arrangement</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <sc-if value="{{ noItems }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center; color:rgba(29,31,32,0.45); padding:48px; font-size:13px; border:1px solid rgba(29,31,32,0.16);">Upload files or add text to get started</div>
+        </sc-if>
+        <sc-for list="{{ items }}" as="item" hint-placeholder-count="0">
+          <div
+            draggable="{{ true }}"
+            onDragStart="{{ item.onDragStart }}"
+            onDragOver="{{ preventDefault }}"
+            onDrop="{{ item.onDrop }}"
+            style="background:#fff; border:1px solid rgba(29,31,32,0.16); padding:10px; display:flex; align-items:center; gap:10px; cursor:grab;"
+          >
+            <div style="color:rgba(29,31,32,0.4); font-size:16px; user-select:none;">☰</div>
+            <input type="checkbox" checked="{{ item.included }}" onChange="{{ item.toggleIncluded }}" style="width:17px; height:17px; cursor:pointer; accent-color:#5980a6;" />
+            <div style="width:64px; height:{{ item.previewHeight }}; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid rgba(29,31,32,0.16); overflow:hidden; position:relative; font-size:10px; color:rgba(29,31,32,0.55);">
+              <sc-if value="{{ item.isImage }}" hint-placeholder-val="{{ false }}"><img src="{{ item.objectUrl }}" style="width:100%; height:100%; object-fit:contain; display:block;" /></sc-if>
+              <sc-if value="{{ item.isPdf }}" hint-placeholder-val="{{ false }}"><div style="font-weight:700; color:#5980a6; font-size:12px;">PDF</div></sc-if>
+              <sc-if value="{{ item.isText }}" hint-placeholder-val="{{ false }}"><div style="padding:4px; font-size:9px; line-height:1.2; overflow:hidden;">{{ item.snippet }}</div></sc-if>
+              <div style="position:absolute; bottom:2px; right:2px; font-size:9px; background:rgba(29,31,32,0.75); color:#f2f2f3; padding:1px 4px;">{{ item.pageLabel }}</div>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:5px; min-width:0;">
+              <div style="font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ item.name }}</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <select value="{{ item.pageSize }}" onChange="{{ item.setPageSize }}" style="font-size:12px; padding:4px 6px; border:1px solid rgba(29,31,32,0.16); background:#fff; cursor:pointer;">
+                  <option value="8.5x11">8.5×11</option>
+                  <option value="11x17">11×17</option>
+                </select>
+                <select value="{{ item.orientation }}" onChange="{{ item.setOrientation }}" style="font-size:12px; padding:4px 6px; border:1px solid rgba(29,31,32,0.16); background:#fff; cursor:pointer;">
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
+                <span style="font-size:10px; padding:2px 8px; background:#eef6ff; color:#2c455d;">{{ item.typeLabel }}</span>
+              </div>
+            </div>
+            <button onClick="{{ item.remove }}" title="Remove" style="background:none; border:none; color:rgba(29,31,32,0.4); font-size:20px; cursor:pointer; line-height:1;" style-hover="color:#8a2c2c;">×</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    items: [],
+    chatBubbles: [],
+    textInput: '',
+    filename: '',
+    userEditedFilename: false,
+    filenameFocused: false,
+    generating: false,
+    dragOver: false,
+  };
+
+  fileInputRef = React.createRef();
+  seqNum = 1;
+  fileCounter = 1;
+  textCounter = 1;
+  itemIdCounter = 1;
+  draggingId = null;
+  lastMinuteKey = '';
+  interval = null;
+
+  componentDidMount() {
+    this.setState({ filename: this.buildAutoName() });
+    this.interval = setInterval(() => {
+      if (!this.state.userEditedFilename && !this.state.filenameFocused) {
+        this.setState({ filename: this.buildAutoName() });
+      }
+    }, 2000);
+    this.pasteHandler = (e) => this.handlePaste(e);
+    document.addEventListener('paste', this.pasteHandler);
+    this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
+    window.addEventListener('dragover', this._blockNav);
+    window.addEventListener('drop', this._blockNav);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
+    document.removeEventListener('paste', this.pasteHandler);
+    window.removeEventListener('dragover', this._blockNav);
+    window.removeEventListener('drop', this._blockNav);
+  }
+
+  pad(n) { return String(n).padStart(2, '0'); }
+
+  buildAutoName() {
+    const now = new Date();
+    const minuteKey = `${now.getFullYear()}${this.pad(now.getMonth() + 1)}${this.pad(now.getDate())}${this.pad(now.getHours())}${this.pad(now.getMinutes())}`;
+    if (minuteKey !== this.lastMinuteKey) {
+      this.lastMinuteKey = minuteKey;
+      this.seqNum = 1;
+    }
+    const formatted = `${minuteKey.slice(0, 8)}-${minuteKey.slice(8)}`;
+    return `${formatted} PDFCreator${String(this.seqNum).padStart(3, '0')}.PDF`;
+  }
+
+  onFilenameChange = (e) => this.setState({ filename: e.target.value, userEditedFilename: true });
+  onFilenameFocus = () => this.setState({ filenameFocused: true });
+  onFilenameBlur = () => this.setState({ filenameFocused: false });
+
+  onDropzoneClick = () => this.fileInputRef.current && this.fileInputRef.current.click();
+  onDragOver = (e) => { e.preventDefault(); this.setState({ dragOver: true }); };
+  onDragLeave = (e) => { e.preventDefault(); this.setState({ dragOver: false }); };
+  onDrop = (e) => {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    Array.from(e.dataTransfer.files).forEach((f) => this.processFile(f));
+  };
+  onFileInput = (e) => {
+    Array.from(e.target.files).forEach((f) => this.processFile(f));
+    e.target.value = '';
+  };
+
+  async processFile(file) {
+    if (file.type === 'application/pdf') {
+      this.addItem({ id: this.itemIdCounter++, type: 'pdf', name: 'FILE ' + this.fileCounter++, data: await file.arrayBuffer(), pageSize: '8.5x11', orientation: 'portrait', included: true });
+    } else if (file.type.startsWith('image/')) {
+      await this.processImageFile(file);
+    } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      this.addItem({ id: this.itemIdCounter++, type: 'text', name: 'FILE ' + this.fileCounter++, content: await file.text(), pageSize: '8.5x11', orientation: 'portrait', included: true });
+    } else {
+      this.setState({}); // no-op, unsupported
+      alert('Unsupported file type: ' + file.name);
+    }
+  }
+
+  async processImageFile(file, customName) {
+    const name = customName || ('FILE ' + this.fileCounter++);
+    if (file.type === 'image/jpeg' || file.type === 'image/png') {
+      const data = new Uint8Array(await file.arrayBuffer());
+      this.addItem({ id: this.itemIdCounter++, type: 'image', name, data, imageType: file.type === 'image/jpeg' ? 'jpg' : 'png', pageSize: '8.5x11', orientation: 'portrait', included: true });
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    await new Promise((r) => { img.onload = r; });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
+    const data = new Uint8Array(await blob.arrayBuffer());
+    this.addItem({ id: this.itemIdCounter++, type: 'image', name, data, imageType: 'png', pageSize: '8.5x11', orientation: 'portrait', included: true });
+    URL.revokeObjectURL(url);
+  }
+
+  addItem(item) {
+    if (item.type === 'image') {
+      const blob = new Blob([item.data], { type: item.imageType === 'jpg' ? 'image/jpeg' : 'image/png' });
+      item.objectUrl = URL.createObjectURL(blob);
+    }
+    this.setState((s) => ({ items: [...s.items, item] }));
+  }
+
+  handleAddText = () => {
+    const text = this.state.textInput.trim();
+    if (!text) return;
+    const label = 'INPUT ' + this.textCounter++;
+    this.addItem({ id: this.itemIdCounter++, type: 'text', name: label, content: text, pageSize: '8.5x11', orientation: 'portrait', included: true });
+    this.addChatBubble(label, text, null);
+    this.setState({ textInput: '' });
+  };
+
+  onTextInputChange = (e) => this.setState({ textInput: e.target.value });
+
+  async handlePaste(e) {
+    if (!e.clipboardData) return;
+    for (const item of e.clipboardData.items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          const label = 'FILE ' + this.fileCounter++;
+          await this.processImageFile(file, label);
+          this.addChatBubble(label, null, URL.createObjectURL(file));
+        }
+      }
+    }
+  }
+
+  addChatBubble(label, text, imgUrl) {
+    this.setState((s) => ({ chatBubbles: [...s.chatBubbles, { label, text, imgUrl }] }));
+  }
+
+  removeItem(id) {
+    this.setState((s) => {
+      const item = s.items.find((i) => i.id === id);
+      if (item && item.objectUrl) URL.revokeObjectURL(item.objectUrl);
+      return { items: s.items.filter((i) => i.id !== id) };
+    });
+  }
+
+  toggleIncluded(id, checked) {
+    this.setState((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, included: checked } : i)) }));
+  }
+
+  setPageSize(id, val) {
+    this.setState((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, pageSize: val } : i)) }));
+  }
+
+  setOrientation(id, val) {
+    this.setState((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, orientation: val } : i)) }));
+  }
+
+  onDragStart(id, e) {
+    this.draggingId = id;
+    e.dataTransfer.setData('text/plain', String(id));
+  }
+
+  onDropItem(targetId) {
+    const fromId = this.draggingId;
+    if (fromId == null || fromId === targetId) return;
+    this.setState((s) => {
+      const items = [...s.items];
+      const fromIdx = items.findIndex((i) => i.id === fromId);
+      const toIdx = items.findIndex((i) => i.id === targetId);
+      if (fromIdx === -1 || toIdx === -1) return {};
+      const [moved] = items.splice(fromIdx, 1);
+      items.splice(toIdx, 0, moved);
+      return { items };
+    });
+    this.draggingId = null;
+  }
+
+  async generate() {
+    if (this.state.generating || this.state.items.filter((i) => i.included).length === 0) return;
+    this.setState({ generating: true });
+    try {
+      const { generatePDF } = await import('./pdfEngine.js');
+      const filename = (this.state.filename || '').trim() || this.buildAutoName();
+      await generatePDF(this.state.items, filename);
+      this.seqNum++;
+      this.setState({ userEditedFilename: false, filename: this.buildAutoName() });
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Error generating PDF');
+    } finally {
+      this.setState({ generating: false });
+    }
+  }
+
+  renderVals() {
+    const { items, chatBubbles, textInput, filename, generating, dragOver } = this.state;
+    const includedCount = items.filter((i) => i.included).length;
+    const disabled = generating || includedCount === 0;
+    const getDims = (size, orientation) => {
+      const sizes = { '8.5x11': { w: 612, h: 792 }, '11x17': { w: 792, h: 1224 } };
+      const s = sizes[size] || sizes['8.5x11'];
+      return orientation === 'landscape' ? { w: s.h, h: s.w } : { w: s.w, h: s.h };
+    };
+    return {
+      textInput, filename, chatBubbles,
+      noChatBubbles: chatBubbles.length === 0,
+      noItems: items.length === 0,
+      dropBorderColor: dragOver ? '#5980a6' : 'rgba(29,31,32,0.16)',
+      dropBg: dragOver ? '#eef6ff' : 'transparent',
+      fileInputRef: this.fileInputRef,
+      onDropzoneClick: this.onDropzoneClick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      onFileInput: this.onFileInput,
+      onFilenameChange: this.onFilenameChange,
+      onFilenameFocus: this.onFilenameFocus,
+      onFilenameBlur: this.onFilenameBlur,
+      onTextInputChange: this.onTextInputChange,
+      handleAddText: this.handleAddText,
+      preventDefault: (e) => e.preventDefault(),
+      generateDisabled: disabled,
+      generateCursor: disabled ? 'not-allowed' : 'pointer',
+      generateOpacity: disabled ? 0.45 : 1,
+      generateLabel: generating ? 'WORKING…' : 'GENERATE PDF',
+      generate: () => this.generate(),
+      items: items.map((item) => {
+        const dims = getDims(item.pageSize, item.orientation);
+        const aspect = dims.w / dims.h;
+        const previewHeight = Math.round(64 / aspect) + 'px';
+        const snippet = item.type === 'text' ? item.content.replace(/\n/g, ' ').slice(0, 60) + (item.content.length > 60 ? '…' : '') : '';
+        return {
+          ...item,
+          previewHeight,
+          isImage: item.type === 'image',
+          isPdf: item.type === 'pdf',
+          isText: item.type === 'text',
+          snippet,
+          typeLabel: item.type.toUpperCase(),
+          pageLabel: `${item.pageSize} ${item.orientation[0].toUpperCase()}`,
+          toggleIncluded: (e) => this.toggleIncluded(item.id, e.target.checked),
+          setPageSize: (e) => this.setPageSize(item.id, e.target.value),
+          setOrientation: (e) => this.setOrientation(item.id, e.target.value),
+          remove: () => this.removeItem(item.id),
+          onDragStart: (e) => this.onDragStart(item.id, e),
+          onDrop: (e) => { e.preventDefault(); this.onDropItem(item.id); },
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
