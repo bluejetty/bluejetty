@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<div
+  onDragOver="{{ onDragOver }}"
+  onDragLeave="{{ onDragLeave }}"
+  onDrop="{{ onDrop }}"
+  onClick="{{ onDropzoneClick }}"
+  style="position:relative; border:1px solid {{ dropBorderColor }}; padding:28px 24px; text-align:center; cursor:pointer; background:{{ dropBg }}; margin-bottom:24px;"
+>
+  <div style="position:absolute; top:-6px; left:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+  <div style="position:absolute; top:-6px; right:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+  <div style="position:absolute; bottom:-6px; left:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+  <div style="position:absolute; bottom:-6px; right:-6px; width:11px; height:11px; color:rgba(29,31,32,0.55);" style-before="content:''; position:absolute; left:5px; top:0; width:1px; height:100%; background:currentColor;" style-after="content:''; position:absolute; top:5px; left:0; width:100%; height:1px; background:currentColor;"></div>
+  <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; margin-bottom:4px;">DROP-BOX</div>
+  <div style="font-size:13px; line-height:1.5; color:rgba(29,31,32,0.5);">{{ fileTypesLabel }}. Click drop-box to browse files.</div>
+  <sc-if value="{{ hasFileName }}" hint-placeholder-val="{{ false }}">
+    <div style="font-size:13px; font-weight:600; margin-top:6px;">{{ fileName }}</div>
+  </sc-if>
+  <input ref="{{ fileInputRef }}" type="file" multiple="{{ allowMultiple }}" accept="{{ acceptTypes }}" onChange="{{ onFileInput }}" style="display:none" />
+  <div onClick="{{ stopPropagation }}" style="display:flex; gap:8px; margin-top:16px;">
+    <input type="text" value="{{ urlInput }}" onChange="{{ onUrlInputChange }}" placeholder="{{ urlPlaceholder }}" style="flex:1; min-width:0; border:1px solid rgba(29,31,32,0.16); padding:8px 10px; font-size:13px; background:#fff;" />
+    <button onClick="{{ loadFromUrl }}" style="border:1px solid #5980a6; background:#5980a6; color:#fff; padding:8px 16px; font-size:13px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer; white-space:nowrap;">Load URL</button>
+  </div>
+  <button onClick="{{ onPasteClick }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; color:#1d1f20; padding:8px 16px; font-size:13px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer; margin-top:16px;" style-hover="background:rgba(29,31,32,0.07);">Paste from clipboard</button>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;fileTypesLabel&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;PDF&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;acceptTypes&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;.pdf,application/pdf&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;allowMultiple&quot;:{&quot;editor&quot;:null,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;urlPlaceholder&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;Or paste a PDF URL…&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dropBorderColor&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;dropBg&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;hasFileName&quot;:{&quot;editor&quot;:null,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fileName&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onDragOver&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDragLeave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDrop&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDropzoneClick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;fileInputRef&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;},&quot;onFileInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;urlInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onUrlInputChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;loadFromUrl&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;stopPropagation&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onPasteClick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}"></script>
+</body>
+</html>
