@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF-FLATTENER</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --success: #4ade80;
+            --danger: #f87171;
+            --border: #334155;
+            --preview-bg: #0b1120;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            text-align: center;
+            background: var(--surface);
+            transition: all 0.2s;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: var(--surface-hover);
+        }
+        .drop-zone svg {
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .drop-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .drop-zone .filename {
+            color: var(--text);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        input[type="file"] { display: none; }
+
+        /* PREVIEW SECTION */
+        .preview-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .preview-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .preview-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .page-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--surface);
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+        .preview-stage {
+            background: var(--preview-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .preview-page {
+            position: relative;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+            transition: transform 0.2s;
+            flex: 1 1 0;
+            max-width: calc(50% - 8px);
+            min-width: 160px;
+        }
+        .preview-page:hover {
+            transform: scale(1.01);
+        }
+        .preview-page img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .page-label {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text);
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .preview-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 14px;
+        }
+        .preview-nav button {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            min-width: unset;
+            flex: unset;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .preview-nav button:hover:not(:disabled) {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+        }
+        .preview-nav button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .preview-nav .nav-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-width: 100px;
+            text-align: center;
+        }
+        .preview-note {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        .controls {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 140px;
+        }
+        .control-group label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        select, button {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        select:hover, select:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+        button#flattenBtn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            font-weight: 700;
+            padding: 12px 24px;
+            flex: 0.5;
+            min-width: 70px;
+        }
+        button#flattenBtn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+        }
+        .progress-container.active { display: block; }
+        .progress-bar-bg {
+            background: var(--bg);
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .progress-bar-fill {
+            background: var(--accent);
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .info-box {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .error {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--danger);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error.active { display: block; }
+
+        .ad-section {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .ad-box {
+            display: block;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+        .ad-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .ad-box img {
+            display: block;
+            width: 100%;
+            max-width: 150px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            margin: 0 auto;
+        }
+        .logo-box {
+            flex: 0 0 auto;
+            cursor: default;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-box:hover {
+            border-color: var(--border);
+            transform: none;
+        }
+        .logo-box img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            display: block;
+        }
+        @media (max-width: 520px) {
+            .ad-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            .ad-box {
+                max-width: 150px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF-FLATTENER</h1>
+        <p class="subtitle">Converts interactive PDF (forms, markups) into a static, flat PDF.</p>
+
+        <div class="error" id="errorBox"></div>
+
+        <div class="main-layout">
+            <div class="left-panel">
+                <div class="drop-zone" id="dropZone">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25z" />
+                    </svg>
+                    <p>Drop a PDF here or click to browse</p>
+                    <p class="filename" id="fileName"></p>
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf">
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="dpiSelect">Resolution (DPI)</label>
+                        <select id="dpiSelect">
+                            <option value="150">150 DPI (smaller file)</option>
+                            <option value="300" selected>300 DPI (print quality)</option>
+                        </select>
+                    </div>
+                    <button id="flattenBtn" disabled>PDF-FLATTEN</button>
+                </div>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">Preparing...</p>
+                </div>
+
+                <div class="ad-section">
+                  
+                    <a href="https://MovieQuest.ca" target="_blank" class="ad-box">
+                        <img src="PDF-FLATTENER.jpg" alt="PDF-FLATTENER" width="150" height="150">
+                    </a>
+                     <a href="https://MovieQuest.ca" target="_blank" class="ad-box">
+                        <img src="PDF-FLATTENER.jpg" alt="PDF-FLATTENER" width="150" height="150">
+                    </a>
+                 
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="preview-section" id="previewSection">
+                    <div class="preview-header">
+                        <h3>Preview</h3>
+                        <span class="page-count" id="pageCount">0 pages</span>
+                    </div>
+                    <div class="preview-stage" id="previewStage"></div>
+                    <div class="preview-nav" id="previewNav">
+                        <button id="prevBtn" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                            Prev
+                        </button>
+                        <span class="nav-info" id="navInfo">Page 1 of 1</span>
+                        <button id="nextBtn" disabled>
+                            Next
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    <p class="preview-note">These thumbnails show how each page will look after flattening.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const flattenBtn = document.getElementById('flattenBtn');
+        const dpiSelect = document.getElementById('dpiSelect');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const errorBox = document.getElementById('errorBox');
+        const previewSection = document.getElementById('previewSection');
+        const previewStage = document.getElementById('previewStage');
+        const pageCountLabel = document.getElementById('pageCount');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const navInfo = document.getElementById('navInfo');
+
+        let currentFile = null;
+        let currentPdfData = null;
+        let totalPages = 0;
+        let currentPreviewIndex = 0;
+        const PAGES_PER_VIEW = 2;
+        let pageThumbnails = [];
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('active');
+        }
+        function hideError() {
+            errorBox.classList.remove('active');
+        }
+
+        function setProgress(percent, text) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function updateNav() {
+            const startPage = currentPreviewIndex + 1;
+            const endPage = Math.min(currentPreviewIndex + PAGES_PER_VIEW, totalPages);
+            navInfo.textContent = `Page ${startPage}${endPage > startPage ? '-' + endPage : ''} of ${totalPages}`;
+            prevBtn.disabled = currentPreviewIndex === 0;
+            nextBtn.disabled = currentPreviewIndex + PAGES_PER_VIEW >= totalPages;
+        }
+
+        function renderPreviewStage() {
+            previewStage.innerHTML = '';
+            for (let i = 0; i < PAGES_PER_VIEW; i++) {
+                const pageIdx = currentPreviewIndex + i;
+                if (pageIdx >= totalPages) break;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'preview-page';
+
+                const img = document.createElement('img');
+                img.src = pageThumbnails[pageIdx];
+                img.alt = 'Page ' + (pageIdx + 1);
+
+                const label = document.createElement('span');
+                label.className = 'page-label';
+                label.textContent = 'Page ' + (pageIdx + 1);
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(label);
+                previewStage.appendChild(wrapper);
+            }
+            updateNav();
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPreviewIndex > 0) {
+                currentPreviewIndex -= PAGES_PER_VIEW;
+                renderPreviewStage();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPreviewIndex + PAGES_PER_VIEW < totalPages) {
+                currentPreviewIndex += PAGES_PER_VIEW;
+                renderPreviewStage();
+            }
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        async function handleFile(file) {
+            hideError();
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showError('Please select a valid PDF file.');
+                return;
+            }
+            currentFile = file;
+            fileNameDisplay.textContent = file.name;
+            flattenBtn.disabled = true;
+            previewSection.classList.remove('active');
+            previewStage.innerHTML = '';
+            pageThumbnails = [];
+            currentPreviewIndex = 0;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                currentPdfData = arrayBuffer;
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                totalPages = pdf.numPages;
+                pageCountLabel.textContent = totalPages + ' page' + (totalPages !== 1 ? 's' : '');
+                previewSection.classList.add('active');
+
+                const maxPreviewWidth = 400;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport72 = page.getViewport({ scale: 1 });
+                    const scale = Math.min(maxPreviewWidth / viewport72.width, 1.2);
+                    const viewport = page.getViewport({ scale: scale });
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                    pageThumbnails.push(canvas.toDataURL('image/jpeg', 0.85));
+                    page.cleanup();
+                }
+
+                renderPreviewStage();
+                flattenBtn.disabled = false;
+            } catch (err) {
+                console.error(err);
+                showError('Error loading preview: ' + (err.message || 'Could not read PDF.'));
+            }
+        }
+
+        flattenBtn.addEventListener('click', async () => {
+            if (!currentFile || !currentPdfData) return;
+            hideError();
+            flattenBtn.disabled = true;
+            dpiSelect.disabled = true;
+            progressContainer.classList.add('active');
+
+            try {
+                const dpi = parseInt(dpiSelect.value);
+                const quality = 0.92;
+
+                setProgress(5, 'Loading PDF...');
+                const pdf = await pdfjsLib.getDocument({ data: currentPdfData }).promise;
+                const totalPages = pdf.numPages;
+                const { jsPDF } = window.jspdf;
+
+                let outputPdf = null;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pagePercent = 5 + ((i - 1) / totalPages) * 90;
+                    setProgress(pagePercent, `Rendering page ${i} of ${totalPages}...`);
+
+                    const page = await pdf.getPage(i);
+                    const viewport72 = page.getViewport({ scale: 1 });
+                    const widthPt = viewport72.width;
+                    const heightPt = viewport72.height;
+
+                    const scale = dpi / 72;
+                    const viewport = page.getViewport({ scale: scale });
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                    const imgData = canvas.toDataURL('image/jpeg', quality);
+
+                    if (i === 1) {
+                        outputPdf = new jsPDF({
+                            orientation: widthPt > heightPt ? 'landscape' : 'portrait',
+                            unit: 'pt',
+                            format: [widthPt, heightPt],
+                            compress: true
+                        });
+                    } else {
+                        outputPdf.addPage([widthPt, heightPt], widthPt > heightPt ? 'landscape' : 'portrait');
+                    }
+
+                    outputPdf.addImage(imgData, 'JPEG', 0, 0, widthPt, heightPt, undefined, 'FAST');
+                    page.cleanup();
+                }
+
+                setProgress(98, 'Finalizing PDF...');
+                const outputData = outputPdf.output('arraybuffer');
+                const blob = new Blob([outputData], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                const baseName = currentFile.name.replace(/\.pdf$/i, '');
+                a.download = baseName + '_flattened.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                setProgress(100, 'Done! Download started.');
+            } catch (err) {
+                console.error(err);
+                showError('Error: ' + (err.message || 'Failed to flatten PDF.'));
+                setProgress(0, '');
+            } finally {
+                flattenBtn.disabled = false;
+                dpiSelect.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
