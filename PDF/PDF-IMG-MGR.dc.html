@@ -23,7 +23,7 @@
 <dc-import name="DropBox" hint-size="100%,165px"
       headline="DROP-BOX"
       box-padding="16px 20px"
-      box-margin-bottom="24px"
+      box-margin-bottom="14px"
       file-types-label="PDF, JPG, PNG, WebP, GIF, BMP, SVG, AVIF"
       allow-multiple="{{ true }}"
       drop-border-color="{{ dropBorderColor }}"
@@ -40,16 +40,6 @@
       stop-propagation="{{ stopPropagation }}"
       on-paste-click="{{ onDropPasteClick }}"
     ></dc-import>
-
-    <div style="display:grid; grid-template-columns:{{ headerGridCols }}; gap:14px; align-items:center; margin-bottom:14px;">
-      <img src="./assets/PDF-IMG-MGR.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; justify-self:center;" />
-<sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
-      <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ titleFontSize }}px; letter-spacing:-0.015em; margin:0; text-align:{{ titleAlign }}; white-space:{{ titleWrap }};">PDF-IMAGE-MANAGER</h1>
-      </sc-if>
-      <a href="http://bluejetty.ca" target="_blank" rel="noopener" style="justify-self:center;">
-        <img src="./assets/bluejetty.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease;" style-hover="width:100px; height:100px; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-      </a>
-    </div>
 
     <div style="display:grid; grid-template-columns:repeat({{ tileCols }}, 1fr); gap:10px;">
       <sc-for list="{{ tiles }}" as="tile" hint-placeholder-count="8">
@@ -71,6 +61,14 @@
           <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ tile.labelSize }}px; line-height:1.15; text-align:center; transition:font-size 0.3s ease; padding:0 2px;">{{ tile.label }}</div>
         </a>
       </sc-for>
+    </div>
+
+    <div style="display:grid; grid-template-columns:{{ headerGridCols }}; gap:14px; align-items:center; margin-top:28px;">
+      <img src="./assets/PDF-IMG-MGR.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; justify-self:center;" />
+      <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ titleFontSize }}px; letter-spacing:-0.015em; margin:0; text-align:{{ titleAlign }}; white-space:{{ titleWrap }};">PDF-IMAGE-MANAGER</h1>
+      <a href="http://bluejetty.ca" target="_blank" rel="noopener" style="justify-self:center;">
+        <img src="./assets/bluejetty.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease;" style-hover="width:100px; height:100px; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
+      </a>
     </div>
   </div>
 </div>
@@ -233,7 +231,7 @@ class Component extends DCLogic {
       { label: 'PDF-JPG', initials: 'JPG', subtitle: 'PDF → JPG', href: './PDF-JPG.dc.html', logo: './assets/PDF-JPG.png' },
     ];
     const imageActive = [
-      { label: 'MULTI-IMAGE-CONVERTER', initials: 'IMG', subtitle: 'JPG PNG WEBP GIF BMP SVG AVIF → JPG PNG WEBP GIF BMP SVG AVIF', href: './IMAGE-CONVERTOR.dc.html', logo: './assets/IMAGE-CONVERTOR.png' },
+      { label: 'MULTI-IMAGE-CONVERTER', initials: 'IMG', subtitle: 'JPG PNG WEBP GIF BMP SVG AVIF → JPG PNG WEBP GIF BMP SVG AVIF', href: './IMAGE-CONVERTER.dc.html', logo: './assets/IMAGE-CONVERTER.png' },
       { label: 'IMAGE-SPLITTER', initials: 'SPL', subtitle: 'PNG JPG WEBP GIF BMP SVG AVIF → PNG JPG WEBP GIF BMP SVG AVIF', href: './IMAGE-SPLITTER.dc.html', logo: './assets/IMAGE-SPLITTER.png' },
     ];
 
@@ -306,8 +304,8 @@ class Component extends DCLogic {
       dropHeadline: detected === 'pdf' ? 'PDF tools highlighted below'
         : detected === 'image' ? 'Image tools highlighted below'
         : 'DROP-BOX',
-      outerPadding: isMobile ? '28px 14px' : '56px 24px',
-      headerGridCols: isMobile ? '1fr 1fr' : '1fr auto 1fr',
+      outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
+      headerGridCols: isMobile ? '1fr 1fr 1fr' : '1fr auto 1fr',
       headerLogoSize: isMobile ? 79 : 150,
       titleFontSize: isMobile ? 26 : 42,
       titleAlign: isMobile ? 'center' : 'left',
