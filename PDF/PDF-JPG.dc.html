@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="./shared-file-store.js"></script>
   <style>
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     a { color: #5980a6; }
@@ -41,6 +42,8 @@
         load-from-url="{{ loadFromUrl }}"
         stop-propagation="{{ stopPropagation }}"
         on-paste-click="{{ onPasteClick }}"
+        has-thumbnails="{{ hasPages }}"
+        thumbnails="{{ dropThumbnails }}"
       ></dc-import>
 
         <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
@@ -203,6 +206,9 @@ class Component extends DCLogic {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
     this.consumeHandoff();
+    if (window.SharedFileStore) {
+      window.SharedFileStore.loadSharedFile().then((f) => { if (f) this.loadPdf(f, true); });
+    }
     this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
     window.addEventListener('dragover', this._blockNav);
     window.addEventListener('drop', this._blockNav);
@@ -297,9 +303,10 @@ class Component extends DCLogic {
       fileName: null, baseName: '', pages: [], loading: false, error: null,
       generating: false, progressText: '', downloadUrl: null, zipName: '',
     });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile();
   };
 
-  async loadPdf(file) {
+  async loadPdf(file, fromShared) {
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       this.setState({ error: 'Please drop a PDF file.' });
       return;
@@ -330,6 +337,7 @@ class Component extends DCLogic {
         });
       }
       this.setState({ fileName: file.name, baseName, pages, loading: false });
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.saveSharedFile(file);
     } catch (err) {
       this.setState({ loading: false, error: 'Could not read that PDF: ' + err.message });
     }
@@ -394,6 +402,7 @@ class Component extends DCLogic {
       fileName, loading, error, generating, progressText, downloadUrl, zipName,
       noFile: !fileName,
       hasPages: pages.length > 0,
+      dropThumbnails: pages.map((p) => ({ url: p.thumbDataUrl })),
       pageCountLabel: `${pages.length} page${pages.length === 1 ? '' : 's'} · ${checkedCount} selected`,
       outerPadding: isMobile ? '28px 14px' : '56px 24px',
       headerGridCols: isMobile ? '1fr' : 'auto 1fr auto',
