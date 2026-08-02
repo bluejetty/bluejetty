@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-bottom:0; display:flex; flex-direction:column; min-height:60px; min-width:220px; resize:horizontal; overflow:hidden;">
+  <sc-if value="{{ showLabel }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute; top:8px; left:14px; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.4); pointer-events:none;">Notepad</div>
+  </sc-if>
+  <div style="position:absolute; top:8px; right:14px; display:flex; align-items:center; gap:10px; z-index:1;">
+    <span style="font-size:11px; color:#3f7d4a; opacity:{{ savedOpacity }}; transition:opacity 0.3s ease;">Saved ✓</span>
+    <button onClick="{{ clearNotepad }}" style="background:none; border:none; color:rgba(29,31,32,0.5); font-size:11px; text-decoration:underline; cursor:pointer; padding:0;">Clear</button>
+  </div>
+  <div style="flex:1; padding:0;">
+    <textarea
+      value="{{ text }}"
+      onChange="{{ onChange }}"
+      placeholder="{{ placeholder }}"
+      style="width:100%; height:100%; min-height:60px; resize:vertical; border:none; outline:none; padding:28px 14px 10px; font-family:inherit; font-size:13px; box-sizing:border-box; display:block;"
+    ></textarea>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;storageKey&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;notepad&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;placeholder&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;Paste reference text here to save or arrange for easier pasting...&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { text: '', savedVisible: false };
+
+  componentDidMount() {
+    const key = this.props.storageKey || 'notepad';
+    const saved = localStorage.getItem(key);
+    if (saved !== null) this.setState({ text: saved });
+  }
+
+  onChange = (e) => {
+    const val = e.target.value;
+    this.setState({ text: val });
+    clearTimeout(this._saveTimeout);
+    this._saveTimeout = setTimeout(() => {
+      localStorage.setItem(this.props.storageKey || 'notepad', val);
+      this.setState({ savedVisible: true });
+      clearTimeout(this._hideTimeout);
+      this._hideTimeout = setTimeout(() => this.setState({ savedVisible: false }), 1200);
+    }, 400);
+  };
+
+  clearNotepad = () => {
+    if (confirm('Clear the notepad? This cannot be undone.')) {
+      this.setState({ text: '' });
+      localStorage.removeItem(this.props.storageKey || 'notepad');
+    }
+  };
+
+  renderVals() {
+    return {
+      text: this.state.text,
+      onChange: this.onChange,
+      clearNotepad: this.clearNotepad,
+      savedOpacity: this.state.savedVisible ? 1 : 0,
+      placeholder: this.props.placeholder ?? '',
+      showLabel: !this.state.text,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
