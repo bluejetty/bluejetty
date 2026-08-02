@@ -67,11 +67,6 @@
           <button onClick="{{ reset }}" title="Clear the file list" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-DROPPED-FILES.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
           <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▲</span>
             </div>
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
-          <button onClick="{{ reset }}" title="Clear all dropped files and inputs" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-REFRESH-PAGE.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
-          <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
-            </div>
           </div>
         </div>
 <div style="margin-left:auto; display:flex; flex-direction:column; gap:20px; align-items:flex-end;">
@@ -191,11 +186,6 @@
           <button onClick="{{ reset }}" title="Clear the file list" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-DROPPED-FILES.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
           <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▲</span>
             </div>
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
-          <button onClick="{{ reset }}" title="Clear all dropped files and inputs" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-REFRESH-PAGE.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
-          <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
-            </div>
           </div>
         </div>
 <div style="margin:0 auto; display:grid; grid-template-columns:repeat(3, 80px); row-gap:20px; column-gap:8px; justify-items:center; align-items:center;">
@@ -244,7 +234,7 @@ class Component extends DCLogic {
     }
     this.consumeHandoff();
     if (window.SharedFileStore) {
-      window.SharedFileStore.loadSharedFiles().then((files) => { files.forEach((f) => this.loadPdf(f, true)); });
+      window.SharedFileStore.loadSharedFiles('jpg').then((files) => { files.forEach((f) => this.loadPdf(f, true)); });
     }
     this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
     window.addEventListener('dragover', this._blockNav);
@@ -343,7 +333,7 @@ class Component extends DCLogic {
       fileName: null, baseName: '', files: [], pages: [], loading: false, error: null,
       generating: false, progressText: '', downloadUrl: null, zipName: '',
     });
-    if (window.SharedFileStore) window.SharedFileStore.clearSharedFiles();
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFiles('jpg');
   };
 
   async loadPdf(file, fromShared) {
@@ -400,7 +390,7 @@ class Component extends DCLogic {
         pages: [...s.pages, ...newPages],
         loading: false,
       }));
-      if (!fromShared && window.SharedFileStore) window.SharedFileStore.addSharedFile(file);
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.addSharedFile(file, 'jpg');
     } catch (err) {
       this.setState({ loading: false, error: 'Could not read that PDF: ' + err.message });
     }

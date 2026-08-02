@@ -152,7 +152,7 @@
                 onChange="{{ onTextInputChange }}"
                 onKeyDown="{{ onTextInputKeyDown }}"
                 placeholder="Type text…"
-                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; border:1px solid rgba(29,31,32,0.2); min-width:160px; text-align:{{ textBoxTextAlign }};"
+                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; border:1px solid rgba(29,31,32,0.2); min-width:160px; text-align:{{ textBoxTextAlign }}; text-transform:uppercase;"
               />
               <button onClick="{{ commitText }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Add</button>
               <button onClick="{{ cancelText }}" style="border:1px solid rgba(29,31,32,0.2); background:transparent; padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
@@ -294,7 +294,7 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
-const COLORS = { blue: '#1d4ed8', red: '#dc2626', green: '#16a34a', yellow: '#eab308', orange: '#f97316' };
+const COLORS = { blue: '#1d4ed8', red: '#dc2626', green: '#16a34a', yellow: '#ffea00', orange: '#f97316' };
 
 class Component extends DCLogic {
   state = {
@@ -684,7 +684,7 @@ class Component extends DCLogic {
 
   strokeParamsFor(tool, colorHex, penSize) {
     if (tool === 'eraser') return { lineWidth: penSize * 2.2, opacity: 1, color: '#000000' };
-    if (tool === 'highlighter') return { lineWidth: Math.max(18, penSize * 5), opacity: 0.2, color: colorHex };
+    if (tool === 'highlighter') return { lineWidth: Math.max(18, penSize * 5), opacity: 0.3, color: colorHex };
     return { lineWidth: penSize, opacity: 1, color: colorHex };
   }
 
@@ -824,7 +824,7 @@ class Component extends DCLogic {
   onTouchStart = (e) => { e.preventDefault(); const t = e.touches[0]; this.onPointerDown({ clientX: t.clientX, clientY: t.clientY }); };
   onTouchMove = (e) => { e.preventDefault(); const t = e.touches[0]; this.onPointerMove({ clientX: t.clientX, clientY: t.clientY }); };
 
-  onTextInputChange = (e) => this.setState({ textInputValue: e.target.value });
+  onTextInputChange = (e) => this.setState({ textInputValue: e.target.value.toUpperCase() });
   onTextInputKeyDown = (e) => { if (e.key === 'Enter') this.commitText(); if (e.key === 'Escape') this.cancelText(); };
 
   commitText = () => {
@@ -1083,10 +1083,10 @@ class Component extends DCLogic {
     }));
 
     const toolOptions = [
-      { key: 'pen', label: 'Pen' },
-      { key: 'highlighter', label: 'Highlighter' },
-      { key: 'eraser', label: 'Eraser' },
-      { key: 'text', label: 'Text' },
+      { key: 'pen', label: 'PEN' },
+      { key: 'highlighter', label: 'HIGHLIGHTER' },
+      { key: 'eraser', label: 'ERASER' },
+      { key: 'text', label: 'TEXT' },
       { key: 'snip', label: 'CREATE ZOOMED DETAIL' },
     ].map((t) => ({
       ...t,
