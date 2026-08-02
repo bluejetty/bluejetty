@@ -361,7 +361,20 @@ class Component extends DCLogic {
       this.pdfDocs[fileIdx] = doc;
       const baseName = file.name.replace(/\.pdf$/i, '');
       const newPages = [];
+      const THUMB_LIMIT = 40;
       for (let i = 1; i <= doc.numPages; i++) {
+        if (doc.numPages > THUMB_LIMIT && i > THUMB_LIMIT) {
+    if (!this._thumbPlaceholder) {
+      const __ph = document.createElement('canvas');
+      __ph.width = 120; __ph.height = 155;
+      const __pctx = __ph.getContext('2d');
+      __pctx.fillStyle = '#f2f2f3'; __pctx.fillRect(0, 0, 120, 155);
+      __pctx.strokeStyle = 'rgba(29,31,32,0.16)'; __pctx.strokeRect(0.5, 0.5, 119, 154);
+      this._thumbPlaceholder = __ph.toDataURL('image/png');
+    }
+          newPages.push({ id: fileIdx + '-' + i, fileIdx, index: i, baseName, checked: true, thumbDataUrl: this._thumbPlaceholder });
+          continue;
+        }
         const page = await doc.getPage(i);
         const nativeViewport = page.getViewport({ scale: 1 });
         const thumbScale = Math.min(1, 260 / nativeViewport.width);

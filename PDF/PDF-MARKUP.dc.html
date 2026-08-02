@@ -164,7 +164,7 @@
               onClick="{{ stopPropagation }}"
               style="position:absolute; left:{{ snipBoxX }}px; top:{{ snipBoxY }}px; display:flex; gap:6px; background:#fff; padding:6px; border:1px solid rgba(29,31,32,0.3); box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:50;"
             >
-              <button onClick="{{ captureSnip }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CAPTURE</button>
+              <button onClick="{{ captureSnip }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CREATE DETAIL PAGE</button>
               <button onClick="{{ cancelSnip }}" style="border:1px solid rgba(29,31,32,0.2); background:transparent; padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
             </div>
           </sc-if>
@@ -179,10 +179,7 @@
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Prev</button>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="font-size:13px; color:rgba(29,31,32,0.6);">Page {{ currentPage }} of {{ numPages }}</div>
-          <button onClick="{{ rotatePage }}" title="Page rendering sideways? Rotate it 90°." style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Rotate ⟳</button>
-        </div>
+        <div style="font-size:13px; color:rgba(29,31,32,0.6);">Page {{ currentPage }} of {{ numPages }}</div>
         <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Next</button>
       </div>
 
@@ -343,7 +340,6 @@ class Component extends DCLogic {
   leaderAnchor = null;
   originalNumPages = 0;
   extraPages = [];
-  pageRotationExtra = {};
   snipDragging = false;
   snipStart = null;
   snipCurrent = null;
@@ -447,7 +443,6 @@ class Component extends DCLogic {
     this.pageScales = {};
     this.pageDims = {};
     this.extraPages = [];
-    this.pageRotationExtra = {};
     this.setState({ loading: true });
     const buf = await file.arrayBuffer();
     this.pdfDoc = await window.pdfjsLib.getDocument({ data: buf }).promise;
@@ -459,10 +454,9 @@ class Component extends DCLogic {
   async renderPage(pageNum) {
     if (pageNum <= this.originalNumPages) {
       const page = await this.pdfDoc.getPage(pageNum);
-      const rotation = (page.rotate + (this.pageRotationExtra[pageNum] || 0)) % 360;
-      const viewport1 = page.getViewport({ scale: 1, rotation });
+      const viewport1 = page.getViewport({ scale: 1 });
       const scale = Math.min(1.8, 1500 / viewport1.width);
-      const viewport = page.getViewport({ scale, rotation });
+      const viewport = page.getViewport({ scale });
       const bg = this.bgCanvasRef.current;
       const overlay = this.overlayCanvasRef.current;
       bg.width = viewport.width; bg.height = viewport.height;
@@ -965,12 +959,6 @@ class Component extends DCLogic {
   prevPage = () => { if (this.state.currentPage > 1) this.goToPage(this.state.currentPage - 1); };
   nextPage = () => { if (this.state.currentPage < this.state.numPages) this.goToPage(this.state.currentPage + 1); };
 
-  rotatePage = () => {
-    const p = this.state.currentPage;
-    this.pageRotationExtra[p] = ((this.pageRotationExtra[p] || 0) + 90) % 360;
-    this.renderPage(p);
-  };
-
   goToPage(pageNum) {
     this.textStage = 0;
     this.leaderAnchor = null;
@@ -984,7 +972,6 @@ class Component extends DCLogic {
     this.redoByPage = {};
     this.extraPages = [];
     this.originalNumPages = 0;
-    this.pageRotationExtra = {};
     this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1 });
     if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('markup');
   };
@@ -1008,11 +995,10 @@ class Component extends DCLogic {
       let widthPt, heightPt, canvas, ctx;
       if (i <= this.originalNumPages) {
         const page = await this.pdfDoc.getPage(i);
-        const rotation = (page.rotate + (this.pageRotationExtra[i] || 0)) % 360;
-        const viewport1 = page.getViewport({ scale: 1, rotation });
+        const viewport1 = page.getViewport({ scale: 1 });
         widthPt = viewport1.width;
         heightPt = viewport1.height;
-        const viewport = page.getViewport({ scale: exportScale, rotation });
+        const viewport = page.getViewport({ scale: exportScale });
         canvas = document.createElement('canvas');
         canvas.width = viewport.width;
         canvas.height = viewport.height;
@@ -1155,7 +1141,7 @@ class Component extends DCLogic {
       redoDisabled: redoStackLen === 0,
       undoOpacity: undoStackLen === 0 ? 0.4 : 1,
       redoOpacity: redoStackLen === 0 ? 0.4 : 1,
-      prevPage: this.prevPage, nextPage: this.nextPage, rotatePage: this.rotatePage,
+      prevPage: this.prevPage, nextPage: this.nextPage,
       prevDisabled: currentPage <= 1,
       nextDisabled: currentPage >= numPages,
       wrapRef: this.wrapRef,
