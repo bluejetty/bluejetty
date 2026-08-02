@@ -144,7 +144,7 @@
             <div
               onMouseDown="{{ stopPropagation }}"
               onClick="{{ stopPropagation }}"
-              style="position:absolute; left:{{ textBoxX }}px; top:{{ textBoxY }}px; display:flex; gap:6px; background:#fff; padding:6px; border:1px solid rgba(29,31,32,0.3); box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:50;"
+              style="position:absolute; left:{{ textBoxX }}px; top:{{ textBoxY }}px; transform:{{ textBoxTransform }}; display:flex; gap:6px; background:#fff; padding:6px; border:1px solid rgba(29,31,32,0.3); box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:50;"
             >
               <input
                 ref="{{ textInputFocusRef }}"
@@ -152,7 +152,7 @@
                 onChange="{{ onTextInputChange }}"
                 onKeyDown="{{ onTextInputKeyDown }}"
                 placeholder="Type text…"
-                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; border:1px solid rgba(29,31,32,0.2); min-width:160px;"
+                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; border:1px solid rgba(29,31,32,0.2); min-width:160px; text-align:{{ textBoxTextAlign }};"
               />
               <button onClick="{{ commitText }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Add</button>
               <button onClick="{{ cancelText }}" style="border:1px solid rgba(29,31,32,0.2); background:transparent; padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
@@ -198,6 +198,9 @@
             <input type="range" min="10" max="72" value="{{ textSize }}" onChange="{{ onTextSizeChange }}" style="width:100px;" />
             <span style="font-size:13px; color:rgba(29,31,32,0.6); width:22px;">{{ textSize }}</span>
           </div>
+        </sc-if>
+        <sc-if value="{{ showTextHint }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">{{ textHintMessage }}</div>
         </sc-if>
 
         <div style="display:flex; gap:8px; margin-left:auto;">
@@ -304,6 +307,8 @@ class Component extends DCLogic {
   isDrawing = false;
   currentPoints = null;
   currentStrokeStyle = null;
+  textStage = 0;
+  leaderAnchor = null;
 
   componentDidMount() {
     if (window.pdfjsLib) window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -460,6 +465,30 @@ class Component extends DCLogic {
       ctx.font = `${a.fontSize}px 'Arial Narrow', Arial, sans-serif`;
       ctx.textBaseline = 'top';
       ctx.fillText(a.text, a.x, a.y);
+    } else if (a.type === 'leaderText') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      const dir = a.dir || 1;
+      const stubLen = a.stubLen || 24;
+      const stubEndX = a.end[0] + dir * stubLen;
+      ctx.strokeStyle = a.color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(a.anchor[0], a.anchor[1]);
+      ctx.lineTo(a.end[0], a.end[1]);
+      ctx.lineTo(stubEndX, a.end[1]);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(a.anchor[0], a.anchor[1], 3, 0, Math.PI * 2);
+      ctx.fillStyle = a.color;
+      ctx.fill();
+      ctx.font = `${a.fontSize}px 'Arial Narrow', Arial, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = dir === 1 ? 'left' : 'right';
+      ctx.fillText(a.text, stubEndX + dir * 4, a.end[1]);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
     }
   }
 
@@ -479,13 +508,36 @@ class Component extends DCLogic {
 
   onPointerDown = (e) => {
     if (!this.state.loaded) return;
-    if (this.state.placingText) return;
-    const [x, y] = this.canvasPoint(e.clientX, e.clientY);
     if (this.state.tool === 'text') {
+      if (this.state.placingText) return;
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      if (this.textStage !== 1) {
+        this.leaderAnchor = pt;
+        this.textStage = 1;
+        return;
+      }
+      const end = pt;
+      const dir = end[0] >= this.leaderAnchor[0] ? 1 : -1;
+      const stubLen = 24;
+      const stubEndCanvasX = end[0] + dir * stubLen;
+      const canvas = this.overlayCanvasRef.current;
       const rect = this.wrapRef.current.getBoundingClientRect();
-      this.setState({ placingText: { x, y }, textInputValue: '', textBoxCss: { left: e.clientX - rect.left, top: e.clientY - rect.top } });
+      const scaleX = rect.width / canvas.width;
+      const scaleY = rect.height / canvas.height;
+      const cssX = stubEndCanvasX * scaleX;
+      const cssY = end[1] * scaleY;
+      this.textStage = 0;
+      const anchor = this.leaderAnchor;
+      this.leaderAnchor = null;
+      this.setState({
+        placingText: { anchor, end, dir, stubLen },
+        textInputValue: '',
+        textBoxCss: { left: cssX, top: cssY - 18, dir },
+      });
       return;
     }
+    if (this.state.placingText) return;
+    const [x, y] = this.canvasPoint(e.clientX, e.clientY);
     this.isDrawing = true;
     this.currentPoints = [[x, y]];
     const params = this.strokeParamsFor(this.state.tool, COLORS[this.state.colorKey], this.state.penSize);
@@ -503,7 +555,27 @@ class Component extends DCLogic {
 
   onPointerMove = (e) => {
     const rect = this.wrapRef.current ? this.wrapRef.current.getBoundingClientRect() : null;
-    if (rect) this.setState({ cursorX: e.clientX - rect.left, cursorY: e.clientY - rect.top, showCursorDot: this.state.tool !== 'text' });
+    if (rect) this.setState({ cursorX: e.clientX - rect.left, cursorY: e.clientY - rect.top, showCursorDot: true });
+    if (this.state.tool === 'text' && this.textStage === 1 && this.leaderAnchor && !this.state.placingText) {
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      this.redrawPage(this.state.currentPage);
+      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      ctx.save();
+      ctx.strokeStyle = COLORS[this.state.colorKey];
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(this.leaderAnchor[0], this.leaderAnchor[1]);
+      ctx.lineTo(pt[0], pt[1]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(this.leaderAnchor[0], this.leaderAnchor[1], 3, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS[this.state.colorKey];
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
     if (!this.isDrawing) return;
     const [x, y] = this.canvasPoint(e.clientX, e.clientY);
     this.currentPoints.push([x, y]);
@@ -540,17 +612,26 @@ class Component extends DCLogic {
     const text = this.state.textInputValue.trim();
     if (text && this.state.placingText) {
       const pageNum = this.state.currentPage;
-      const { x, y } = this.state.placingText;
+      const { anchor, end, dir, stubLen } = this.state.placingText;
       this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
-      this.actionsByPage[pageNum].push({ type: 'text', x, y, text, color: COLORS[this.state.colorKey], fontSize: this.state.textSize });
+      this.actionsByPage[pageNum].push({ type: 'leaderText', anchor, end, dir, stubLen, text, color: COLORS[this.state.colorKey], fontSize: this.state.textSize });
       this.redoByPage[pageNum] = [];
       this.redrawPage(pageNum);
       this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
+    } else if (this.state.loaded) {
+      this.redrawPage(this.state.currentPage);
     }
+    this.textStage = 0;
+    this.leaderAnchor = null;
     this.setState({ placingText: null, textInputValue: '' });
   };
 
-  cancelText = () => this.setState({ placingText: null, textInputValue: '' });
+  cancelText = () => {
+    this.textStage = 0;
+    this.leaderAnchor = null;
+    if (this.state.loaded) this.redrawPage(this.state.currentPage);
+    this.setState({ placingText: null, textInputValue: '' });
+  };
 
   stopPropagation = (e) => e.stopPropagation();
 
@@ -566,6 +647,9 @@ class Component extends DCLogic {
     let colorKey = this.state.colorKey;
     if (tool === 'highlighter' && !highlighterColors.includes(colorKey)) colorKey = 'yellow';
     else if (tool !== 'highlighter' && highlighterColors.includes(colorKey)) colorKey = 'blue';
+    this.textStage = 0;
+    this.leaderAnchor = null;
+    if (this.state.loaded) this.redrawPage(this.state.currentPage);
     this.setState({ tool, colorKey, placingText: null });
   }
   onPenSizeChange = (e) => this.setState({ penSize: parseInt(e.target.value, 10) });
@@ -669,6 +753,32 @@ class Component extends DCLogic {
           ctx.font = `${a.fontSize * ratio}px 'Arial Narrow', Arial, sans-serif`;
           ctx.textBaseline = 'top';
           ctx.fillText(a.text, a.x * ratio, a.y * ratio);
+        } else if (a.type === 'leaderText') {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 1;
+          const dir = a.dir || 1;
+          const stubLen = (a.stubLen || 24) * ratio;
+          const ax = a.anchor[0] * ratio, ay = a.anchor[1] * ratio;
+          const ex = a.end[0] * ratio, ey = a.end[1] * ratio;
+          const stubEndX = ex + dir * stubLen;
+          ctx.strokeStyle = a.color;
+          ctx.lineWidth = 2 * ratio;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(ex, ey);
+          ctx.lineTo(stubEndX, ey);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(ax, ay, 3 * ratio, 0, Math.PI * 2);
+          ctx.fillStyle = a.color;
+          ctx.fill();
+          ctx.font = `${a.fontSize * ratio}px 'Arial Narrow', Arial, sans-serif`;
+          ctx.textBaseline = 'middle';
+          ctx.textAlign = dir === 1 ? 'left' : 'right';
+          ctx.fillText(a.text, stubEndX + dir * 4 * ratio, ey);
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
         }
       });
 
@@ -725,6 +835,7 @@ class Component extends DCLogic {
     if (tool === 'pen') { cursorSize = Math.max(10, penSize * 2); cursorBg = colorHex; cursorBorder = colorHex; }
     else if (tool === 'highlighter') { cursorSize = Math.max(14, penSize * 3.2); cursorBg = colorHex + '55'; cursorBorder = colorHex; }
     else if (tool === 'eraser') { cursorSize = Math.max(16, penSize * 2.2); cursorBg = 'rgba(255,255,255,0.15)'; cursorBorder = '#ffffff'; }
+    else if (tool === 'text') { cursorSize = 14; cursorBg = 'transparent'; cursorBorder = colorHex; }
 
     return {
       isMobile,
@@ -780,6 +891,10 @@ class Component extends DCLogic {
       placingText,
       textBoxX: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.left : 0) : 0,
       textBoxY: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.top : 0) : 0,
+      textBoxTransform: (placingText && this.state.textBoxCss && this.state.textBoxCss.dir === -1) ? 'translateX(-100%)' : 'none',
+      textBoxTextAlign: (placingText && this.state.textBoxCss && this.state.textBoxCss.dir === -1) ? 'right' : 'left',
+      showTextHint: tool === 'text' && !placingText,
+      textHintMessage: this.textStage === 1 ? 'Click again to place the label.' : 'Click the feature the line should point to, then click where the label should sit.',
       textInputValue,
       onTextInputChange: this.onTextInputChange,
       onTextInputKeyDown: this.onTextInputKeyDown,
