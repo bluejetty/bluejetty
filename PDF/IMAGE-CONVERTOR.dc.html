@@ -18,35 +18,9 @@
 </helmet>
 <div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
   <div style="max-width:820px; width:100%;">
-    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; min-height:44px;">
-        <a href="./PDF-IMG-MGR.dc.html" title="Back to Main Menu" style="flex-shrink:0; display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:44px; height:44px; object-fit:contain; display:block;" /></a>
-        <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:-0.015em; margin:0; white-space:nowrap; text-align:right;">MULTI-IMAGE-CONVERTER</h1>
-      </div>
-    </sc-if>
-    <sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
-      <div style="display:flex; flex-wrap:wrap-reverse; align-items:center; justify-content:flex-start; column-gap:14px; row-gap:10px; margin-bottom:14px;">
-        <div style="display:grid; grid-template-columns:repeat(4, 80px); row-gap:20px; column-gap:8px; justify-items:center; align-items:center;">
-        <a href="./PDF-MARKUP.dc.html" title="PDF-MARKUP"><img src="./assets/PDF-MARKUP.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <a href="./PDF-FLATTENER.dc.html" title="PDF-FLATTENER"><img src="./assets/PDF-FLATTENER.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <a href="./PDF-CREATOR.dc.html" title="PDF-CREATOR"><img src="./assets/PDF-CREATOR.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <a href="./PDF-SPLITTER.dc.html" title="PDF-SPLITTER"><img src="./assets/PDF-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <a href="./PDF-WATERMARK.dc.html" title="PDF-WATERMARK"><img src="./assets/PDF-WATERMARK.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        <img src="./assets/IMAGE-CONVERTOR.png" style="width:80px; height:80px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-        <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease;" style-hover="width:80px; height:80px;" /></a>
-        </div>
-        <div style="display:flex; align-items:center; gap:14px; margin-left:auto;">
-          <button onClick="{{ clearPage }}" title="Clear all dropped files and inputs" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-REFRESH-PAGE.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></button>
-          <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></a>
-          <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ titleFontSize }}px; letter-spacing:-0.015em; margin:0; white-space:nowrap; text-align:center;">MULTI-IMAGE<br />CONVERTER</h1>
-          <a href="http://bluejetty.ca" target="_blank" rel="noopener" style="display:block;">
-            <img src="./assets/bluejetty.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease;" style-hover="width:100px; height:100px; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-          </a>
-        </div>
-      </div>
-    </sc-if>
-    <dc-import name="DropBox" hint-size="100%,165px"
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<dc-import name="DropBox" hint-size="100%,165px"
       headline="DROP-BOX"
       box-padding="16px 20px"
       box-margin-bottom="24px"
@@ -69,23 +43,46 @@
       on-paste-click="{{ onPasteClick }}"
     ></dc-import>
 
-    <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-bottom:20px; display:flex; flex-direction:column; min-height:180px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 14px 0; margin-bottom:8px;">
-        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">Notepad</div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="font-size:11px; color:#3f7d4a; opacity:{{ notesSavedOpacity }}; transition:opacity 0.3s ease;">Saved ✓</span>
-          <button onClick="{{ clearNotepad }}" style="background:none; border:none; color:rgba(29,31,32,0.5); font-size:11px; text-decoration:underline; cursor:pointer; padding:0;">Clear</button>
+        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; min-height:44px;">
+        <a href="./PDF-IMG-MGR.dc.html" title="Back to Main Menu" style="flex-shrink:0; display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:44px; height:44px; object-fit:contain; display:block;" /></a>
+        <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:-0.015em; margin:0; white-space:nowrap; text-align:right;">MULTI-IMAGE-CONVERTER</h1>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; flex-wrap:wrap-reverse; align-items:center; justify-content:flex-start; column-gap:14px; row-gap:10px; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:14px; ">
+          <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></a>
+          <h1 style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ titleFontSize }}px; letter-spacing:-0.015em; margin:0; white-space:nowrap; text-align:center;">MULTI-IMAGE<br />CONVERTER</h1>
+
+
+          <div style="width:40px; flex-shrink:0;"></div>
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▲</span>
+          <button onClick="{{ clearPage }}" title="Clear the file list" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-DROPPED-FILES.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
+          <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▲</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
+          <button onClick="{{ clearPage }}" title="Clear all dropped files and inputs" style="width:50px; height:50px; flex-shrink:0; border:none; background:none; padding:0; cursor:pointer; display:block;"><img src="./assets/CLEAR-REFRESH-PAGE.png" style="width:100%; height:100%; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff; transition:box-shadow 0.2s ease;" style-hover="box-shadow:0 3px 10px rgba(200,40,40,0.55), 0 1px 4px rgba(200,40,40,0.4);" /></button>
+          <span style="font-size:22px; color:rgba(29,31,32,0.4); line-height:1;">▼</span>
+            </div>
+          </div>
+        </div>
+<div style="margin-left:auto; display:grid; grid-template-columns:repeat(4, 80px); row-gap:20px; column-gap:8px; justify-items:center; align-items:center;">
+        <a href="./PDF-MARKUP.dc.html" title="PDF-MARKUP"><img src="./assets/PDF-MARKUP.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-FLATTENER.dc.html" title="PDF-FLATTENER"><img src="./assets/PDF-FLATTENER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-CREATOR.dc.html" title="PDF-CREATOR"><img src="./assets/PDF-CREATOR.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-SPLITTER.dc.html" title="PDF-SPLITTER"><img src="./assets/PDF-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-WATERMARK.dc.html" title="PDF-WATERMARK"><img src="./assets/PDF-WATERMARK.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <img src="./assets/IMAGE-CONVERTOR.png" style="width:80px; height:80px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
+        <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         </div>
       </div>
-      <div style="flex:1; padding:0 14px 14px;">
-        <textarea
-          value="{{ notepad }}"
-          onChange="{{ onNotepadChange }}"
-          placeholder="Paste reference text here to save or arrange for easier URL pasting ..."
-          style="width:100%; height:100%; min-height:120px; resize:vertical; border:none; outline:none; padding:10px; font-family:inherit; font-size:13px; box-sizing:border-box; display:block;"
-        ></textarea>
-      </div>
-    </div>
+    </sc-if>
+
 
     <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-bottom:8px; display:flex; flex-direction:column; min-height:180px;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 14px 0; margin-bottom:8px;">
@@ -172,7 +169,13 @@
     <sc-if value="{{ showLog }}" hint-placeholder-val="{{ false }}">
       <div style="margin-top:16px; background:#1d2d3d; color:#dfe6ec; font-family:'Courier New',monospace; font-size:12px; padding:12px; height:180px; overflow-y:auto; white-space:pre-wrap;">{{ logText }}</div>
     </sc-if>
-
+    <div style="display:flex; align-items:center; justify-content:flex-start; column-gap:14px; margin-top:32px; padding-top:20px;">
+      
+      <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:80px; height:80px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+      <a href="http://bluejetty.ca" target="_blank" rel="noopener" style="display:block; margin-left:auto;">
+        <img src="./assets/bluejetty.png" style="width:80px; height:80px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" />
+      </a>
+    </div>
   </div>
 </div>
 </x-dc>

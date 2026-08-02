@@ -18,6 +18,29 @@
 </helmet>
 <div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }};">
   <div style="max-width:900px; width:100%; display:flex; flex-direction:column;">
+    <dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="24px"
+      file-types-label="PDF, JPG, PNG, WebP, GIF, BMP, SVG, AVIF"
+      allow-multiple="{{ true }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ dropUrlInput }}"
+      on-url-input-change="{{ onDropUrlInputChange }}"
+      load-from-url="{{ loadFromDropUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onDropPasteClick }}"
+    ></dc-import>
+
     <div style="display:grid; grid-template-columns:{{ headerGridCols }}; gap:14px; align-items:center; margin-bottom:14px;">
       <img src="./assets/PDF-IMG-MGR.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; justify-self:center;" />
 <sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
@@ -26,49 +49,6 @@
       <a href="http://bluejetty.ca" target="_blank" rel="noopener" style="justify-self:center;">
         <img src="./assets/bluejetty.png" style="width:{{ headerLogoSize }}px; height:{{ headerLogoSize }}px; object-fit:contain; display:block; transition:width 0.2s ease, height 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease;" style-hover="width:100px; height:100px; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
       </a>
-    </div>
-
-    <div style="display:grid; grid-template-columns:{{ dropRowCols }}; gap:14px; margin-bottom:14px; align-items:stretch;">
-      <div class="dropbox-flex-fix" style="grid-column:{{ dropBoxSpan }}; display:flex; align-items:stretch; width:100%;">
-        <dc-import name="DropBox" hint-size="100%,220px"
-          file-types-label="PDF, JPG, PNG, WebP, GIF, BMP, SVG, AVIF"
-          allow-multiple="{{ true }}"
-          headline="{{ dropHeadline }}"
-          max-width="none"
-          box-padding="14px 18px"
-          box-margin-bottom="0"
-          show-browse-hint="{{ false }}"
-          show-extras="{{ false }}"
-          drop-border-color="{{ dropBorderColor }}"
-          drop-bg="{{ dropBg }}"
-          on-drag-over="{{ onDragOver }}"
-          on-drag-leave="{{ onDragLeave }}"
-          on-drop="{{ onDrop }}"
-          on-dropzone-click="{{ onDropzoneClick }}"
-          file-input-ref="{{ fileInputRef }}"
-          on-file-input="{{ onFileInput }}"
-          url-input="{{ dropUrlInput }}"
-          on-url-input-change="{{ onDropUrlInputChange }}"
-          load-from-url="{{ loadFromDropUrl }}"
-          stop-propagation="{{ stopPropagation }}"
-          on-paste-click="{{ onDropPasteClick }}"
-        ></dc-import>
-      </div>
-
-      <div style="grid-column:{{ droppedFilesSpan }}; border:1px solid rgba(29,31,32,0.16); padding:14px 18px; display:flex; flex-direction:column; justify-content:center; gap:4px; background:#f2f2f3; overflow-y:auto;">
-        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">Dropped files</div>
-        <sc-if value="{{ noFiles }}" hint-placeholder-val="{{ true }}">
-          <div style="text-align:center; color:rgba(29,31,32,0.45); font-size:13px;">No files yet — drop a PDF or image on the left.</div>
-        </sc-if>
-        <sc-for list="{{ files }}" as="file" hint-placeholder-count="0">
-          <div style="display:flex; align-items:center; gap:10px; border:1px solid rgba(29,31,32,0.12); padding:8px 10px;">
-            <div style="flex:1; min-width:0; font-weight:{{ file.fontWeight }}; font-size:{{ file.fontSize }}px; color:{{ file.textColor }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:font-size 0.2s ease, color 0.2s ease;">{{ file.name }}</div>
-            <span style="font-size:10px; padding:2px 8px; background:{{ file.tagBg }}; color:{{ file.tagColor }}; flex-shrink:0;">{{ file.categoryLabel }}</span>
-            <button onClick="{{ file.toggleUse }}" style="border:1px solid {{ file.useBorder }}; background:{{ file.useBg }}; color:{{ file.useColor }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:12px; padding:6px 12px; cursor:pointer; flex-shrink:0;">USE</button>
-            <button onClick="{{ file.remove }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; color:rgba(29,31,32,0.6); font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:12px; padding:6px 12px; cursor:pointer; flex-shrink:0;" style-hover="background:rgba(139,44,44,0.08); color:#8a2c2c; border-color:#8a2c2c;">DELETE</button>
-          </div>
-        </sc-for>
-      </div>
     </div>
 
     <div style="display:grid; grid-template-columns:repeat({{ tileCols }}, 1fr); gap:10px;">
