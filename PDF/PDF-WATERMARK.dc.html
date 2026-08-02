@@ -319,6 +319,7 @@ class Component extends DCLogic {
     generating: false,
     downloadUrl: null,
     outputName: '',
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
   };
 
   fileInputRef = React.createRef();
@@ -332,11 +333,17 @@ class Component extends DCLogic {
     this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
     window.addEventListener('dragover', this._blockNav);
     window.addEventListener('drop', this._blockNav);
+    this._onResize = () => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile !== this.state.isMobile) this.setState({ isMobile });
+    };
+    window.addEventListener('resize', this._onResize);
   }
 
   componentWillUnmount() {
     window.removeEventListener('dragover', this._blockNav);
     window.removeEventListener('drop', this._blockNav);
+    window.removeEventListener('resize', this._onResize);
   }
 
   onDropzoneClick = () => { if (this.fileInputRef.current) this.fileInputRef.current.click(); };
@@ -587,7 +594,7 @@ class Component extends DCLogic {
     const {
       fileName, numPages, thumbs, loading, error, dragOver, type, text, fontSize, colorIdx,
       logoDataUrl, logoSizePct, position, rotation, opacityPct, applyMode, previewPageIdx,
-      generating, downloadUrl, outputName, tileMode, tileSpacing, previewStartIdx,
+      generating, downloadUrl, outputName, tileMode, tileSpacing, previewStartIdx, isMobile,
     } = this.state;
     const accent = '#5980a6';
     const divider = 'rgba(29,31,32,0.16)';
