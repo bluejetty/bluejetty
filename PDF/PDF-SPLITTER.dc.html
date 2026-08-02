@@ -291,6 +291,7 @@ class Component extends DCLogic {
       if (isMobile !== this.state.isMobile) this.setState({ isMobile });
     };
     window.addEventListener('resize', this._onResize);
+    this.consumeHandoff();
     if (window.SharedFileStore) {
       window.SharedFileStore.loadSharedFile('splitter').then((f) => { if (f) this.loadPdf(f, true); });
     }
@@ -300,6 +301,19 @@ class Component extends DCLogic {
     window.removeEventListener('dragover', this._blockNav);
     window.removeEventListener('drop', this._blockNav);
     window.removeEventListener('resize', this._onResize);
+  }
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const match = (data.files || []).find((f) => f.type === 'application/pdf');
+      if (!match) return;
+      const blob = await (await fetch(match.dataUrl)).blob();
+      this.loadPdf(new File([blob], match.name, { type: match.type }));
+    } catch (err) { console.warn('Handoff load failed', err); }
   }
 
   onDropzoneClick = () => { if (this.fileInputRef.current) this.fileInputRef.current.click(); };

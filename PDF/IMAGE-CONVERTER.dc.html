@@ -250,6 +250,23 @@ class Component extends DCLogic {
       if (isMobile !== this.state.isMobile) this.setState({ isMobile });
     };
     window.addEventListener('resize', this._onResize);
+    this.consumeHandoff();
+  }
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const matches = (data.files || []).filter((f) => f.type && f.type.startsWith('image/'));
+      if (!matches.length) return;
+      const files = await Promise.all(matches.map(async (m) => {
+        const blob = await (await fetch(m.dataUrl)).blob();
+        return new File([blob], m.name, { type: m.type });
+      }));
+      this.addFilesAsUrls(files);
+    } catch (err) { console.warn('Handoff load failed', err); }
   }
 
   componentWillUnmount() {

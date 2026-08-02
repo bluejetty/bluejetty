@@ -122,12 +122,14 @@
       <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:16px;">{{ error }}</div>
     </sc-if>
 
-    <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; margin-bottom:0; display:flex; flex-direction:column; min-height:180px;">
-      <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); padding:14px 14px 0; margin-bottom:8px;">Preview window</div>
-      <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 14px 14px;">
-        <div style="font-size:13px; color:rgba(29,31,32,0.45); text-align:center;">PDF preview will display in this window</div>
+    <sc-if value="{{ noPages }}" hint-placeholder-val="{{ true }}">
+      <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; margin-bottom:0; display:flex; flex-direction:column; min-height:180px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); padding:14px 14px 0; margin-bottom:8px;">Preview window</div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 14px 14px;">
+          <div style="font-size:13px; color:rgba(29,31,32,0.45); text-align:center;">PDF preview will display in this window</div>
+        </div>
       </div>
-    </div>
+    </sc-if>
 
     <sc-if value="{{ generating }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:0;">
@@ -418,6 +420,7 @@ class Component extends DCLogic {
       onMobileNav: this.onMobileNav,
       fileName, error, generating, progressPercent, progressText,
       hasPages: totalPages > 0,
+      noPages: totalPages === 0,
       outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
       headerGridCols: isMobile ? '1fr' : 'auto 1fr auto',
       navJustify: isMobile ? 'center' : 'flex-start',
