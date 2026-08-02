@@ -24,6 +24,8 @@
 <dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
 
 <dc-import name="DropBox" hint-size="100%,165px"
+      has-file-name="{{ !!fileName }}"
+      file-name="{{ fileName }}"
         headline="DROP-BOX"
         box-padding="16px 20px"
         box-margin-bottom="6px"
@@ -80,9 +82,9 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
         <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./PDF-PNG.dc.html" title="PDF-PNG"><img src="./assets/PDF-PNG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-PNG.dc.html" title="PDF-PNG"><img src="./assets/PDF-PNG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         </div>
         </div>
       </div>
@@ -120,6 +122,15 @@
           <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); white-space:nowrap;">Opacity</div>
           <input type="range" style="flex:1; min-width:60px;" />
         </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; opacity:0.5; pointer-events:none;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">Resolution</div>
+        <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
+          <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; color:#1d1f20;">150 DPI (smaller file)</label>
+          <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; border-left:1px solid rgba(29,31,32,0.16); background:#5980a6; color:#f2f2f3;">300 DPI (print quality)</label>
+        </div>
+        <button style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 20px; margin-left:auto;">PDF-FLATTEN / SAVE</button>
       </div>
     </sc-if>
 
@@ -325,18 +336,21 @@
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:16px; margin-top:24px;">
-        <button
-          onClick="{{ generate }}"
-          disabled="{{ generateDisabled }}"
-          style="position:relative; border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-size:15px; font-weight:600; letter-spacing:0.02em; padding:12px 28px; cursor:{{ generateCursor }}; opacity:{{ generateOpacity }};"
-        >
-          {{ generateLabel }}
-        </button>
+      <dc-import name="SaveBox" hint-size="100%,60px"
+        is-mobile="{{ isMobile }}"
+        label="Resolution"
+        radio-name="watermarkDpi"
+        options="{{ dpiOptions }}"
+        show-button="{{ true }}"
+        button-label="{{ generateLabel }}"
+        on-button-click="{{ generate }}"
+        button-disabled="{{ generateDisabled }}"
+        button-cursor="{{ generateCursor }}"
+        button-opacity="{{ generateOpacity }}"
+      ></dc-import>
         <sc-if value="{{ downloadUrl }}" hint-placeholder-val="{{ false }}">
           <a href="{{ downloadUrl }}" download="{{ outputName }}" style="font-size:14px; color:#5980a6; font-weight:600; text-decoration:none;">Download {{ outputName }}</a>
         </sc-if>
-      </div>
     </sc-if>
 
   </div>
@@ -408,6 +422,7 @@ class Component extends DCLogic {
     opacityPct: 30,
     tileMode: false,
     tileSpacing: 60,
+    dpi: '300',
     applyMode: 'all',
     previewPageIdx: 0,
     previewStartIdx: 0,
@@ -586,6 +601,8 @@ class Component extends DCLogic {
   onRotationChange = (e) => this.setState({ rotation: parseInt(e.target.value, 10) });
   onOpacityChange = (e) => this.setState({ opacityPct: parseInt(e.target.value, 10) });
 
+  setDpi150 = () => this.setState({ dpi: '150' });
+  setDpi300 = () => this.setState({ dpi: '300' });
   setApplyAll = () => this.setState({ applyMode: 'all' });
   toggleTileMode = () => this.setState((s) => ({ tileMode: !s.tileMode }));
   onTileSpacingChange = (e) => this.setState({ tileSpacing: parseInt(e.target.value, 10) });
@@ -636,8 +653,9 @@ class Component extends DCLogic {
             const boxH = fontSize;
             const stepX = boxW + tileSpacing;
             const stepY = boxH + tileSpacing;
-            for (let y = margin; y < height - boxH; y += stepY) {
-              for (let x = margin; x < width - boxW; x += stepX) {
+            const overshoot = Math.max(boxW, boxH) * 1.5;
+            for (let y = -overshoot; y < height + overshoot; y += stepY) {
+              for (let x = -overshoot; x < width + overshoot; x += stepX) {
                 page.drawText(label, {
                   x, y: y + boxH * 0.2, size: fontSize, font,
                   color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
@@ -651,8 +669,9 @@ class Component extends DCLogic {
             const boxH = logoImg.height * scale;
             const stepX = boxW + tileSpacing;
             const stepY = boxH + tileSpacing;
-            for (let y = margin; y < height - boxH; y += stepY) {
-              for (let x = margin; x < width - boxW; x += stepX) {
+            const overshoot2 = Math.max(boxW, boxH) * 1.5;
+            for (let y = -overshoot2; y < height + overshoot2; y += stepY) {
+              for (let x = -overshoot2; x < width + overshoot2; x += stepX) {
                 page.drawImage(logoImg, { x, y, width: boxW, height: boxH, opacity, rotate: degrees(rotation) });
               }
             }
@@ -822,8 +841,12 @@ class Component extends DCLogic {
       generateDisabled: disabled,
       generateCursor: disabled ? 'not-allowed' : 'pointer',
       generateOpacity: disabled ? 0.45 : 1,
-      generateLabel: generating ? 'WORKING…' : 'APPLY WATERMARK / SAVE',
+      generateLabel: generating ? 'WORKING…' : 'PDF-FLATTEN / SAVE',
       generate: () => this.generate(),
+      dpiOptions: [
+        { label: '150 DPI (smaller file)', checked: this.state.dpi === '150', onSelect: this.setDpi150 },
+        { label: '300 DPI (print quality)', checked: this.state.dpi === '300', onSelect: this.setDpi300 },
+      ],
     };
   }
 }

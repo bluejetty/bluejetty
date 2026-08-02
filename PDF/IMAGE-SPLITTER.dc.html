@@ -21,6 +21,8 @@
 <dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
 
 <dc-import name="DropBox" hint-size="100%,165px"
+        has-file-name="{{ hasFileName }}"
+        file-name="{{ fileName }}"
         headline="DROP-BOX"
         box-padding="16px 20px"
         box-margin-bottom="6px"
@@ -77,8 +79,8 @@
         <div style="display:flex; gap:8px; align-items:center;">
         <a href="./PDF-WATERMARK.dc.html" title="PDF-WATERMARK"><img src="./assets/PDF-WATERMARK.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         <a href="./PDF-PNG.dc.html" title="PDF-PNG"><img src="./assets/PDF-PNG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
+        <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
         </div>
         </div>
       </div>
@@ -689,6 +691,8 @@ class Component extends DCLogic {
       hasChecked: checkedCount > 0,
       checkedCount,
       checkedOutputs,
+      hasFileName: this.filename !== 'image',
+      fileName: this.filename !== 'image' ? this.filename : '',
       saveZip: this.saveZip,
       noImage: !loaded,
       outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
