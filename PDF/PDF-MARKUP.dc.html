@@ -93,7 +93,7 @@
     </sc-if>
 
     <sc-if value="{{ loaded }}" hint-placeholder-val="{{ false }}">
-      <div style="border:1px solid rgba(29,31,32,0.16); padding:16px; display:flex; justify-content:center; background:#1d2d3d; margin-bottom:16px;">
+      <div style="position:relative; border:1px solid rgba(29,31,32,0.16); padding:16px; display:flex; justify-content:center; background:#1d2d3d; margin-bottom:16px; overflow:hidden;">
         <div
           ref="{{ wrapRef }}"
           onMouseDown="{{ onPointerDown }}"
@@ -103,7 +103,7 @@
           onTouchStart="{{ onTouchStart }}"
           onTouchMove="{{ onTouchMove }}"
           onTouchEnd="{{ onPointerUp }}"
-          style="position:relative; max-width:100%; cursor:none; touch-action:none;"
+          style="position:relative; max-width:100%; cursor:none; touch-action:none; transform:{{ zoomTransformStyle }}; transform-origin:0 0;"
         >
           <canvas ref="{{ bgCanvasRef }}" style="display:block; max-width:100%; height:auto; background:#fff;"></canvas>
           <canvas ref="{{ overlayCanvasRef }}" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
@@ -121,7 +121,7 @@
             <div
               onMouseDown="{{ stopPropagation }}"
               onClick="{{ stopPropagation }}"
-              style="position:absolute; left:{{ textBoxX }}px; top:{{ textBoxY }}px; transform:{{ textBoxTransform }}; display:flex; gap:6px; background:#fff; padding:6px; border:1px solid rgba(29,31,32,0.3); box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:50;"
+              style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); padding:8px; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); z-index:50;"
             >
               <input
                 ref="{{ textInputFocusRef }}"
@@ -129,20 +129,32 @@
                 onChange="{{ onTextInputChange }}"
                 onKeyDown="{{ onTextInputKeyDown }}"
                 placeholder="Type text…"
-                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; border:1px solid rgba(29,31,32,0.2); min-width:160px; text-align:{{ textBoxTextAlign }}; text-transform:uppercase;"
+                style="font-family:'Arial Narrow',Arial,sans-serif; font-size:14px; padding:6px 8px; background:transparent; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.7); min-width:160px; text-align:left; text-transform:uppercase;"
               />
-              <button onClick="{{ commitText }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Add</button>
-              <button onClick="{{ cancelText }}" style="border:1px solid rgba(29,31,32,0.2); background:transparent; padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
+              <button onClick="{{ commitText }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Add</button>
+              <button onClick="{{ cancelText }}" style="border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ zoomChoiceRect }}" hint-placeholder-val="{{ false }}">
+            <div
+              onMouseDown="{{ stopPropagation }}"
+              onClick="{{ stopPropagation }}"
+              style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); padding:8px; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); z-index:50;"
+            >
+              <button onClick="{{ confirmViewZoom }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">VIEW ZOOM</button>
+              <button onClick="{{ confirmCreateDetail }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CREATE ZOOM DETAIL</button>
+              <button onClick="{{ cancelZoomChoice }}" style="border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
             </div>
           </sc-if>
           <sc-if value="{{ snipRect }}" hint-placeholder-val="{{ false }}">
             <div
               onMouseDown="{{ stopPropagation }}"
               onClick="{{ stopPropagation }}"
-              style="position:absolute; left:{{ snipBoxX }}px; top:{{ snipBoxY }}px; display:flex; gap:6px; background:#fff; padding:6px; border:1px solid rgba(29,31,32,0.3); box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:50;"
+              style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); padding:8px; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); z-index:50;"
             >
-              <button onClick="{{ captureSnip }}" style="border:none; background:#5980a6; color:#fff; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CREATE DETAIL PAGE</button>
-              <button onClick="{{ cancelSnip }}" style="border:1px solid rgba(29,31,32,0.2); background:transparent; padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
+              <input type="text" value="{{ snipTitle }}" onChange="{{ onSnipTitleChange }}" placeholder="Detail title" style="background:transparent; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.7); padding:6px 8px; font-size:13px; font-family:'Barlow Condensed',system-ui,sans-serif; width:160px;" />
+              <button onClick="{{ captureSnip }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CREATE DETAIL PAGE</button>
+              <button onClick="{{ cancelSnip }}" style="border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
             </div>
           </sc-if>
           <sc-for list="{{ snipMarkers }}" as="m" hint-placeholder-count="0">
@@ -151,13 +163,48 @@
           <sc-for list="{{ backLinks }}" as="b" hint-placeholder-count="0">
             <div onMouseDown="{{ stopPropagation }}" onClick="{{ b.goTo }}" title="Back to original page" style="position:absolute; left:{{ b.pctX }}%; top:{{ b.pctY }}%; width:130px; height:34px; transform:translate(-100%,-100%); cursor:pointer; z-index:40;"></div>
           </sc-for>
+          <sc-if value="{{ showScaleBar }}" hint-placeholder-val="{{ false }}">
+            <div
+              onMouseDown="{{ stopPropagation }}"
+              onClick="{{ stopPropagation }}"
+              style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center; max-width:90%; background:rgba(0,0,0,0.4); padding:8px; border:1px solid rgba(255,255,255,0.3); z-index:50;"
+            >
+              <sc-for list="{{ scaleChips }}" as="s" hint-placeholder-count="1">
+                <button onClick="{{ s.select }}" style="display:flex; align-items:center; gap:6px; border:1px solid {{ s.borderColor }}; background:{{ s.bg }}; color:{{ s.textColor }}; padding:5px 10px; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; cursor:pointer;">
+                  <span style="width:10px; height:10px; border-radius:50%; background:{{ s.borderColor }}; display:inline-block;"></span>
+                  {{ s.raw }}
+                </button>
+              </sc-for>
+              <button onClick="{{ onAddCustomScale }}" style="border:1px dashed rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:5px 10px; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer;">+ ADD SCALE</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showLinesIntro }}" hint-placeholder-val="{{ false }}">
+            <div
+              onMouseDown="{{ stopPropagation }}"
+              onClick="{{ stopPropagation }}"
+              style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); padding:20px 24px; max-width:320px; z-index:60;"
+            >
+              <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:rgba(255,255,255,0.9); text-transform:uppercase; margin-bottom:10px;">LINES tool</div>
+              <div style="font-size:14px; color:rgba(255,255,255,0.7); line-height:1.4; margin-bottom:14px;">Click to set the start point, then click again to set the end point. Hold SHIFT to lock vertical/horizontal, or CTRL to lock to 45°. Click anywhere to continue.</div>
+              <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,0.7); cursor:pointer;">
+                <input type="checkbox" checked="{{ linesIntroChecked }}" onChange="{{ onLinesIntroCheckChange }}" style="width:16px; height:16px; cursor:pointer;" />
+                Don't show again
+              </label>
+            </div>
+          </sc-if>
         </div>
+        <sc-if value="{{ zoomActive }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ exitZoom }}" style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); border:1px solid rgba(255,255,255,0.4); background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.9); padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; text-transform:uppercase; z-index:70;">VIEW FULL PAGE</button>
+        </sc-if>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Prev</button>
         <div style="font-size:13px; color:rgba(29,31,32,0.6);">Page {{ currentPage }} of {{ numPages }}</div>
         <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">Next</button>
+      </div>
+      <div style="display:flex; justify-content:center; margin-top:-8px; margin-bottom:8px;">
+        <button onClick="{{ clearAllMarkup }}" title="Clear all markup, keep the PDF" style="border:none; background:none; padding:0; margin:0; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#5980a6; text-transform:uppercase;" style-hover="color:#416180;">CLICK TO CLEAR MARKUP</button>
       </div>
 
       <div style="border:1px solid rgba(29,31,32,0.16); padding:16px; margin-bottom:0; display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
@@ -176,7 +223,7 @@
 
         <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
           <sc-for list="{{ toolOptions }}" as="t" hint-placeholder-count="4">
-            <button onClick="{{ t.select }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif;">{{ t.label }}</button>
+            <button onClick="{{ t.select }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; white-space:pre-line; line-height:1.2; text-align:center;">{{ t.label }}</button>
           </sc-for>
         </div>
 
@@ -199,6 +246,12 @@
         </sc-if>
         <sc-if value="{{ showSnipHint }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">{{ snipHintMessage }}</div>
+        </sc-if>
+        <sc-if value="{{ showLineHint }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">Press SHIFT to lock vertical/horizontal, or CTRL to lock to 45°.</div>
+        </sc-if>
+        <sc-if value="{{ showDimensionHint }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">{{ dimensionHintMessage }}</div>
         </sc-if>
 
         <div style="display:flex; gap:8px; margin-left:auto;">
@@ -258,6 +311,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const COLORS = { blue: '#1d4ed8', red: '#dc2626', green: '#16a34a', yellow: '#ffea00', orange: '#f97316' };
+const SCALE_COLORS = ['#5980a6', '#c2410c', '#15803d', '#7c3aed', '#b91c1c', '#0f766e'];
 
 class Component extends DCLogic {
   state = {
@@ -275,6 +329,8 @@ class Component extends DCLogic {
     showCursorDot: false,
     placingText: null,
     textInputValue: '',
+    showLinesIntro: false,
+    linesIntroChecked: false,
     undoStackLen: 0,
     redoStackLen: 0,
     exporting: false,
@@ -283,6 +339,9 @@ class Component extends DCLogic {
     dpi: '300',
     includeLinks: true,
     isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+    scaleVersion: 0,
+    zoomActive: false,
+    zoomTransform: 'none',
   };
 
   fileInputRef = React.createRef();
@@ -296,6 +355,8 @@ class Component extends DCLogic {
   redoByPage = {};
   pageScales = {};
   pageDims = {};
+  scalesByPage = {};
+  currentScaleIdByPage = {};
   isDrawing = false;
   currentPoints = null;
   currentStrokeStyle = null;
@@ -445,6 +506,7 @@ class Component extends DCLogic {
     this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
     this.redoByPage[pageNum] = this.redoByPage[pageNum] || [];
     this.redrawPage(pageNum);
+    this.ensureScalesForPage(pageNum);
     this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: this.redoByPage[pageNum].length });
   }
 
@@ -529,6 +591,10 @@ class Component extends DCLogic {
       this.drawSnipMarker(ctx, a, ratio);
     } else if (a.type === 'backLink') {
       this.drawBackLink(ctx, a, ratio);
+    } else if (a.type === 'detailTitle') {
+      this.drawDetailTitle(ctx, a, ratio);
+    } else if (a.type === 'dimension') {
+      this.drawDimension(ctx, a, ratio);
     }
   }
 
@@ -580,27 +646,55 @@ class Component extends DCLogic {
       this.drawSnipMarker(ctx, a, 1);
     } else if (a.type === 'backLink') {
       this.drawBackLink(ctx, a, 1);
+    } else if (a.type === 'detailTitle') {
+      this.drawDetailTitle(ctx, a, 1);
+    } else if (a.type === 'dimension') {
+      this.drawDimension(ctx, a, 1);
     }
+  }
+
+  drawDetailTitle(ctx, a, ratio) {
+    const r = ratio || 1;
+    const margin = 20 * r;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    const fontSize = 34 * r;
+    ctx.font = `600 ${fontSize}px 'Barlow Condensed', sans-serif`;
+    const textW = ctx.measureText(a.text).width;
+    const padX = 16 * r, padY = 10 * r;
+    const boxW = textW + padX * 2, boxH = fontSize + padY * 2;
+    const bx = ctx.canvas.width - margin - boxW, by = margin;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1.5 * r;
+    ctx.strokeStyle = '#1d1f20';
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.fillStyle = '#1d1f20';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillText(a.text, bx + padX, by + boxH / 2);
+    ctx.restore();
   }
 
   drawBackLink(ctx, a, ratio) {
     const r = ratio || 1;
     const margin = 14 * r;
     const label = `← PAGE ${a.targetPage}`;
-    const fontSize = 26 * r;
+    const fontSize = 52 * r;
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
     ctx.font = `600 ${fontSize}px 'Barlow Condensed', sans-serif`;
     const textW = ctx.measureText(label).width;
-    const padX = 12 * r, chipH = fontSize + 16 * r;
+    const padX = 24 * r, chipH = fontSize + 32 * r;
     const chipW = textW + padX * 2;
     const cx = ctx.canvas.width - margin - chipW;
     const cy = ctx.canvas.height - margin - chipH;
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = '#5980a6';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#000000';
     ctx.fillRect(cx, cy, chipW, chipH);
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.7;
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
@@ -618,17 +712,17 @@ class Component extends DCLogic {
     ctx.strokeStyle = '#5980a6';
     ctx.lineWidth = 2 * r;
     ctx.strokeRect(x, y, w, h);
-    const label = `PAGE ${a.targetPage}`;
-    const fontSize = 26 * r;
+    const label = `D${a.targetPage - this.originalNumPages}`;
+    const fontSize = 52 * r;
     ctx.font = `600 ${fontSize}px 'Barlow Condensed', sans-serif`;
     const textW = ctx.measureText(label).width;
-    const padX = 12 * r, chipH = fontSize + 16 * r;
+    const padX = 24 * r, chipH = fontSize + 32 * r;
     const chipW = textW + padX * 2;
     const cx = x + w - chipW, cy = y + h - chipH;
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = '#5980a6';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#000000';
     ctx.fillRect(cx, cy, chipW, chipH);
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.7;
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
@@ -653,6 +747,59 @@ class Component extends DCLogic {
 
   onPointerDown = (e) => {
     if (!this.state.loaded) return;
+    if (this.state.showLinesIntro) { this.dismissLinesIntro(); return; }
+    if (this.state.tool === 'zoom') {
+      if (this.state.zoomActive) return;
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      this.zoomDragging = true;
+      this.zoomStart = pt;
+      this.zoomCurrent = pt;
+      return;
+    }
+    if (this.state.tool === 'dimension') {
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      if (this.dimStage !== 1) {
+        this.dimAnchor = pt;
+        this.dimStage = 1;
+        return;
+      }
+      const end = this.applyLineLock(this.dimAnchor, pt, e);
+      this.dimStage = 0;
+      const anchor = this.dimAnchor;
+      this.dimAnchor = null;
+      if (Math.hypot(end[0] - anchor[0], end[1] - anchor[1]) < 4) { this.redrawPage(this.state.currentPage); return; }
+      const pageNum = this.state.currentPage;
+      const scale = this.getCurrentScale(pageNum);
+      if (!scale) { this.redrawPage(pageNum); return; }
+      const pixelDist = Math.hypot(end[0] - anchor[0], end[1] - anchor[1]);
+      const label = this.pixelDistanceToLabel(pixelDist, pageNum, scale);
+      this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
+      this.actionsByPage[pageNum].push({ type: 'dimension', a: anchor, b: end, color: scale.color, label });
+      this.redoByPage[pageNum] = [];
+      this.redrawPage(pageNum);
+      this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
+      return;
+    }
+    if (this.state.tool === 'line') {
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      if (this.lineStage !== 1) {
+        this.lineAnchor = pt;
+        this.lineStage = 1;
+        return;
+      }
+      const end = this.applyLineLock(this.lineAnchor, pt, e);
+      this.lineStage = 0;
+      const anchor = this.lineAnchor;
+      this.lineAnchor = null;
+      if (Math.hypot(end[0] - anchor[0], end[1] - anchor[1]) < 4) { this.redrawPage(this.state.currentPage); return; }
+      const pageNum = this.state.currentPage;
+      this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
+      this.actionsByPage[pageNum].push({ type: 'stroke', tool: 'line', color: COLORS[this.state.colorKey], lineWidth: this.state.penSize, opacity: 1, points: [anchor, end] });
+      this.redoByPage[pageNum] = [];
+      this.redrawPage(pageNum);
+      this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
+      return;
+    }
     if (this.state.tool === 'snip') {
       if (this.state.snipRect) return;
       const pt = this.canvasPoint(e.clientX, e.clientY);
@@ -695,20 +842,73 @@ class Component extends DCLogic {
     this.currentPoints = [[x, y]];
     const params = this.strokeParamsFor(this.state.tool, COLORS[this.state.colorKey], this.state.penSize);
     this.currentStrokeStyle = { tool: this.state.tool, ...params };
-    const ctx = this.overlayCanvasRef.current.getContext('2d');
-    ctx.globalCompositeOperation = this.state.tool === 'eraser' ? 'destination-out' : 'source-over';
-    ctx.globalAlpha = params.opacity;
-    ctx.strokeStyle = params.color;
-    ctx.lineWidth = params.lineWidth;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(x, y);
   };
+
+  applyLineLock(start, current, e) {
+    if (e.shiftKey) {
+      const dx = current[0] - start[0], dy = current[1] - start[1];
+      if (Math.abs(dx) > Math.abs(dy)) return [current[0], start[1]];
+      return [start[0], current[1]];
+    }
+    if (e.ctrlKey || e.metaKey) {
+      const dx = current[0] - start[0], dy = current[1] - start[1];
+      const dist = Math.hypot(dx, dy);
+      if (dist < 1) return current;
+      const angle = Math.atan2(dy, dx);
+      const snapped = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+      return [start[0] + Math.cos(snapped) * dist, start[1] + Math.sin(snapped) * dist];
+    }
+    return current;
+  }
 
   onPointerMove = (e) => {
     const rect = this.wrapRef.current ? this.wrapRef.current.getBoundingClientRect() : null;
     if (rect) this.setState({ cursorX: e.clientX - rect.left, cursorY: e.clientY - rect.top, showCursorDot: true });
+    if (this.state.tool === 'zoom' && this.zoomDragging) {
+      const pt = this.canvasPoint(e.clientX, e.clientY);
+      this.zoomCurrent = pt;
+      this.redrawPage(this.state.currentPage);
+      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      const x = Math.min(this.zoomStart[0], pt[0]), y = Math.min(this.zoomStart[1], pt[1]);
+      const w = Math.abs(pt[0] - this.zoomStart[0]), h = Math.abs(pt[1] - this.zoomStart[1]);
+      ctx.save();
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 5]);
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(124,58,237,0.12)';
+      ctx.fillRect(x, y, w, h);
+      ctx.restore();
+      return;
+    }
+    if (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) {
+      const raw = this.canvasPoint(e.clientX, e.clientY);
+      const pt = this.applyLineLock(this.dimAnchor, raw, e);
+      this.redrawPage(this.state.currentPage);
+      const pageNum = this.state.currentPage;
+      const scale = this.getCurrentScale(pageNum);
+      const color = scale ? scale.color : 'rgba(89,128,166,0.7)';
+      const label = scale ? this.pixelDistanceToLabel(Math.hypot(pt[0] - this.dimAnchor[0], pt[1] - this.dimAnchor[1]), pageNum, scale) : '?';
+      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      this.drawDimension(ctx, { a: this.dimAnchor, b: pt, color, label }, 1);
+      return;
+    }
+    if (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor) {
+      const raw = this.canvasPoint(e.clientX, e.clientY);
+      const pt = this.applyLineLock(this.lineAnchor, raw, e);
+      this.redrawPage(this.state.currentPage);
+      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      ctx.save();
+      ctx.strokeStyle = COLORS[this.state.colorKey];
+      ctx.lineWidth = this.state.penSize;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(this.lineAnchor[0], this.lineAnchor[1]);
+      ctx.lineTo(pt[0], pt[1]);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     if (this.state.tool === 'snip' && this.snipDragging) {
       const pt = this.canvasPoint(e.clientX, e.clientY);
       this.snipCurrent = pt;
@@ -749,12 +949,33 @@ class Component extends DCLogic {
     if (!this.isDrawing) return;
     const [x, y] = this.canvasPoint(e.clientX, e.clientY);
     this.currentPoints.push([x, y]);
+    this.redrawPage(this.state.currentPage);
     const ctx = this.overlayCanvasRef.current.getContext('2d');
-    ctx.lineTo(x, y);
+    const s = this.currentStrokeStyle;
+    ctx.save();
+    ctx.globalCompositeOperation = s.tool === 'eraser' ? 'destination-out' : 'source-over';
+    ctx.globalAlpha = s.opacity;
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = s.lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    this.currentPoints.forEach(([px, py], i) => { if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); });
     ctx.stroke();
+    ctx.restore();
   };
 
   onPointerUp = () => {
+    if (this.state.tool === 'zoom' && this.zoomDragging) {
+      this.zoomDragging = false;
+      const s = this.zoomStart, c = this.zoomCurrent;
+      const x = Math.min(s[0], c[0]), y = Math.min(s[1], c[1]);
+      const w = Math.abs(c[0] - s[0]), h = Math.abs(c[1] - s[1]);
+      if (w < 12 || h < 12) { this.redrawPage(this.state.currentPage); return; }
+      this.redrawPage(this.state.currentPage);
+      this.setState({ zoomChoiceRect: { x, y, w, h } });
+      return;
+    }
     if (this.state.tool === 'snip' && this.snipDragging) {
       this.snipDragging = false;
       const s = this.snipStart, c = this.snipCurrent;
@@ -764,7 +985,8 @@ class Component extends DCLogic {
       const rect = this.wrapRef.current.getBoundingClientRect();
       const canvas = this.overlayCanvasRef.current;
       const scaleX = rect.width / canvas.width, scaleY = rect.height / canvas.height;
-      this.setState({ snipRect: { x, y, w, h }, snipBoxCss: { left: (x + w) * scaleX + 8, top: (y + h) * scaleY + 8 } });
+      const detailNum = String(this.extraPages.length + 1).padStart(2, '0');
+      this.setState({ snipRect: { x, y, w, h }, snipBoxCss: { left: (x + w) * scaleX + 8, top: (y + h) * scaleY + 8 }, snipTitle: `DETAIL ${detailNum}:` });
       return;
     }
     if (!this.isDrawing) return;
@@ -831,9 +1053,197 @@ class Component extends DCLogic {
     else if (tool !== 'highlighter' && highlighterColors.includes(colorKey)) colorKey = 'blue';
     this.textStage = 0;
     this.leaderAnchor = null;
+    this.lineStage = 0;
+    this.lineAnchor = null;
+    this.dimStage = 0;
+    this.dimAnchor = null;
     this.snipDragging = false;
     if (this.state.loaded) this.redrawPage(this.state.currentPage);
-    this.setState({ tool, colorKey, placingText: null, snipRect: null });
+    const showLinesIntro = tool === 'line' && !localStorage.getItem('pdfMarkupLinesIntroSeen');
+    this.setState({ tool, colorKey, placingText: null, snipRect: null, showLinesIntro });
+  }
+
+  dismissLinesIntro = () => {
+    if (this.state.linesIntroChecked) localStorage.setItem('pdfMarkupLinesIntroSeen', '1');
+    this.setState({ showLinesIntro: false });
+  };
+
+  onLinesIntroCheckChange = (e) => this.setState({ linesIntroChecked: e.target.checked });
+
+  exitZoom = () => this.setState({ zoomActive: false, zoomTransform: 'none' });
+
+  confirmViewZoom = () => {
+    const r = this.state.zoomChoiceRect;
+    if (!r) return;
+    const canvas = this.overlayCanvasRef.current;
+    const rect = this.wrapRef.current.getBoundingClientRect();
+    const ratioX = rect.width / canvas.width, ratioY = rect.height / canvas.height;
+    const cssX = r.x * ratioX, cssY = r.y * ratioY, cssW = r.w * ratioX, cssH = r.h * ratioY;
+    const scale = Math.min(rect.width / cssW, rect.height / cssH);
+    const tx = -cssX, ty = -cssY;
+    this.setState({ zoomActive: true, zoomTransform: `scale(${scale}) translate(${tx}px, ${ty}px)`, tool: 'pen', zoomChoiceRect: null });
+  };
+
+  confirmCreateDetail = () => {
+    const r = this.state.zoomChoiceRect;
+    if (!r) return;
+    const detailNum = String(this.extraPages.length + 1).padStart(2, '0');
+    this.setState({ snipRect: r, snipTitle: `DETAIL ${detailNum}:`, zoomChoiceRect: null });
+  };
+
+  cancelZoomChoice = () => {
+    this.setState({ zoomChoiceRect: null }, () => { if (this.state.loaded) this.redrawPage(this.state.currentPage); });
+  };
+
+  forceScaleUpdate() { this.setState((s) => ({ scaleVersion: s.scaleVersion + 1 })); }
+
+  parseFraction(str) {
+    if (str.indexOf('/') !== -1) {
+      const parts = str.split('/');
+      const n = parseFloat(parts[0]), d = parseFloat(parts[1]);
+      if (!d) return null;
+      return n / d;
+    }
+    return parseFloat(str);
+  }
+
+  reduceFraction(numEighths) {
+    const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+    const g = gcd(numEighths, 8);
+    return `${numEighths / g}/${8 / g}`;
+  }
+
+  formatFeetInches(inches) {
+    const totalEighths = Math.round(inches * 8);
+    const totalWholeInches = Math.floor(totalEighths / 8);
+    const fracEighths = totalEighths % 8;
+    const feet = Math.floor(totalWholeInches / 12);
+    const wholeInches = totalWholeInches % 12;
+    const fracStr = fracEighths ? ' ' + this.reduceFraction(fracEighths) : '';
+    return `${feet}'-${wholeInches}${fracStr}"`;
+  }
+
+  formatMetric(mm) {
+    if (mm >= 1000) return `${(mm / 1000).toFixed(2)} m`;
+    return `${Math.round(mm)} mm`;
+  }
+
+  ensureScalesForPage(pageNum) {
+    if (this.scalesByPage[pageNum] !== undefined) return;
+    if (pageNum > this.originalNumPages || !this.pdfDoc) { this.scalesByPage[pageNum] = []; this.forceScaleUpdate(); return; }
+    this.scalesByPage[pageNum] = [];
+    this.pdfDoc.getPage(pageNum).then((page) => page.getTextContent()).then((content) => {
+      const text = content.items.map((it) => it.str).join(' ');
+      const found = [];
+      const seen = new Set();
+      const fracRe = /(\d+\/\d+|\d+)\s*"\s*=\s*1['\u2019]-?0?["\u201d]?/gi;
+      let m;
+      while ((m = fracRe.exec(text))) {
+        const numStr = m[1];
+        const val = this.parseFraction(numStr);
+        if (!val) continue;
+        const raw = `${numStr}" = 1'-0"`;
+        if (seen.has(raw)) continue;
+        seen.add(raw);
+        found.push({ raw, ratio: 12 / val, unit: 'imperial' });
+      }
+      const ratioRe = /\b1\s*:\s*(\d{1,4})\b/g;
+      while ((m = ratioRe.exec(text))) {
+        const n = parseInt(m[1], 10);
+        if (!n) continue;
+        const raw = `1:${n}`;
+        if (seen.has(raw)) continue;
+        seen.add(raw);
+        found.push({ raw, ratio: n, unit: 'ratio' });
+      }
+      const scales = found.map((f, i) => ({ id: `${pageNum}-${i}`, ...f, color: SCALE_COLORS[i % SCALE_COLORS.length] }));
+      this.scalesByPage[pageNum] = scales;
+      if (scales.length && !this.currentScaleIdByPage[pageNum]) this.currentScaleIdByPage[pageNum] = scales[0].id;
+      this.forceScaleUpdate();
+    }).catch(() => { this.scalesByPage[pageNum] = []; this.forceScaleUpdate(); });
+  }
+
+  getCurrentScale(pageNum) {
+    const scales = this.scalesByPage[pageNum] || [];
+    const id = this.currentScaleIdByPage[pageNum];
+    return scales.find((s) => s.id === id) || null;
+  }
+
+  setCurrentScale(pageNum, id) {
+    this.currentScaleIdByPage[pageNum] = id;
+    this.forceScaleUpdate();
+  }
+
+  addCustomScale(pageNum) {
+    const input = window.prompt('Enter scale (e.g. 1/4" = 1\'-0" or 1:100):');
+    if (!input) return;
+    const trimmed = input.trim();
+    let entry = null;
+    const fm = trimmed.match(/(\d+\/\d+|\d+)\s*"\s*=\s*1['\u2019]?-?0?["\u201d]?/i);
+    if (fm) {
+      const val = this.parseFraction(fm[1]);
+      if (val) entry = { raw: `${fm[1]}" = 1'-0"`, ratio: 12 / val, unit: 'imperial' };
+    }
+    if (!entry) {
+      const rm = trimmed.match(/1\s*:\s*(\d{1,4})/);
+      if (rm) entry = { raw: `1:${rm[1]}`, ratio: parseInt(rm[1], 10), unit: 'ratio' };
+    }
+    if (!entry) { alert('Could not parse that scale. Try formats like 1/4" = 1\'-0" or 1:100.'); return; }
+    const scales = this.scalesByPage[pageNum] || [];
+    entry.id = `${pageNum}-c${scales.length}`;
+    entry.color = SCALE_COLORS[scales.length % SCALE_COLORS.length];
+    this.scalesByPage[pageNum] = scales.concat([entry]);
+    this.currentScaleIdByPage[pageNum] = entry.id;
+    this.forceScaleUpdate();
+  }
+
+  pixelDistanceToLabel(pixelDist, pageNum, scale) {
+    const displayScale = this.pageScales[pageNum] || 1;
+    const paperInches = (pixelDist / displayScale) / 72;
+    if (scale.unit === 'imperial') return this.formatFeetInches(paperInches * scale.ratio);
+    const paperMm = paperInches * 25.4;
+    return this.formatMetric(paperMm * scale.ratio);
+  }
+
+  drawDimension(ctx, a, ratio) {
+    const r = ratio || 1;
+    const ax = a.a[0] * r, ay = a.a[1] * r;
+    const bx = a.b[0] * r, by = a.b[1] * r;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = a.color;
+    ctx.lineWidth = 2 * r;
+    ctx.lineCap = 'round';
+    const dx = bx - ax, dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const px = -uy, py = ux;
+    const tick = 8 * r;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ax - px * tick, ay - py * tick); ctx.lineTo(ax + px * tick, ay + py * tick);
+    ctx.moveTo(bx - px * tick, by - py * tick); ctx.lineTo(bx + px * tick, by + py * tick);
+    ctx.stroke();
+    const midX = (ax + bx) / 2, midY = (ay + by) / 2;
+    const labelOffset = 14 * r;
+    const lx = midX + px * labelOffset, ly = midY + py * labelOffset;
+    ctx.font = `600 ${20 * r}px 'Barlow Condensed', sans-serif`;
+    const textW = ctx.measureText(a.label).width;
+    const padX = 8 * r, padY = 5 * r;
+    const boxW = textW + padX * 2, boxH = 20 * r + padY * 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(lx - boxW / 2, ly - boxH / 2, boxW, boxH);
+    ctx.lineWidth = 1.5 * r;
+    ctx.strokeStyle = a.color;
+    ctx.strokeRect(lx - boxW / 2, ly - boxH / 2, boxW, boxH);
+    ctx.fillStyle = a.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.label, lx, ly);
+    ctx.restore();
   }
 
   captureSnip = async () => {
@@ -890,13 +1300,15 @@ class Component extends DCLogic {
     });
     if (img.decode) { try { await img.decode(); } catch (e) {} }
 
-    this.extraPages.push({ dataUrl, img, naturalWidth: cropCanvas.width, naturalHeight: cropCanvas.height });
+    const title = (this.state.snipTitle || '').trim();
+    this.extraPages.push({ dataUrl, img, naturalWidth: cropCanvas.width, naturalHeight: cropCanvas.height, title });
     const newPageNum = this.originalNumPages + this.extraPages.length;
     this.actionsByPage[newPageNum] = [{ type: 'backLink', targetPage: pageNum }];
+    if (title) this.actionsByPage[newPageNum].push({ type: 'detailTitle', text: title });
     this.redoByPage[newPageNum] = [];
     this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
     this.actionsByPage[pageNum].push({ type: 'snipMarker', rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h }, targetPage: newPageNum });
-    this.setState({ snipRect: null, numPages: newPageNum, currentPage: newPageNum, tool: 'pen' }, () => this.renderPage(newPageNum));
+    this.setState({ snipRect: null, numPages: newPageNum, currentPage: newPageNum, tool: 'pen', snipTitle: '' }, () => this.renderPage(newPageNum));
   };
 
   cancelSnip = () => {
@@ -904,6 +1316,7 @@ class Component extends DCLogic {
     this.setState({ snipRect: null }, () => { if (this.state.loaded) this.redrawPage(this.state.currentPage); });
   };
   onToggleIncludeLinks = (e) => this.setState({ includeLinks: e.target.checked });
+  onSnipTitleChange = (e) => this.setState({ snipTitle: e.target.value });
   onPenSizeChange = (e) => this.setState({ penSize: parseInt(e.target.value, 10) });
   onTextSizeChange = (e) => this.setState({ textSize: parseInt(e.target.value, 10) });
 
@@ -944,8 +1357,12 @@ class Component extends DCLogic {
   goToPage(pageNum) {
     this.textStage = 0;
     this.leaderAnchor = null;
+    this.lineStage = 0;
+    this.lineAnchor = null;
+    this.dimStage = 0;
+    this.dimAnchor = null;
     this.snipDragging = false;
-    this.setState({ currentPage: pageNum, placingText: null, snipRect: null }, () => this.renderPage(pageNum));
+    this.setState({ currentPage: pageNum, placingText: null, snipRect: null, zoomActive: false, zoomTransform: 'none', zoomChoiceRect: null }, () => this.renderPage(pageNum));
   }
 
   reset = () => {
@@ -954,7 +1371,9 @@ class Component extends DCLogic {
     this.redoByPage = {};
     this.extraPages = [];
     this.originalNumPages = 0;
-    this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1 });
+    this.scalesByPage = {};
+    this.currentScaleIdByPage = {};
+    this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1, zoomActive: false, zoomTransform: 'none', zoomChoiceRect: null });
     if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('markup');
   };
 
@@ -1013,7 +1432,7 @@ class Component extends DCLogic {
         });
         actions.filter((a) => a.type === 'backLink').forEach((a) => {
           const margin = 14 / displayScale;
-          const chipWPt = 160 / displayScale, chipHPt = 38 / displayScale;
+          const chipWPt = 320 / displayScale, chipHPt = 76 / displayScale;
           const ptX = widthPt - margin - chipWPt, ptY = heightPt - margin - chipHPt;
           this._pendingLinks = this._pendingLinks || [];
           this._pendingLinks.push({ page: i, ptX, ptY, ptW: chipWPt, ptH: chipHPt, target: a.targetPage });
@@ -1066,10 +1485,12 @@ class Component extends DCLogic {
 
     const toolOptions = [
       { key: 'pen', label: 'PEN' },
+      { key: 'line', label: 'LINES' },
+      { key: 'text', label: 'TEXT' },
+      { key: 'dimension', label: 'DIMENSION' },
+      { key: 'zoom', label: 'ZOOM\nDETAIL' },
       { key: 'highlighter', label: 'HIGHLIGHTER' },
       { key: 'eraser', label: 'ERASER' },
-      { key: 'text', label: 'TEXT' },
-      { key: 'snip', label: 'CREATE ZOOMED DETAIL' },
     ].map((t) => ({
       ...t,
       bg: tool === t.key ? '#1d1f20' : 'transparent',
@@ -1079,12 +1500,15 @@ class Component extends DCLogic {
 
     let cursorSize = 16, cursorBg = 'transparent', cursorBorder = 'rgba(255,255,255,0.7)';
     if (tool === 'pen') { cursorSize = Math.max(10, penSize * 2); cursorBg = colorHex; cursorBorder = colorHex; }
+    else if (tool === 'line') { cursorSize = Math.max(10, penSize * 2); cursorBg = colorHex; cursorBorder = colorHex; }
+    else if (tool === 'dimension') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = accent; }
     else if (tool === 'highlighter') { cursorSize = Math.max(14, penSize * 3.2); cursorBg = colorHex + '55'; cursorBorder = colorHex; }
     else if (tool === 'eraser') { cursorSize = Math.max(16, penSize * 2.2); cursorBg = 'rgba(255,255,255,0.15)'; cursorBorder = '#ffffff'; }
     else if (tool === 'text') { cursorSize = 14; cursorBg = 'transparent'; cursorBorder = colorHex; }
     else if (tool === 'snip') { cursorSize = 16; cursorBg = 'transparent'; cursorBorder = accent; }
-    const cursorRadius = tool === 'snip' ? '3px' : '50%';
-    const isMarkerOrText = tool === 'pen' || tool === 'highlighter' || tool === 'text';
+    else if (tool === 'zoom') { cursorSize = 16; cursorBg = 'transparent'; cursorBorder = '#7c3aed'; }
+    const cursorRadius = (tool === 'snip' || tool === 'zoom') ? '3px' : '50%';
+    const isMarkerOrText = tool === 'pen' || tool === 'line' || tool === 'dimension' || tool === 'highlighter' || tool === 'text';
     const crosshairSize = cursorSize + 24;
 
     return {
@@ -1168,8 +1592,38 @@ class Component extends DCLogic {
       snipBoxY: this.state.snipRect ? (this.state.snipBoxCss ? this.state.snipBoxCss.top : 0) : 0,
       captureSnip: this.captureSnip,
       cancelSnip: this.cancelSnip,
+      snipTitle: this.state.snipTitle || '',
+      onSnipTitleChange: this.onSnipTitleChange,
       showSnipHint: tool === 'snip' && !this.state.snipRect,
       snipHintMessage: 'Drag a rectangle around the area to zoom in on, then click Capture.',
+      showLineHint: tool === 'line',
+      zoomTransformStyle: this.state.zoomActive ? this.state.zoomTransform : 'none',
+      zoomActive: this.state.zoomActive,
+      exitZoom: this.exitZoom,
+      zoomChoiceRect: this.state.zoomChoiceRect,
+      confirmViewZoom: this.confirmViewZoom,
+      confirmCreateDetail: this.confirmCreateDetail,
+      cancelZoomChoice: this.cancelZoomChoice,
+      showScaleBar: tool === 'dimension',
+      scaleChips: (() => {
+        const scales = this.scalesByPage[currentPage] || [];
+        const currentId = this.currentScaleIdByPage[currentPage];
+        return scales.map((s) => ({
+          id: s.id,
+          raw: s.raw,
+          bg: s.id === currentId ? s.color : 'transparent',
+          textColor: s.id === currentId ? '#ffffff' : 'rgba(255,255,255,0.85)',
+          borderColor: s.color,
+          select: () => this.setCurrentScale(currentPage, s.id),
+        }));
+      })(),
+      onAddCustomScale: () => this.addCustomScale(currentPage),
+      showDimensionHint: tool === 'dimension',
+      dimensionHintMessage: this.currentScaleIdByPage[currentPage] ? 'Click to set the start point, then click again to set the end point.' : 'Pick a scale below (or add one), then click two points to measure.',
+      showLinesIntro: this.state.showLinesIntro,
+      onLinesIntroCheckChange: this.onLinesIntroCheckChange,
+      linesIntroChecked: this.state.linesIntroChecked,
+      dismissLinesIntro: this.dismissLinesIntro,
       placingText,
       textBoxX: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.left : 0) : 0,
       textBoxY: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.top : 0) : 0,
