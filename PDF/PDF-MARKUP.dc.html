@@ -940,16 +940,13 @@ class Component extends DCLogic {
     if (this.state.tool === 'dimension') {
       const pageNum = this.state.currentPage;
       const raw = this.canvasPoint(e.clientX, e.clientY);
-      const snappedAnchor = this.findSnapPoint(raw, pageNum);
-      const pt = snappedAnchor || raw;
+      const pt = this.findSnapPoint(raw, pageNum) || raw;
       if (this.dimStage !== 1) {
         this.dimAnchor = pt;
-        this.dimAnchorSnapped = !!snappedAnchor;
         this.dimStage = 1;
         return;
       }
-      const snapEnd = this.findSnapPoint(raw, pageNum);
-      const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
+      const end = this.findSnapPoint(raw, pageNum) || this.applyLineLock(this.dimAnchor, raw, e);
       this.dimStage = 0;
       const anchor = this.dimAnchor;
       this.dimAnchor = null;
@@ -1084,49 +1081,14 @@ class Component extends DCLogic {
     if (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
-      const snapped = this.findSnapPoint(raw, pageNum);
-      const pt = snapped || this.applyLineLock(this.dimAnchor, raw, e);
+      const pt = this.applyLineLock(this.dimAnchor, raw, e);
       this.redrawPage(pageNum);
       const scale = this.getCurrentScale(pageNum);
       const color = scale ? scale.color : 'rgba(30,58,95,0.7)';
       const label = scale ? this.pixelDistanceToLabel(Math.hypot(pt[0] - this.dimAnchor[0], pt[1] - this.dimAnchor[1]), pageNum, scale) : '?';
       const ctx = this.overlayCanvasRef.current.getContext('2d');
       this.drawDimension(ctx, { a: this.dimAnchor, b: pt, color, label }, 1);
-      if (this.dimAnchorSnapped) {
-        ctx.save();
-        ctx.strokeStyle = '#1e3a5f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(this.dimAnchor[0], this.dimAnchor[1], 7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-      if (snapped) {
-        ctx.save();
-        ctx.strokeStyle = '#1e3a5f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(snapped[0], snapped[1], 7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
       return;
-    }
-    if (this.state.tool === 'dimension' && this.dimStage !== 1) {
-      const raw = this.canvasPoint(e.clientX, e.clientY);
-      const pageNum = this.state.currentPage;
-      const snapped = this.findSnapPoint(raw, pageNum);
-      this.redrawPage(pageNum);
-      if (snapped) {
-        const ctx = this.overlayCanvasRef.current.getContext('2d');
-        ctx.save();
-        ctx.strokeStyle = '#1e3a5f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(snapped[0], snapped[1], 7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
     }
     if (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor && !this.state.lineLengthPromptOpen) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
