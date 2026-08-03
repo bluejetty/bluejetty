@@ -98,13 +98,13 @@
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; opacity:0.5; pointer-events:none;">
+      <div style="display:flex; align-items:{{ resolutionAlign }}; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; flex-direction:{{ resolutionDirection }}; opacity:0.5; pointer-events:none;">
         <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">Resolution</div>
         <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
           <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; color:#1d1f20;">150 DPI (smaller file)</label>
           <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; border-left:1px solid rgba(29,31,32,0.16); background:#5980a6; color:#f2f2f3;">300 DPI (print quality)</label>
         </div>
-        <button style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 20px; margin-left:auto;">PDF-FLATTEN / SAVE</button>
+        <button style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 20px; margin-left:{{ resolutionButtonMarginLeft }};">PDF-FLATTEN / SAVE</button>
       </div>
     </sc-if>
 
@@ -724,6 +724,9 @@ class Component extends DCLogic {
 
     return {
       isMobile,
+      resolutionDirection: isMobile ? 'column' : 'row',
+      resolutionAlign: 'center',
+      resolutionButtonMarginLeft: isMobile ? '0' : 'auto',
       isDesktopHeader: !isMobile,
       onMobileNav: this.onMobileNav,
       fileName, loading, error, generating, downloadUrl, outputName,

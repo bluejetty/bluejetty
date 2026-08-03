@@ -7,7 +7,7 @@
 </head>
 <body>
 <x-dc>
-<div style="display:flex; align-items:center; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; flex-direction:{{ flexDirection }};">
+<div style="display:flex; align-items:{{ containerAlignItems }}; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; flex-direction:{{ flexDirection }};">
   <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">{{ label }}</div>
   <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
     <sc-for list="{{ options }}" as="opt" hint-placeholder-count="3">
@@ -41,7 +41,8 @@ class Component extends DCLogic {
       buttonCursor: this.props.buttonCursor ?? 'pointer',
       buttonOpacity: this.props.buttonOpacity ?? 1,
       flexDirection: isMobile ? 'column' : 'row',
-      buttonMarginLeft: isMobile ? 'auto' : 'auto',
+      containerAlignItems: isMobile ? 'center' : 'center',
+      buttonMarginLeft: isMobile ? '0' : 'auto',
       buttonMarginAuto: isMobile,
     };
   }
