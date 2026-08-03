@@ -54,25 +54,9 @@
         <button onClick="{{ reset }}" title="Clear the file list" style="border:none; background:none; padding:12px 6px; min-height:44px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
       </div>
     </sc-if>
-    <sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
-      <div style="display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:0;">
-        <button onClick="{{ reset }}" title="Clear the file list" style="border:none; background:none; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap; line-height:1;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
-        <div style="display:flex; align-items:center; gap:14px;">
-          <img src="./assets/PDF-PNG.png" title="PDF-PNG" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-          <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></a>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(4, 80px); row-gap:20px; column-gap:8px; justify-items:center; align-items:center;">
-          <a href="./PDF-MARKUP.dc.html" title="PDF-MARKUP"><img src="./assets/PDF-MARKUP.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./PDF-FLATTENER.dc.html" title="PDF-FLATTENER"><img src="./assets/PDF-FLATTENER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./PDF-CREATOR.dc.html" title="PDF-CREATOR"><img src="./assets/PDF-CREATOR.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./PDF-SPLITTER.dc.html" title="PDF-SPLITTER"><img src="./assets/PDF-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./PDF-WATERMARK.dc.html" title="PDF-WATERMARK"><img src="./assets/PDF-WATERMARK.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-          <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        </div>
-      </div>
-    </sc-if>
+    <dc-import name="ToolHeader" activeTool="PDF-PNG" on-clear="{{ reset }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
+    
+    
     <sc-if value="{{ noFile }}" hint-placeholder-val="{{ true }}">
 
       <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; display:flex; flex-direction:column; min-height:180px;">
