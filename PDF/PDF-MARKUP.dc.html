@@ -244,10 +244,6 @@
           <input type="checkbox" checked="{{ zoomBubbleEnabled }}" onChange="{{ onZoomBubbleToggle }}" style="width:14px; height:14px; cursor:pointer;" />
           Zoom Bubble
         </label>
-        <label style="position:absolute; right:12px; bottom:48px; display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.3); padding:6px 10px; font-family:'Barlow Condensed',system-ui,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.02em; color:rgba(255,255,255,0.85); text-transform:uppercase; cursor:pointer; z-index:80;">
-          <input type="checkbox" checked="{{ magnetSnapEnabled }}" onChange="{{ onMagnetSnapToggle }}" style="width:14px; height:14px; cursor:pointer;" />
-          Magnet Snap
-        </label>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -399,7 +395,6 @@ class Component extends DCLogic {
     zoomTransform: 'none',
     lineLengthPromptOpen: false,
     zoomBubbleEnabled: true,
-    magnetSnapEnabled: true,
     lineLengthFeet: '',
     lineLengthInches: '',
   };
@@ -537,7 +532,6 @@ class Component extends DCLogic {
     this.redoByPage = {};
     this.pageScales = {};
     this.pageDims = {};
-    this.pdfCornersByPage = {};
     this.extraPages = [];
     this.setState({ loading: true });
     const buf = await file.arrayBuffer();
@@ -560,7 +554,6 @@ class Component extends DCLogic {
       await page.render({ canvasContext: bg.getContext('2d'), viewport }).promise;
       this.pageScales[pageNum] = scale;
       this.pageDims[pageNum] = { width: viewport.width, height: viewport.height, widthPt: viewport1.width, heightPt: viewport1.height };
-      this.extractPdfCorners(pageNum, page, viewport);
     } else {
       const extra = this.extraPages[pageNum - this.originalNumPages - 1];
       const widthPt = 1224, heightPt = 792;
@@ -823,49 +816,7 @@ class Component extends DCLogic {
     return [(clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY];
   }
 
-  async extractPdfCorners(pageNum, page, viewport) {
-    if (this.pdfCornersByPage[pageNum]) return;
-    this.pdfCornersByPage[pageNum] = [];
-    try {
-      const opList = await page.getOperatorList();
-      const OPS = window.pdfjsLib.OPS;
-      const t = viewport.transform;
-      const apply = (x, y) => [t[0] * x + t[2] * y + t[4], t[1] * x + t[3] * y + t[5]];
-      const pts = [];
-      let curX = 0, curY = 0, startX = 0, startY = 0;
-      for (let i = 0; i < opList.fnArray.length; i++) {
-        if (opList.fnArray[i] !== OPS.constructPath) continue;
-        const args = opList.argsArray[i];
-        const ops = args[0], coords = args[1];
-        let ci = 0;
-        for (let j = 0; j < ops.length; j++) {
-          const op = ops[j];
-          if (op === OPS.moveTo) {
-            curX = coords[ci++]; curY = coords[ci++]; startX = curX; startY = curY;
-            pts.push(apply(curX, curY));
-          } else if (op === OPS.lineTo) {
-            curX = coords[ci++]; curY = coords[ci++];
-            pts.push(apply(curX, curY));
-          } else if (op === OPS.curveTo) {
-            ci += 6; curX = coords[ci - 2]; curY = coords[ci - 1];
-          } else if (op === OPS.curveTo2 || op === OPS.curveTo3) {
-            ci += 4; curX = coords[ci - 2]; curY = coords[ci - 1];
-          } else if (op === OPS.closePath) {
-            pts.push(apply(startX, startY));
-          } else if (op === OPS.rectangle) {
-            const x = coords[ci++], y = coords[ci++], w = coords[ci++], h = coords[ci++];
-            pts.push(apply(x, y), apply(x + w, y), apply(x + w, y + h), apply(x, y + h));
-          }
-        }
-      }
-      this.pdfCornersByPage[pageNum] = pts;
-    } catch (e) {
-      this.pdfCornersByPage[pageNum] = [];
-    }
-  }
-
   findSnapPoint(pt, pageNum) {
-    if (!this.state.magnetSnapEnabled) return null;
     const canvas = this.overlayCanvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const threshold = 14 * (canvas.width / rect.width);
@@ -879,11 +830,6 @@ class Component extends DCLogic {
         const d = Math.hypot(p[0] - pt[0], p[1] - pt[1]);
         if (d < bestDist) { bestDist = d; best = p; }
       });
-    });
-    const pdfCorners = this.pdfCornersByPage[pageNum] || [];
-    pdfCorners.forEach((p) => {
-      const d = Math.hypot(p[0] - pt[0], p[1] - pt[1]);
-      if (d < bestDist) { bestDist = d; best = p; }
     });
     return best;
   }
@@ -946,7 +892,8 @@ class Component extends DCLogic {
         this.dimStage = 1;
         return;
       }
-      const end = this.findSnapPoint(raw, pageNum) || this.applyLineLock(this.dimAnchor, raw, e);
+      const snapEnd = this.findSnapPoint(raw, pageNum);
+      const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
       this.dimStage = 0;
       const anchor = this.dimAnchor;
       this.dimAnchor = null;
@@ -1081,13 +1028,23 @@ class Component extends DCLogic {
     if (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
-      const pt = this.applyLineLock(this.dimAnchor, raw, e);
+      const snapped = this.findSnapPoint(raw, pageNum);
+      const pt = snapped || this.applyLineLock(this.dimAnchor, raw, e);
       this.redrawPage(pageNum);
       const scale = this.getCurrentScale(pageNum);
       const color = scale ? scale.color : 'rgba(30,58,95,0.7)';
       const label = scale ? this.pixelDistanceToLabel(Math.hypot(pt[0] - this.dimAnchor[0], pt[1] - this.dimAnchor[1]), pageNum, scale) : '?';
       const ctx = this.overlayCanvasRef.current.getContext('2d');
       this.drawDimension(ctx, { a: this.dimAnchor, b: pt, color, label }, 1);
+      if (snapped) {
+        ctx.save();
+        ctx.strokeStyle = '#1e3a5f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(snapped[0], snapped[1], 7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
       return;
     }
     if (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor && !this.state.lineLengthPromptOpen) {
@@ -1288,7 +1245,6 @@ class Component extends DCLogic {
 
   onLineLengthFeetChange = (e) => this.setState({ lineLengthFeet: e.target.value });
   onZoomBubbleToggle = (e) => this.setState({ zoomBubbleEnabled: e.target.checked });
-  onMagnetSnapToggle = (e) => this.setState({ magnetSnapEnabled: e.target.checked });
   onLineLengthInchesChange = (e) => this.setState({ lineLengthInches: e.target.value });
   cancelLineLength = () => this.setState({ lineLengthPromptOpen: false });
 
@@ -1631,7 +1587,6 @@ class Component extends DCLogic {
     this.originalNumPages = 0;
     this.scalesByPage = {};
     this.currentScaleIdByPage = {};
-    this.pdfCornersByPage = {};
     this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1, zoomActive: false, zoomTransform: 'none', zoomChoiceRect: null });
     if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('markup');
   };
@@ -1835,8 +1790,6 @@ class Component extends DCLogic {
       showZoomCenterDot: tool === 'zoom',
       zoomBubbleEnabled: this.state.zoomBubbleEnabled,
       onZoomBubbleToggle: this.onZoomBubbleToggle,
-      magnetSnapEnabled: this.state.magnetSnapEnabled,
-      onMagnetSnapToggle: this.onMagnetSnapToggle,
       snipMarkers: (() => {
         const dim = this.pageDims[currentPage];
         if (!dim) return [];
