@@ -539,12 +539,18 @@ class Component extends DCLogic {
     const tmp = document.createElement('canvas');
     tmp.width = Math.round(s.w * scale);
     tmp.height = Math.round(s.h * scale);
-    tmp.getContext('2d').drawImage(this.imgEl, s.x, s.y, s.w, s.h, 0, 0, tmp.width, tmp.height);
+    const ctx = tmp.getContext('2d');
     const mimeType = this.state.exportFormat === 'jpg' ? 'image/jpeg'
       : this.state.exportFormat === 'webp' ? 'image/webp'
       : this.state.exportFormat === 'bmp' ? 'image/bmp'
       : this.state.exportFormat === 'tiff' ? 'image/tiff'
       : 'image/png';
+    // JPEG/BMP have no alpha channel — fill white first so transparent source areas don't render black.
+    if (thumbMode || mimeType === 'image/jpeg' || mimeType === 'image/bmp') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+    }
+    ctx.drawImage(this.imgEl, s.x, s.y, s.w, s.h, 0, 0, tmp.width, tmp.height);
     const quality = this.state.exportFormat === 'jpg' ? 0.92 : undefined;
     return tmp.toDataURL(thumbMode ? 'image/jpeg' : mimeType, thumbMode ? 0.55 : quality);
   }
