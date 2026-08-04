@@ -23,6 +23,8 @@
   <div style="max-width:960px; width:100%;">
 <dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
 
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-WATERMARK</div>
+
 <dc-import name="DropBox" hint-size="100%,165px"
       has-file-name="{{ !!fileName }}"
       file-name="{{ fileName }}"
@@ -50,32 +52,9 @@
         <button onClick="{{ reset }}" title="Clear the file list" style="border:none; background:none; padding:12px 6px; min-height:44px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
       </div>
     </sc-if>
-    <sc-if value="{{ isDesktopHeader }}" hint-placeholder-val="{{ true }}">
-      <div style="position:relative; display:flex; flex-wrap:wrap-reverse; align-items:center; justify-content:flex-start; column-gap:14px; row-gap:10px; margin-bottom:0;">
-        <div style="display:flex; align-items:center; gap:14px; ">
-          <img src="./assets/PDF-WATERMARK.png" title="PDF-WATERMARK" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-          <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></a>
-
-
-          <div style="width:5px; flex-shrink:0;"></div>
-          <button onClick="{{ reset }}" title="Clear the file list" style="position:absolute; left:50%; top:0; transform:translateX(-50%); border:none; background:none; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap; line-height:1;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
-        </div>
-<div style="margin-left:auto; display:flex; flex-direction:column; gap:20px; align-items:flex-end;">
-        <div style="display:flex; gap:8px; align-items:center;">
-        <a href="./PDF-MARKUP.dc.html" title="PDF-MARKUP"><img src="./assets/PDF-MARKUP.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-FLATTENER.dc.html" title="PDF-FLATTENER"><img src="./assets/PDF-FLATTENER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-CREATOR.dc.html" title="PDF-CREATOR"><img src="./assets/PDF-CREATOR.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-SPLITTER.dc.html" title="PDF-SPLITTER"><img src="./assets/PDF-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center;">
-        <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-PNG.dc.html" title="PDF-PNG"><img src="./assets/PDF-PNG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        </div>
-        </div>
-      </div>
-    </sc-if>
+    
+    
+    
 
     <sc-if value="{{ noFile }}" hint-placeholder-val="{{ true }}">
 
@@ -111,13 +90,13 @@
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; opacity:0.5; pointer-events:none;">
+      <div style="display:flex; align-items:{{ resolutionAlign }}; gap:18px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0; flex-wrap:wrap; flex-direction:{{ resolutionDirection }}; opacity:0.5; pointer-events:none;">
         <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">Resolution</div>
         <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
           <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; color:#1d1f20;">150 DPI (smaller file)</label>
           <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; border-left:1px solid rgba(29,31,32,0.16); background:#5980a6; color:#f2f2f3;">300 DPI (print quality)</label>
         </div>
-        <button style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 20px; margin-left:auto;">PDF-FLATTEN / SAVE</button>
+        <button style="border:1px solid #5980a6; background:#5980a6; color:#f2f2f3; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em; padding:9px 20px; margin-left:{{ resolutionButtonMarginLeft }};">PDF-FLATTEN / SAVE</button>
       </div>
     </sc-if>
 
@@ -257,7 +236,7 @@
             <div style="position:relative; flex:none; display:flex; align-items:center; justify-content:center; min-width:0;">
               <img src="{{ previewThumbUrl }}" style="max-width:100%; max-height:{{ previewImgMaxHeight }}px; width:auto; height:auto; display:block;" />
               <sc-if value="{{ showTiledPreview }}" hint-placeholder-val="{{ false }}">
-                <div style="position:absolute; inset:0; display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:{{ tileGapPx }}px; padding:16px; pointer-events:none; overflow:hidden;">
+                <div style="position:absolute; inset:0; display:flex; flex-wrap:wrap; align-content:space-evenly; justify-content:space-evenly; gap:{{ tileGapPx }}px; padding:0; pointer-events:none; overflow:hidden;">
                   <sc-for list="{{ tileItems }}" as="ti" hint-placeholder-count="0">
                     <div style="flex:0 0 {{ tileItemPct }}%; max-width:{{ tileItemPct }}%; display:flex; align-items:center; justify-content:center;">
                       <sc-if value="{{ ti.isLogo }}" hint-placeholder-val="{{ false }}">
@@ -286,7 +265,7 @@
               <div style="position:relative; flex:none; display:flex; align-items:center; justify-content:center; min-width:0; border-top:1px solid rgba(29,31,32,0.14); padding-top:12px;">
                 <img src="{{ ep.thumbUrl }}" style="max-width:100%; max-height:{{ previewImgMaxHeight }}px; width:auto; height:auto; display:block; opacity:0.82;" />
                 <sc-if value="{{ showTiledPreview }}" hint-placeholder-val="{{ false }}">
-                  <div style="position:absolute; inset:0; display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:{{ tileGapPx }}px; padding:16px; pointer-events:none; overflow:hidden;">
+                  <div style="position:absolute; inset:0; display:flex; flex-wrap:wrap; align-content:space-evenly; justify-content:space-evenly; gap:{{ tileGapPx }}px; padding:0; pointer-events:none; overflow:hidden;">
                     <sc-for list="{{ tileItems }}" as="ti" hint-placeholder-count="0">
                       <div style="flex:0 0 {{ tileItemPct }}%; max-width:{{ tileItemPct }}%; display:flex; align-items:center; justify-content:center;">
                         <sc-if value="{{ ti.isLogo }}" hint-placeholder-val="{{ false }}">
@@ -340,26 +319,7 @@
         </sc-if>
     </sc-if>
 
-  </div>
-
-        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex; flex-direction:column; align-items:center; gap:24px; margin-bottom:0;">
-        <div style="display:grid; grid-template-columns:repeat(4, 50px); grid-template-rows:repeat(2, 50px); gap:14px; justify-items:center; align-items:center;">
-        <a href="./PDF-MARKUP.dc.html" title="PDF-MARKUP"><img src="./assets/PDF-MARKUP.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-FLATTENER.dc.html" title="PDF-FLATTENER"><img src="./assets/PDF-FLATTENER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-CREATOR.dc.html" title="PDF-CREATOR"><img src="./assets/PDF-CREATOR.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-SPLITTER.dc.html" title="PDF-SPLITTER"><img src="./assets/PDF-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-JPG.dc.html" title="PDF-JPG"><img src="./assets/PDF-JPG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./PDF-PNG.dc.html" title="PDF-PNG"><img src="./assets/PDF-PNG.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./IMAGE-CONVERTER.dc.html" title="MULTI-IMAGE-CONVERTER"><img src="./assets/IMAGE-CONVERTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        <a href="./IMAGE-SPLITTER.dc.html" title="IMAGE-SPLITTER"><img src="./assets/IMAGE-SPLITTER.png" style="width:50px; height:50px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid transparent; transition:border-color 0.2s ease, box-shadow 0.2s ease;" style-hover="border-color:rgba(29,31,32,0.25); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12);" /></a>
-        </div>
-        <div style="display:flex; align-items:center; gap:14px;">
-          <img src="./assets/PDF-WATERMARK.png" title="PDF-WATERMARK" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" />
-          <a href="./PDF-IMG-MGR.dc.html" title="PDF-IMAGE-MANAGER" style="display:block;"><img src="./assets/PDF-IMG-MGR.png" style="width:100px; height:100px; object-fit:contain; display:block; border-radius:12px; border:1.5px solid rgba(29,31,32,0.18); box-shadow:0 3px 6px rgba(29,31,32,0.18), 0 1px 3px rgba(29,31,32,0.12); background:#fff;" /></a>
-        </div>
-      </div>
-    </sc-if>
+        <dc-import name="ToolHeader" activeTool="PDF-WATERMARK" on-clear="{{ reset }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
 
   </div>
 </div>
@@ -383,11 +343,12 @@ class Component extends DCLogic {
     error: null,
     dragOver: false,
     urlInput: '',
-    type: 'text',
+    type: 'logo',
     text: 'DRAFT',
     fontSize: 72,
     colorIdx: 0,
     logoDataUrl: null,
+    logoIsDefault: true,
     logoSizePct: 40,
     position: 'center',
     rotation: 45,
@@ -424,6 +385,21 @@ class Component extends DCLogic {
     if (window.SharedFileStore) {
       window.SharedFileStore.loadSharedFile('watermark').then((f) => { if (f) this.loadPdf(f, true); });
     }
+    this.loadDefaultLogo();
+  }
+
+  loadDefaultLogo() {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      this.setState({ logoDataUrl: canvas.toDataURL('image/png') });
+    };
+    img.src = './assets/PDF-IMG-MGR.png';
   }
 
   componentWillUnmount() {
@@ -564,6 +540,7 @@ class Component extends DCLogic {
   onLogoFile = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    this.setState({ logoIsDefault: false });
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -739,6 +716,9 @@ class Component extends DCLogic {
 
     return {
       isMobile,
+      resolutionDirection: isMobile ? 'column' : 'row',
+      resolutionAlign: 'center',
+      resolutionButtonMarginLeft: isMobile ? '0' : 'auto',
       isDesktopHeader: !isMobile,
       onMobileNav: this.onMobileNav,
       fileName, loading, error, generating, downloadUrl, outputName,
@@ -817,7 +797,7 @@ class Component extends DCLogic {
       notTiledPreview: !(tileMode && type !== 'pagenum'),
       tileGapPx: Math.max(2, Math.min(60, tileSpacing * 0.2)),
       tileItemPct: type === 'logo' ? Math.max(8, Math.min(70, logoSizePct)) : Math.max(8, Math.min(70, (fontSize / 220) * 70)),
-      tileItems: Array.from({ length: 24 }, () => ({ isLogo: type === 'logo', notLogo: type !== 'logo', logoUrl: logoDataUrl || '' })),
+      tileItems: Array.from({ length: 60 }, () => ({ isLogo: type === 'logo', notLogo: type !== 'logo', logoUrl: logoDataUrl || '' })),
       previewFontPx: type === 'pagenum' ? Math.max(10, fontSize * 0.6) : Math.max(10, fontSize * 0.6),
       previewColor: color.hex,
       previewOpacity: opacityPct / 100,
