@@ -111,26 +111,33 @@
       </div>
 
       <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; background:#1d1f20; padding:8px; margin-bottom:8px;">
-        <sc-if value="{{ hasScale }}" hint-placeholder-val="{{ false }}">
-          <sc-for list="{{ scaleChips }}" as="s" hint-placeholder-count="1">
-            <button onClick="{{ s.select }}" style="display:flex; align-items:center; gap:6px; border:1px solid {{ s.borderColor }}; background:{{ s.bg }}; color:{{ s.textColor }}; padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; cursor:pointer;">
-              <span style="width:10px; height:10px; border-radius:50%; background:{{ s.borderColor }}; display:inline-block;"></span>
-              {{ s.raw }}
-            </button>
-          </sc-for>
-          <button onClick="{{ onAddCustomScale }}" style="display:flex; align-items:center; border:1px dashed rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer;">+ ADD SCALE</button>
-        </sc-if>
         <button onClick="{{ generateSchedule }}" title="Scan the PDF text for door widths and window sizes" style="display:flex; align-items:center; border:1px solid #5980a6; background:transparent; color:#5980a6; padding:0 12px; height:32px; box-sizing:border-box; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.15);">CONSTRUCTION SCHEDULE</button>
-        <label style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); padding:0 10px; height:32px; box-sizing:border-box; font-family:'Barlow Condensed',system-ui,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.02em; color:rgba(255,255,255,0.85); text-transform:uppercase; cursor:pointer; margin-left:auto;">
-          <input type="checkbox" checked="{{ zoomBubbleEnabled }}" onChange="{{ onZoomBubbleToggle }}" style="width:14px; height:14px; cursor:pointer;" />
-          Zoom Bubble
-        </label>
+        <sc-if value="{{ hasScale }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+            <sc-for list="{{ scaleChips }}" as="s" hint-placeholder-count="1">
+              <button onClick="{{ s.select }}" style="display:flex; align-items:center; gap:6px; border:1px solid {{ s.borderColor }}; background:{{ s.bg }}; color:{{ s.textColor }}; padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; cursor:pointer;">
+                <span style="width:10px; height:10px; border-radius:50%; background:{{ s.borderColor }}; display:inline-block;"></span>
+                {{ s.raw }}
+              </button>
+            </sc-for>
+            <button onClick="{{ onAddCustomScale }}" style="display:flex; align-items:center; border:1px dashed rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer;">+ ADD SCALE</button>
+            <label style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); padding:0 10px; height:32px; box-sizing:border-box; font-family:'Barlow Condensed',system-ui,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.02em; color:rgba(255,255,255,0.85); text-transform:uppercase; cursor:pointer;">
+              <input type="checkbox" checked="{{ zoomBubbleEnabled }}" onChange="{{ onZoomBubbleToggle }}" style="width:14px; height:14px; cursor:pointer;" />
+              Zoom Bubble
+            </label>
+          </div>
+        </sc-if>
       </div>
 
       <div style="position:relative; border:1px solid rgba(29,31,32,0.16); padding:16px; display:flex; justify-content:center; background:#1d2d3d; margin-bottom:16px; overflow:hidden;">
         <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" title="Previous page" style="position:absolute; left:24px; bottom:24px; z-index:70; width:44px; height:44px; border:none; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:{{ prevArrowOpacity }};" style-hover="opacity:0.85;">‹</button>
         <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" title="Next page" style="position:absolute; right:24px; bottom:76px; z-index:70; width:44px; height:44px; border:none; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:{{ nextArrowOpacity }};" style-hover="opacity:0.85;">›</button>
         <div style="position:absolute; right:24px; bottom:24px; z-index:70; background:rgba(0,0,0,0.5); color:#fff; font-size:13px; padding:10px 16px; border-radius:22px; opacity:{{ nextArrowOpacity }};">Page {{ currentPage }} of {{ numPages }}</div>
+        <div style="position:absolute; left:24px; top:24px; z-index:70; display:flex; flex-direction:column; gap:6px; align-items:stretch;">
+          <sc-for list="{{ previewToolOptions }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.select }}" title="{{ t.title }}" style="border:1px solid rgba(255,255,255,0.35); background:{{ t.bg }}; color:{{ t.color }}; padding:6px 12px; font-size:11px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; letter-spacing:0.02em; white-space:pre; text-align:center; cursor:pointer; line-height:1.2;" style-hover="border-color:rgba(255,255,255,0.7);">{{ t.label }}</button>
+          </sc-for>
+        </div>
         <sc-if value="{{ showFloatingPointUndo }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ undoPointEdit }}" title="Undo the last area point move/insert/delete" style="position:absolute; left:50%; top:20px; transform:translateX(-50%); z-index:80; background:rgba(0,0,0,0.65); color:#fff; border:1px solid #ff8c00; padding:9px 18px; border-radius:22px; font-size:13px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; text-transform:uppercase; letter-spacing:0.02em; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.35);" style-hover="background:rgba(255,140,0,0.25);">↺ Undo Point Edit</button>
         </sc-if>
@@ -327,7 +334,7 @@
       <div style="border:1px solid rgba(29,31,32,0.16); padding:16px; margin-bottom:0; display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
         <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16); flex-wrap:wrap;">
           <sc-for list="{{ toolOptions }}" as="t" hint-placeholder-count="4">
-            <button onClick="{{ t.select }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; white-space:pre-line; line-height:1.2; text-align:center; display:flex; align-items:center; justify-content:center;">{{ t.label }}</button>
+            <button onClick="{{ t.select }}" title="{{ t.title }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; white-space:pre-line; line-height:1.2; text-align:center; display:flex; align-items:center; justify-content:center;">{{ t.label }}</button>
           </sc-for>
         </div>
 
@@ -668,10 +675,22 @@ class Component extends DCLogic {
         this.pendingCompletedArea = null;
         this.setState({ showAreaCategoryPrompt: false });
       }
+      if (e.key === 'Escape' && this.state.tool === 'line' && this.lineStage === 1) {
+        e.preventDefault();
+        this.endLineChain();
+      }
       if (e.key === 'Escape' && this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0) {
         e.preventDefault();
         this.areaPoints = [];
         this.redrawPage(this.state.currentPage);
+      }
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && this.state.loaded && !this.state.showAreaCategoryPrompt && !this.state.lineLengthPromptOpen) {
+        const shortcutMap = { KeyL: 'line', KeyT: 'text', KeyD: 'dimension', KeyA: 'area', KeyZ: 'zoom' };
+        const nextTool = shortcutMap[e.code];
+        if (nextTool && !(e.code === 'KeyL' && this.state.tool === 'line' && this.lineStage === 1)) {
+          e.preventDefault();
+          this.selectTool(nextTool);
+        }
       }
     };
     window.addEventListener('keydown', this._onKeyDown);
@@ -1351,7 +1370,44 @@ class Component extends DCLogic {
     return { lineWidth: penSize, opacity: 1, color: colorHex };
   }
 
+  closeLineChain = () => {
+    if (this.lineStage !== 1 || !this.lineAnchor || !this.lineChainStart) return;
+    const anchor = this.lineAnchor;
+    const end = this.lineChainStart;
+    if (Math.hypot(end[0] - anchor[0], end[1] - anchor[1]) < 4) { this.endLineChain(); return; }
+    const pageNum = this.state.currentPage;
+    this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
+    this.actionsByPage[pageNum].push({ type: 'stroke', tool: 'line', color: COLORS[this.state.colorKey], lineWidth: this.state.penSize, opacity: 1, points: [anchor, end] });
+    this.redoByPage[pageNum] = [];
+    this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
+    this.endLineChain();
+  };
+
+  closeAreaChain = () => {
+    if (!this.areaPoints || this.areaPoints.length < 3) return;
+    const pageNum = this.state.currentPage;
+    const scale = this.getCurrentScale(pageNum);
+    if (!scale) { this.areaPoints = []; this.redrawPage(pageNum); return; }
+    const pixelArea = this.polygonPixelArea(this.areaPoints);
+    const label = this.pixelAreaToLabel(pixelArea, pageNum, scale);
+    const sqFt = this.pixelAreaToSqFt(pixelArea, pageNum, scale);
+    this.pendingCompletedArea = { pageNum, points: this.areaPoints.slice(), label, sqFt };
+    this.areaPoints = [];
+    this.setState({ showAreaCategoryPrompt: true });
+    this.redrawPage(pageNum);
+  };
+
   onDoubleClick = (e) => {
+    if (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length >= 3) {
+      e.preventDefault();
+      this.closeAreaChain();
+      return;
+    }
+    if (this.state.tool === 'line' && this.lineStage === 1) {
+      e.preventDefault();
+      this.closeLineChain();
+      return;
+    }
     if (this.state.tool !== 'area') return;
     const pageNum = this.state.currentPage;
     const pt = this.canvasPoint(e.clientX, e.clientY);
@@ -1453,7 +1509,7 @@ class Component extends DCLogic {
         this.dimStage = 1;
         return;
       }
-      const snapEnd = this.findSnapPoint(raw, pageNum);
+      const snapEnd = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
       const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
       this.dimStage = 0;
       const anchor = this.dimAnchor;
@@ -1473,7 +1529,7 @@ class Component extends DCLogic {
     if (this.state.tool === 'area') {
       const pageNum = this.state.currentPage;
       const raw = this.canvasPoint(e.clientX, e.clientY);
-      const snapped = this.findSnapPoint(raw, pageNum);
+      const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
       const pt = snapped || (this.areaPoints && this.areaPoints.length ? this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e) : raw);
       if (!this.areaPoints || this.areaPoints.length === 0) {
         const existingActions = this.actionsByPage[pageNum] || [];
@@ -1525,19 +1581,28 @@ class Component extends DCLogic {
       const pt = this.canvasPoint(e.clientX, e.clientY);
       if (this.lineStage !== 1) {
         this.lineAnchor = pt;
+        this.lineChainStart = pt;
         this.lineStage = 1;
         return;
       }
       const end = this.applyLineLock(this.lineAnchor, pt, e);
       const anchor = this.lineAnchor;
       if (Math.hypot(end[0] - anchor[0], end[1] - anchor[1]) < 4) { this.endLineChain(); return; }
+      const chainStart = this.lineChainStart;
+      const canvasEl = this.overlayCanvasRef.current;
+      const closeRect = canvasEl.getBoundingClientRect();
+      const closeThreshold = 14 * (canvasEl.width / closeRect.width);
+      const hasChain = chainStart && (chainStart[0] !== anchor[0] || chainStart[1] !== anchor[1]);
+      const closingChain = hasChain && Math.hypot(end[0] - chainStart[0], end[1] - chainStart[1]) < closeThreshold;
+      const finalEnd = closingChain ? chainStart : end;
       const pageNum = this.state.currentPage;
       this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
-      this.actionsByPage[pageNum].push({ type: 'stroke', tool: 'line', color: COLORS[this.state.colorKey], lineWidth: this.state.penSize, opacity: 1, points: [anchor, end] });
+      this.actionsByPage[pageNum].push({ type: 'stroke', tool: 'line', color: COLORS[this.state.colorKey], lineWidth: this.state.penSize, opacity: 1, points: [anchor, finalEnd] });
       this.redoByPage[pageNum] = [];
       this.redrawPage(pageNum);
       this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
-      this.lineAnchor = end;
+      if (closingChain) { this.endLineChain(); return; }
+      this.lineAnchor = finalEnd;
       this.lineStage = 1;
       return;
     }
@@ -1729,7 +1794,7 @@ class Component extends DCLogic {
     if (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
-      const snapped = this.findSnapPoint(raw, pageNum);
+      const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
       const pt = snapped || this.applyLineLock(this.dimAnchor, raw, e);
       this.redrawPage(pageNum);
       const scale = this.getCurrentScale(pageNum);
@@ -1751,7 +1816,7 @@ class Component extends DCLogic {
     if (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
-      const snapped = this.findSnapPoint(raw, pageNum);
+      const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
       const pt = snapped || this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e);
       this.redrawPage(pageNum);
       const canvas = this.overlayCanvasRef.current;
@@ -1794,12 +1859,19 @@ class Component extends DCLogic {
     }
     if (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor && !this.state.lineLengthPromptOpen) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
-      const pt = this.applyLineLock(this.lineAnchor, raw, e);
+      let pt = this.applyLineLock(this.lineAnchor, raw, e);
+      const canvas = this.overlayCanvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const closeThreshold = 14 * (canvas.width / rect.width);
+      const chainStart = this.lineChainStart;
+      const hasChain = chainStart && (chainStart[0] !== this.lineAnchor[0] || chainStart[1] !== this.lineAnchor[1]);
+      const canCloseLine = hasChain && Math.hypot(pt[0] - chainStart[0], pt[1] - chainStart[1]) < closeThreshold;
+      if (canCloseLine) pt = chainStart;
       const dx = pt[0] - this.lineAnchor[0], dy = pt[1] - this.lineAnchor[1];
       const len = Math.hypot(dx, dy);
       this.lineDir = len > 0.5 ? [dx / len, dy / len] : this.lineDir;
       this.redrawPage(this.state.currentPage);
-      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      const ctx = canvas.getContext('2d');
       ctx.save();
       ctx.strokeStyle = COLORS[this.state.colorKey];
       ctx.lineWidth = this.state.penSize;
@@ -1808,6 +1880,13 @@ class Component extends DCLogic {
       ctx.moveTo(this.lineAnchor[0], this.lineAnchor[1]);
       ctx.lineTo(pt[0], pt[1]);
       ctx.stroke();
+      if (canCloseLine) {
+        ctx.beginPath();
+        ctx.arc(chainStart[0], chainStart[1], 9, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
       ctx.restore();
       return;
     }
@@ -2046,6 +2125,7 @@ class Component extends DCLogic {
     this.leaderAnchor = null;
     this.lineStage = 0;
     this.lineAnchor = null;
+    this.lineChainStart = null;
     this.dimStage = 0;
     this.dimAnchor = null;
     this.areaPoints = [];
@@ -2086,6 +2166,7 @@ class Component extends DCLogic {
   endLineChain = () => {
     this.lineStage = 0;
     this.lineAnchor = null;
+    this.lineChainStart = null;
     this.lineDir = null;
     this.setState({ lineLengthPromptOpen: false }, () => { if (this.state.loaded) this.redrawPage(this.state.currentPage); });
   };
@@ -2786,6 +2867,7 @@ class Component extends DCLogic {
     this.leaderAnchor = null;
     this.lineStage = 0;
     this.lineAnchor = null;
+    this.lineChainStart = null;
     this.dimStage = 0;
     this.dimAnchor = null;
     this.areaPoints = [];
@@ -2884,7 +2966,8 @@ class Component extends DCLogic {
         const p0 = toPt([0, 0]), p1 = toPt([100, 0]);
         const angleDeg = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI;
         const textRotate = degrees(angleDeg);
-        (this.actionsByPage[i] || []).forEach((a) => this.drawActionVector(page, a, toPt, lenPt, boldFont, regFont, hexToColor, rgb, textRotate, angleDeg));
+        // Vector save: keep the original page pixels untouched — marks live only in the
+        // embedded metadata below and are redrawn live when reopened in this tool.
       }
       for (let j = 0; j < this.extraPages.length; j++) {
         const extra = this.extraPages[j];
@@ -2980,7 +3063,7 @@ class Component extends DCLogic {
       const labelOffset = lenPt(14);
       const lx = midX + px * labelOffset, ly = midY + py * labelOffset;
       const size = lenPt(20);
-      const textW = boldFont.widthOfTextAtSize(a.label, size);
+      const textW = boldFont.widthOfTextAtSize(a.label, size) * 0.8;
       const padX = lenPt(8), padY = lenPt(5);
       const boxW = textW + padX * 2, boxH = size + padY * 2;
       page.drawSvgPath(this.rotatedBoxPath(lx, ly, boxW, boxH, angleRad), { x: 0, y: 0, color: rgb(1, 1, 1), borderColor: color, borderWidth: lenPt(1.5) });
@@ -3000,7 +3083,7 @@ class Component extends DCLogic {
       const lines = this.computeAreaLabelLines(a);
       const size = lenPt(18);
       const lineHeight = size * 1.25;
-      const widths = lines.map((l) => boldFont.widthOfTextAtSize(l, size));
+      const widths = lines.map((l) => boldFont.widthOfTextAtSize(l, size) * 0.8);
       const maxW = Math.max(...widths);
       const padX = lenPt(8), padY = lenPt(6);
       const boxW = maxW + padX * 2, boxH = lines.length * lineHeight + padY * 2;
@@ -3135,19 +3218,29 @@ class Component extends DCLogic {
 
     const toolOptions = [
       { key: 'pen', label: 'PEN' },
-      { key: 'line', label: 'LINES' },
-      { key: 'text', label: 'TEXT' },
-      { key: 'dimension', label: 'DIMENSION' },
-      { key: 'area', label: 'AREA' },
-      { key: 'zoom', label: 'ZOOM\nDETAIL' },
       { key: 'highlighter', label: 'HIGHLIGHTER' },
       { key: 'eraser', label: 'ERASER' },
-    ].map((t) => ({
-      ...t,
-      bg: tool === t.key ? '#1d1f20' : 'transparent',
-      color: tool === t.key ? '#f2f2f3' : '#1d1f20',
-      select: () => this.selectTool(t.key),
-    }));
+      { key: 'line', label: 'LINES', shortcut: 'L' },
+      { key: 'text', label: 'TEXT', shortcut: 'T' },
+      { key: 'dimension', label: 'DIMENSION', shortcut: 'D' },
+      { key: 'area', label: 'AREA', shortcut: 'A' },
+      { key: 'zoom', label: 'ZOOM\nDETAIL', shortcut: 'Z' },
+    ].map((t) => {
+      const isPreviewTool = ['line', 'text', 'dimension', 'area', 'zoom'].includes(t.key);
+      if (isPreviewTool) {
+        return { ...t, bg: tool === t.key ? '#5980a6' : '#6b6f72', color: '#ffffff', title: `PRESS "${t.shortcut}"`, select: () => this.selectTool(t.key) };
+      }
+      return {
+        ...t,
+        bg: tool === t.key ? '#1d1f20' : 'transparent',
+        color: tool === t.key ? '#f2f2f3' : '#1d1f20',
+        select: () => this.selectTool(t.key),
+      };
+    });
+    const previewToolKeys = ['line', 'text', 'dimension', 'area', 'zoom'];
+    const previewToolOptions = toolOptions
+      .filter((t) => previewToolKeys.includes(t.key));
+    const bottomToolOptions = toolOptions.filter((t) => !previewToolKeys.includes(t.key));
 
     let cursorSize = 16, cursorBg = 'transparent', cursorBorder = 'rgba(255,255,255,0.7)';
     if (tool === 'pen') { cursorSize = Math.max(10, penSize * 2); cursorBg = 'transparent'; cursorBorder = colorHex; }
@@ -3200,6 +3293,7 @@ class Component extends DCLogic {
       colorSwatches,
       showColorSwatches: tool !== 'eraser',
       toolOptions,
+      previewToolOptions,
       showPenSize: tool === 'pen' || tool === 'highlighter' || tool === 'eraser',
       showTextSize: tool === 'text',
       penSize, textSize,
