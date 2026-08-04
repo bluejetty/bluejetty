@@ -111,12 +111,12 @@
       </div>
 
       <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; background:#1d1f20; padding:8px; margin-bottom:8px;">
-        <button onClick="{{ generateSchedule }}" title="Scan the PDF text for door widths and window sizes" style="display:flex; align-items:center; border:1px solid #5980a6; background:transparent; color:#5980a6; padding:0 12px; height:32px; box-sizing:border-box; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.15);">CONSTRUCTION SCHEDULE</button>
+        <button onClick="{{ generateSchedule }}" title="&quot;S&quot;" style="display:flex; align-items:center; border:1px solid #5980a6; background:transparent; color:#5980a6; padding:0 12px; height:32px; box-sizing:border-box; font-size:12px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.15);">CONSTRUCTION SCHEDULE</button>
         <sc-if value="{{ showLengthBox }}" hint-placeholder-val="{{ true }}">
           <div title="&quot;R&quot;" style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; letter-spacing:0.02em;">
             LENGTH:
-            <input ref="{{ feetInputRef }}" type="text" inputMode="numeric" value="{{ lineLengthFeet }}" onChange="{{ onLineLengthFeetChange }}" placeholder="FT" style="width:24px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />'-
-            <input type="text" value="{{ lineLengthInches }}" onChange="{{ onLineLengthInchesChange }}" onBlur="{{ onLineLengthInchesBlur }}" placeholder="IN" style="width:38px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />&quot;
+            <input ref="{{ feetInputRef }}" type="text" inputMode="numeric" data-allow-shortcuts="1" value="{{ lineLengthFeet }}" onChange="{{ onLineLengthFeetChange }}" onFocus="{{ onLineLengthFeetFocus }}" onKeyDown="{{ onLengthInputKeyDown }}" placeholder="FT" style="width:24px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />'-
+            <input type="text" data-allow-shortcuts="1" value="{{ lineLengthInches }}" onChange="{{ onLineLengthInchesChange }}" onBlur="{{ onLineLengthInchesBlur }}" onKeyDown="{{ onLengthInputKeyDown }}" placeholder="IN" style="width:38px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />&quot;
             <sc-if value="{{ lengthFrozen }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ confirmLineLength }}" style="border:1px solid #5980a6; background:#5980a6; color:#fff; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">COMPLETE</button>
               <button onClick="{{ cancelLineLength }}" title="Resume freehand" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:4px 8px; font-size:11px; cursor:pointer;">↺</button>
@@ -146,7 +146,7 @@
         <div style="position:absolute; right:24px; bottom:24px; z-index:70; background:rgba(0,0,0,0.5); color:#fff; font-size:13px; padding:10px 16px; border-radius:22px; opacity:{{ nextArrowOpacity }};">Page {{ currentPage }} of {{ numPages }}</div>
         <div style="position:absolute; left:24px; top:24px; z-index:70; display:flex; flex-direction:column; gap:6px; align-items:stretch;">
           <sc-for list="{{ previewToolOptions }}" as="t" hint-placeholder-count="5">
-            <button onClick="{{ t.select }}" title="{{ t.title }}" style="border:1px solid rgba(255,255,255,0.35); background:{{ t.bg }}; color:{{ t.color }}; padding:6px 12px; font-size:11px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; letter-spacing:0.02em; white-space:pre; text-align:center; cursor:pointer; line-height:1.2;" style-hover="border-color:rgba(255,255,255,0.7);">{{ t.label }}</button>
+            <button onClick="{{ t.select }}" title="{{ t.title }}" style="border:1px solid rgba(255,255,255,0.35); background:{{ t.bg }}; color:{{ t.color }}; padding:6px 12px; font-size:11px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; letter-spacing:0.02em; white-space:pre; text-align:center; cursor:pointer; line-height:1.2; transition:background-color 0.08s ease-out, border-color 0.08s ease-out;" style-hover="border-color:rgba(255,255,255,0.7);">{{ t.label }}</button>
           </sc-for>
         </div>
         <sc-if value="{{ showFloatingPointUndo }}" hint-placeholder-val="{{ false }}">
@@ -305,6 +305,19 @@
             <button onClick="{{ cancelFloorTypePrompt }}" style="margin-top:14px; border:1px dashed rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 14px; font-size:12px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CANCEL</button>
           </div>
         </sc-if>
+        <sc-if value="{{ showFreezeExitConfirm }}" hint-placeholder-val="{{ false }}">
+          <div
+            onMouseDown="{{ stopPropagation }}"
+            onClick="{{ stopPropagation }}"
+            style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); padding:20px 24px; z-index:65; min-width:280px;"
+          >
+            <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:rgba(255,255,255,0.9); text-transform:uppercase; margin-bottom:14px;">Cancel length entry?</div>
+            <div style="display:flex; gap:8px;">
+              <button onClick="{{ confirmFreehandPlacement }}" style="border:1px solid rgba(220,38,38,0.7); background:transparent; color:#fff; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(220,38,38,0.25);">FREEHAND PLACEMENT</button>
+              <button onClick="{{ confirmInputLength }}" style="border:1px solid #5980a6; background:transparent; color:#fff; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.25);">INPUT TEXT LENGTH</button>
+            </div>
+          </div>
+        </sc-if>
         <sc-if value="{{ showPitchPicker }}" hint-placeholder-val="{{ false }}">
           <div
             onMouseDown="{{ stopPropagation }}"
@@ -336,7 +349,7 @@
       <div style="border:1px solid rgba(29,31,32,0.16); padding:16px; margin-bottom:0; display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
         <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16); flex-wrap:wrap;">
           <sc-for list="{{ toolOptions }}" as="t" hint-placeholder-count="4">
-            <button onClick="{{ t.select }}" title="{{ t.title }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; white-space:pre-line; line-height:1.2; text-align:center; display:flex; align-items:center; justify-content:center;">{{ t.label }}</button>
+            <button onClick="{{ t.select }}" title="{{ t.title }}" style="padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ t.bg }}; color:{{ t.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; white-space:pre-line; line-height:1.2; text-align:center; display:flex; align-items:center; justify-content:center; transition:background-color 0.08s ease-out, color 0.08s ease-out;">{{ t.label }}</button>
           </sc-for>
         </div>
 
@@ -386,7 +399,7 @@
           <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">{{ snipHintMessage }}</div>
         </sc-if>
         <sc-if value="{{ showLineHint }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">Press SHIFT to lock vertical/horizontal, or CTRL to lock to 45°. Press SPACE for exact length; right-click to end the chain.</div>
+          <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">Click to start a line. Aim it (hold CTRL to lock horizontal/vertical), then press "R" to type an exact length. Right-click to end the chain.</div>
         </sc-if>
         <sc-if value="{{ showDimensionHint }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12px; color:rgba(29,31,32,0.55); font-style:italic;">{{ dimensionHintMessage }}</div>
@@ -467,8 +480,8 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:16px; text-transform:uppercase; letter-spacing:0.04em;">Flooring</div>
                   <label style="font-size:12px; color:rgba(29,31,32,0.6); display:flex; align-items:center; gap:6px;">
-                    Waste %
-                    <input type="number" min="0" max="50" value="{{ flooringWastePct }}" onChange="{{ onFlooringWasteChange }}" style="width:50px; border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px;" />
+                    Waste (10%-15%)
+                    <input type="number" min="0" max="50" value="{{ flooringWastePct }}" onChange="{{ onFlooringWasteChange }}" placeholder="15%" style="width:50px; border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px;" />
                   </label>
                 </div>
                 <sc-for list="{{ scheduleFlooringAreas }}" as="ar" hint-placeholder-count="0">
@@ -487,12 +500,13 @@
                   <sc-for list="{{ finishTypes }}" as="ft" hint-placeholder-count="3">
                     <div style="margin-bottom:6px;">
                       <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">Type {{ ft.num }}:</span>
-                        <input type="text" value="{{ ft.value }}" onChange="{{ ft.onChange }}" placeholder="e.g. Tile" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px;" />
+                        <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">{{ ft.code }}:</span>
+                        <input type="color" value="{{ ft.colorValue }}" onChange="{{ ft.onColorChange }}" title="Type color" style="width:26px; height:26px; padding:0; border:1px solid rgba(29,31,32,0.16); cursor:pointer; flex-shrink:0;" />
+                        <input type="text" value="{{ ft.value }}" onChange="{{ ft.onChange }}" placeholder="{{ ft.placeholder }}" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px; text-align:right;" />
                         <button onClick="{{ ft.onRemove }}" style="border:none; background:none; color:rgba(29,31,32,0.4); font-size:14px; cursor:pointer; padding:0 4px;">×</button>
                       </div>
                       <sc-if value="{{ ft.hasMatches }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px; color:rgba(29,31,32,0.5); padding-left:52px; margin-top:2px;">{{ ft.combinedLabel }}</div>
+                        <div style="font-size:11px; color:rgba(29,31,32,0.5); padding-left:60px; margin-top:2px;">{{ ft.combinedLabel }}</div>
                       </sc-if>
                     </div>
                   </sc-for>
@@ -504,8 +518,8 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:16px; text-transform:uppercase; letter-spacing:0.04em;">Roofing</div>
                   <label style="font-size:12px; color:rgba(29,31,32,0.6); display:flex; align-items:center; gap:6px;">
-                    Waste %
-                    <input type="number" min="0" max="50" value="{{ roofWastePct }}" onChange="{{ onRoofWasteChange }}" style="width:50px; border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px;" />
+                    Waste (10%-15%)
+                    <input type="number" min="0" max="50" value="{{ roofWastePct }}" onChange="{{ onRoofWasteChange }}" placeholder="15%" style="width:50px; border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px;" />
                   </label>
                 </div>
                 <sc-for list="{{ scheduleRoofingAreas }}" as="ar" hint-placeholder-count="0">
@@ -530,8 +544,8 @@
                   <sc-for list="{{ roofingTypes }}" as="rt" hint-placeholder-count="2">
                     <div style="margin-bottom:6px;">
                       <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">Type {{ rt.num }}:</span>
-                        <input type="text" value="{{ rt.value }}" onChange="{{ rt.onChange }}" placeholder="e.g. Asphalt Fiberglass" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px;" />
+                        <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">{{ rt.code }}:</span>
+                        <input type="text" value="{{ rt.value }}" onChange="{{ rt.onChange }}" placeholder="{{ rt.placeholder }}" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px; text-align:right;" />
                         <button onClick="{{ rt.onRemove }}" style="border:none; background:none; color:rgba(29,31,32,0.4); font-size:14px; cursor:pointer; padding:0 4px;">×</button>
                       </div>
                       <sc-if value="{{ rt.hasMatches }}" hint-placeholder-val="{{ false }}">
@@ -544,44 +558,81 @@
                 <sc-if value="{{ scheduleRoofPitch.length }}" hint-placeholder-val="{{ false }}">
                   <div style="margin-top:12px; padding-top:10px; border-top:1px dashed rgba(29,31,32,0.16);">
                     <div style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:6px;">Detected Pitch Callouts</div>
-                    <sc-for list="{{ scheduleRoofPitch }}" as="r" hint-placeholder-count="0">
-                      <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:rgba(29,31,32,0.6);">
-                        <span>{{ r.size }}</span>
-                        <span>×{{ r.count }} — pg {{ r.pages }}</span>
-                      </div>
-                    </sc-for>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                      <sc-for list="{{ scheduleRoofPitch }}" as="r" hint-placeholder-count="0">
+                        <span style="font-size:11px; color:rgba(29,31,32,0.6); background:rgba(29,31,32,0.06); padding:3px 7px; white-space:nowrap;">{{ r.size }} ×{{ r.count }} (pg {{ r.pages }})</span>
+                      </sc-for>
+                    </div>
                   </div>
                 </sc-if>
+              </div>
+
+              <div style="padding:14px; border:1px solid rgba(29,31,32,0.16); margin-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:16px; text-transform:uppercase; letter-spacing:0.04em;">Exterior</div>
+                  <label style="font-size:12px; color:rgba(29,31,32,0.6); display:flex; align-items:center; gap:6px;">
+                    Waste (10%-15%)
+                    <input type="number" min="0" max="50" value="{{ exteriorWastePct }}" onChange="{{ onExteriorWasteChange }}" placeholder="15%" style="width:50px; border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px;" />
+                  </label>
+                </div>
+                <sc-for list="{{ scheduleExteriorAreas }}" as="ar" hint-placeholder-count="0">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px; gap:8px; flex-wrap:wrap;">
+                    <span style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:{{ ar.color }}; display:inline-block;"></span>{{ ar.title }}</span>
+                    <select value="{{ ar.extTypeValue }}" onChange="{{ ar.onExtTypeSelect }}" style="border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px; background:#fff;">
+                      <sc-for list="{{ ar.extTypeOptions }}" as="opt" hint-placeholder-count="4">
+                        <option value="{{ opt.value }}">{{ opt.label }}</option>
+                      </sc-for>
+                    </select>
+                  </div>
+                </sc-for>
+                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(29,31,32,0.16);">
+                  <sc-for list="{{ exteriorTypes }}" as="et" hint-placeholder-count="4">
+                    <div style="margin-bottom:6px;">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">{{ et.code }}:</span>
+                        <input type="text" value="{{ et.value }}" onChange="{{ et.onChange }}" placeholder="{{ et.placeholder }}" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px; text-align:right;" />
+                        <button onClick="{{ et.onRemove }}" style="border:none; background:none; color:rgba(29,31,32,0.4); font-size:14px; cursor:pointer; padding:0 4px;">×</button>
+                      </div>
+                      <sc-if value="{{ et.hasMatches }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:11px; color:rgba(29,31,32,0.5); padding-left:52px; margin-top:2px;">{{ et.combinedLabel }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ addExteriorType }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:4px 10px; font-size:12px; cursor:pointer; color:rgba(29,31,32,0.7);">+ Add exterior type</button>
+                </div>
               </div>
             </div>
 
             <div>
-              <div style="margin-bottom:20px;">
-                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Doors</div>
-                <sc-for list="{{ scheduleDoors }}" as="d" hint-placeholder-count="0">
-                  <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
-                    <span>{{ d.size }}" wide</span>
-                    <span style="color:rgba(29,31,32,0.5);">×{{ d.count }} — pg {{ d.pages }}</span>
-                  </div>
-                </sc-for>
-              </div>
-              <div style="margin-bottom:20px;">
-                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Garage Doors</div>
-                <sc-for list="{{ scheduleGarageDoors }}" as="g" hint-placeholder-count="0">
-                  <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
-                    <span>{{ g.size }}</span>
-                    <span style="color:rgba(29,31,32,0.5);">×{{ g.count }} — pg {{ g.pages }}</span>
-                  </div>
-                </sc-for>
-              </div>
-              <div>
-                <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Windows</div>
-                <sc-for list="{{ scheduleWindows }}" as="w" hint-placeholder-count="0">
-                  <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
-                    <span>{{ w.size }}</span>
-                    <span style="color:rgba(29,31,32,0.5);">×{{ w.count }} — pg {{ w.pages }}</span>
-                  </div>
-                </sc-for>
+              <div style="padding:14px; border:1px solid rgba(29,31,32,0.16);">
+                <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:16px; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Windows &amp; Doors</div>
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Windows</div>
+                  <sc-for list="{{ scheduleWindows }}" as="w" hint-placeholder-count="0">
+                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
+                      <span>{{ w.size }}</span>
+                      <span style="color:rgba(29,31,32,0.5);">×{{ w.count }} — pg {{ w.pages }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Doors</div>
+                  <sc-for list="{{ scheduleDoors }}" as="d" hint-placeholder-count="0">
+                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
+                      <span>{{ d.size }}" wide</span>
+                      <span style="color:rgba(29,31,32,0.5);">×{{ d.count }} — pg {{ d.pages }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div>
+                  <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); margin-bottom:8px;">Garage Doors</div>
+                  <sc-for list="{{ scheduleGarageDoors }}" as="g" hint-placeholder-count="0">
+                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
+                      <span>{{ g.size }}</span>
+                      <span style="color:rgba(29,31,32,0.5);">×{{ g.count }} — pg {{ g.pages }}</span>
+                    </div>
+                  </sc-for>
+                </div>
               </div>
             </div>
           </div>
@@ -612,7 +663,7 @@ class Component extends DCLogic {
     currentPage: 1,
     tool: 'pen',
     colorKey: 'blue',
-    penSize: 1,
+    penSize: 1.5,
     textSize: 24,
     cursorX: -100,
     cursorY: -100,
@@ -636,13 +687,15 @@ class Component extends DCLogic {
     scheduleWallHeight: [],
     scheduleFloorThickness: [],
     scheduleAreas: [],
-    roofWastePct: 10,
-    flooringWastePct: 10,
-    finishTypes: ['TILE01', 'LAMINATE01', 'OTHER01'],
+    roofWastePct: '',
+    flooringWastePct: '',
+    exteriorWastePct: '',
+    finishTypes: ['LAMINATE', 'TILE', ''],
     finishTypeColors: {},
     showFloorTypePrompt: false,
     floorTypePendingIdx: null,
-    roofingTypes: ['Asphalt Fiberglass', ''],
+    roofingTypes: ['ASPHALT/FIBERGLASS', 'PFM PRE-FINISHED METAL ROOFING', ''],
+    exteriorTypes: ['CEMENTBD-H', 'VINYL-H', 'PFM-VERT', ''],
     scheduleNotes: '',
     mainFloorThickness: '',
     mainFloorWallHeight: '',
@@ -664,6 +717,7 @@ class Component extends DCLogic {
     zoomTransform: 'none',
     lineLengthPromptOpen: false,
     lengthFrozen: false,
+    showFreezeExitConfirm: false,
     liveLengthLabel: '',
     zoomBubbleEnabled: true,
     lineLengthFeet: '',
@@ -713,7 +767,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this._onKeyDown = (e) => {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') && e.target.dataset.allowShortcuts !== '1') return;
       if ((e.code === 'Space' || e.code === 'KeyR' || e.code === 'KeyL') && ((this.state.tool === 'line' && this.lineStage === 1) || (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0)) && !this.state.lengthFrozen) {
         e.preventDefault();
         this.setState({ lengthFrozen: true }, () => {
@@ -728,9 +782,14 @@ class Component extends DCLogic {
         if (this.exitCurrentSequence()) e.preventDefault();
       }
       if (!e.ctrlKey && !e.metaKey && !e.altKey && this.state.loaded && !this.state.showAreaCategoryPrompt && !this.state.lengthFrozen) {
-        const shortcutMap = { KeyL: 'line', KeyT: 'text', KeyD: 'dimension', KeyA: 'area', KeyZ: 'zoom' };
+        if (e.code === 'KeyS') {
+          e.preventDefault();
+          this.generateSchedule();
+          return;
+        }
+        const shortcutMap = { KeyP: 'pen', KeyL: 'line', KeyR: 'line', KeyT: 'text', KeyD: 'dimension', KeyA: 'area', KeyZ: 'zoom' };
         const nextTool = shortcutMap[e.code];
-        if (nextTool && !(e.code === 'KeyL' && this.state.tool === 'line' && this.lineStage === 1) && !(e.code === 'KeyL' && this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0)) {
+        if (nextTool && !((e.code === 'KeyL' || e.code === 'KeyR') && this.state.tool === 'line' && this.lineStage === 1) && !((e.code === 'KeyL' || e.code === 'KeyR') && this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0)) {
           e.preventDefault();
           this.selectTool(nextTool);
         }
@@ -2346,7 +2405,7 @@ class Component extends DCLogic {
       return true;
     }
     if (this.state.lengthFrozen) {
-      this.setState({ lengthFrozen: false });
+      this.setState({ showFreezeExitConfirm: true });
       return true;
     }
     if (this.state.tool === 'line' && this.lineStage === 1) {
@@ -2378,10 +2437,23 @@ class Component extends DCLogic {
     return false;
   };
 
-  onLineLengthFeetChange = (e) => this.setState({ lineLengthFeet: e.target.value });
+  onLineLengthFeetChange = (e) => this.setState({ lineLengthFeet: e.target.value, lineLengthInches: '0' });
   onZoomBubbleToggle = (e) => this.setState({ zoomBubbleEnabled: e.target.checked });
   onLineLengthInchesChange = (e) => this.setState({ lineLengthInches: e.target.value });
   onLineLengthInchesBlur = () => this.setState({ lineLengthInches: this.formatInchesFraction(this.parseInchesInput(this.state.lineLengthInches)) });
+  onLineLengthFeetFocus = () => this.setState({ lineLengthInches: '0' });
+  confirmFreehandPlacement = () => this.setState({ lengthFrozen: false, showFreezeExitConfirm: false });
+  confirmInputLength = () => {
+    this.setState({ showFreezeExitConfirm: false }, () => {
+      if (this.feetInputRef.current) { this.feetInputRef.current.focus(); this.feetInputRef.current.select(); }
+    });
+  };
+  onLengthInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (this.state.lengthFrozen) this.confirmLineLength();
+    }
+  };
   cancelLineLength = () => this.setState({ lengthFrozen: false });
 
   confirmLineLength = () => {
@@ -2688,12 +2760,13 @@ class Component extends DCLogic {
           if (a.pitch) {
             const rise = parseInt(a.pitch, 10);
             const mult = Math.sqrt(144 + rise * rise) / 12;
-            const slopedSqFt = (a.sqFt || 0) * mult;
-            const waste = this.state.roofWastePct || 10;
-            const squares = (slopedSqFt * (1 + waste / 100)) / 100;
-            roof = { pitch: a.pitch, slopedSqFt: Math.round(slopedSqFt), squares: squares.toFixed(2) };
+            const rawSlopedSqFt = (a.sqFt || 0) * mult;
+            const waste = (this.state.roofWastePct !== '' && this.state.roofWastePct != null) ? this.state.roofWastePct : 15;
+            const wastedSqFt = rawSlopedSqFt * (1 + waste / 100);
+            const squares = wastedSqFt / 100;
+            roof = { pitch: a.pitch, slopedSqFt: Math.round(wastedSqFt), squares: squares.toFixed(2) };
           }
-          scheduleAreas.push({ title: a.title, label: a.label, color: a.color, page: pageKey, roof, category: a.category, pageKey, actionIdx, sqFt: a.sqFt || 0, finishTypeIdx: a.finishTypeIdx != null ? a.finishTypeIdx : null, roofTypeIdx: a.roofTypeIdx != null ? a.roofTypeIdx : 0 });
+          scheduleAreas.push({ title: a.title, label: a.label, color: a.color, page: pageKey, roof, category: a.category, pageKey, actionIdx, sqFt: a.sqFt || 0, finishTypeIdx: a.finishTypeIdx != null ? a.finishTypeIdx : null, roofTypeIdx: a.roofTypeIdx != null ? a.roofTypeIdx : 0, extTypeIdx: a.extTypeIdx != null ? a.extTypeIdx : 0 });
         }
       });
     });
@@ -2756,7 +2829,7 @@ class Component extends DCLogic {
     let color = forcedColor;
     if (!color) { color = AREA_COLORS[this.areaColorIndex % AREA_COLORS.length]; this.areaColorIndex++; }
     this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
-    this.actionsByPage[pageNum].push({ type: 'area', points, color, label, title, sqFt, pitch: null, category: cat, labelOffset: [0, 0], finishTypeIdx: finishTypeIdx != null ? finishTypeIdx : null });
+    this.actionsByPage[pageNum].push({ type: 'area', points, color, label, title, sqFt, pitch: null, category: cat, labelOffset: [0, 0], finishTypeIdx: finishTypeIdx != null ? finishTypeIdx : null, roofTypeIdx: cat === 'ROOFING' ? 0 : undefined, extTypeIdx: cat === 'EXTERIOR' ? 0 : undefined });
     const newActionIdx = this.actionsByPage[pageNum].length - 1;
     this.redoByPage[pageNum] = [];
     this.redrawPage(pageNum);
@@ -2767,8 +2840,21 @@ class Component extends DCLogic {
       this.pitchPickerTarget = { pageNum, actionIdx: newActionIdx };
     }
   };
-  onRoofWasteChange = (e) => { this.setState({ roofWastePct: parseFloat(e.target.value) || 0 }, () => this.generateSchedule()); };
-  onFlooringWasteChange = (e) => { this.setState({ flooringWastePct: parseFloat(e.target.value) || 0 }); };
+  onRoofWasteChange = (e) => {
+    const raw = e.target.value;
+    const val = raw === '' ? '' : Math.max(0, Math.min(50, parseFloat(raw) || 0));
+    this.setState({ roofWastePct: val }, () => this.generateSchedule());
+  };
+  onFlooringWasteChange = (e) => {
+    const raw = e.target.value;
+    const val = raw === '' ? '' : Math.max(0, Math.min(50, parseFloat(raw) || 0));
+    this.setState({ flooringWastePct: val });
+  };
+  onExteriorWasteChange = (e) => {
+    const raw = e.target.value;
+    const val = raw === '' ? '' : Math.max(0, Math.min(50, parseFloat(raw) || 0));
+    this.setState({ exteriorWastePct: val });
+  };
   onFinishTypeChange = (idx, e) => {
     const finishTypes = this.state.finishTypes.slice();
     finishTypes[idx] = e.target.value;
@@ -2776,6 +2862,17 @@ class Component extends DCLogic {
   };
   addFinishType = () => this.setState({ finishTypes: [...this.state.finishTypes, ''] });
   removeFinishType = (idx) => this.setState({ finishTypes: this.state.finishTypes.filter((_, i) => i !== idx) });
+  onFinishTypeColorChange = (idx, e) => {
+    const hex = e.target.value;
+    const finishTypeColors = { ...this.state.finishTypeColors, [idx]: hex };
+    Object.keys(this.actionsByPage).forEach((pageKey) => {
+      (this.actionsByPage[pageKey] || []).forEach((a) => {
+        if (a.type === 'area' && a.category === 'FLOORING' && a.finishTypeIdx === idx) a.color = hex;
+      });
+      this.redrawPage(Number(pageKey));
+    });
+    this.setState({ finishTypeColors });
+  };
   onAreaFinishTypeChange = (ar, e) => {
     const val = e.target.value;
     const finishTypeIdx = val === '' ? null : parseInt(val, 10);
@@ -2800,6 +2897,20 @@ class Component extends DCLogic {
     const action = (this.actionsByPage[ar.pageKey] || [])[ar.actionIdx];
     if (action) action.roofTypeIdx = roofTypeIdx;
     const scheduleAreas = this.state.scheduleAreas.map((x) => (x === ar ? { ...x, roofTypeIdx } : x));
+    this.setState({ scheduleAreas });
+  };
+  onExteriorTypeChange = (idx, e) => {
+    const exteriorTypes = this.state.exteriorTypes.slice();
+    exteriorTypes[idx] = e.target.value;
+    this.setState({ exteriorTypes });
+  };
+  addExteriorType = () => this.setState({ exteriorTypes: [...this.state.exteriorTypes, ''] });
+  removeExteriorType = (idx) => this.setState({ exteriorTypes: this.state.exteriorTypes.filter((_, i) => i !== idx) });
+  onAreaExtTypeChange = (ar, e) => {
+    const extTypeIdx = parseInt(e.target.value, 10) || 0;
+    const action = (this.actionsByPage[ar.pageKey] || [])[ar.actionIdx];
+    if (action) action.extTypeIdx = extTypeIdx;
+    const scheduleAreas = this.state.scheduleAreas.map((x) => (x === ar ? { ...x, extTypeIdx } : x));
     this.setState({ scheduleAreas });
   };
   onScheduleNotesChange = (e) => this.setState({ scheduleNotes: e.target.value });
@@ -3124,9 +3235,9 @@ class Component extends DCLogic {
   };
   onToggleIncludeLinks = (e) => this.setState({ includeLinks: e.target.checked });
   onSnipTitleChange = (e) => this.setState({ snipTitle: e.target.value });
-  onPenSizeChange = (e) => this.setState({ penSize: parseInt(e.target.value, 10) });
-  decreasePenSize = () => this.setState((s) => ({ penSize: Math.max(1, s.penSize - 1) }));
-  increasePenSize = () => this.setState((s) => ({ penSize: Math.min(30, s.penSize + 1) }));
+  onPenSizeChange = (e) => this.setState({ penSize: parseFloat(e.target.value) });
+  decreasePenSize = () => this.setState((s) => ({ penSize: Math.max(0.5, Math.round((s.penSize - 0.5) * 10) / 10) }));
+  increasePenSize = () => this.setState((s) => ({ penSize: Math.min(30, Math.round((s.penSize + 0.5) * 10) / 10) }));
   onTextSizeChange = (e) => this.setState({ textSize: parseInt(e.target.value, 10) });
 
   snapshotAreaPoints = (pageNum, actionIdx, points) => {
@@ -3571,7 +3682,7 @@ class Component extends DCLogic {
     }));
 
     const toolOptions = [
-      { key: 'pen', label: 'PEN' },
+      { key: 'pen', label: 'PEN', shortcut: 'P' },
       { key: 'highlighter', label: 'HIGHLIGHTER' },
       { key: 'eraser', label: 'ERASER' },
       { key: 'line', label: 'LINE', shortcut: 'L' },
@@ -3588,6 +3699,7 @@ class Component extends DCLogic {
         ...t,
         bg: tool === t.key ? '#1d1f20' : 'transparent',
         color: tool === t.key ? '#f2f2f3' : '#1d1f20',
+        title: t.shortcut ? `"${t.shortcut}"` : undefined,
         select: () => this.selectTool(t.key),
       };
     });
@@ -3611,7 +3723,7 @@ class Component extends DCLogic {
     const crosshairSize = cursorSize + 24;
 
     const flooringAreasList = this.state.scheduleAreas.filter((a) => a.category === 'FLOORING');
-    const finishTypeOptions = this.state.finishTypes.map((v, i) => ({ value: String(i), label: `Type ${i + 1}` }));
+    const finishTypeOptions = this.state.finishTypes.map((v, i) => ({ value: String(i), label: `FL${String(i + 1).padStart(2, '0')}` }));
     const scheduleFlooringAreasEnriched = flooringAreasList.map((ar) => ({
       ...ar,
       finishTypeValue: ar.finishTypeIdx != null ? String(ar.finishTypeIdx) : '',
@@ -3620,12 +3732,21 @@ class Component extends DCLogic {
     }));
 
     const roofingAreasList = this.state.scheduleAreas.filter((a) => a.category === 'ROOFING');
-    const roofTypeOptions = this.state.roofingTypes.map((v, i) => ({ value: String(i), label: `Type ${i + 1}` }));
+    const roofTypeOptions = this.state.roofingTypes.map((v, i) => ({ value: String(i), label: `R${String(i + 1).padStart(2, '0')}` }));
     const scheduleRoofingAreasEnriched = roofingAreasList.map((ar) => ({
       ...ar,
       roofTypeValue: String(ar.roofTypeIdx || 0),
       roofTypeOptions,
       onRoofTypeSelect: (e) => this.onAreaRoofTypeChange(ar, e),
+    }));
+
+    const exteriorAreasList = this.state.scheduleAreas.filter((a) => a.category === 'EXTERIOR');
+    const extTypeOptions = this.state.exteriorTypes.map((v, i) => ({ value: String(i), label: `EXT${String(i + 1).padStart(2, '0')}` }));
+    const scheduleExteriorAreasEnriched = exteriorAreasList.map((ar) => ({
+      ...ar,
+      extTypeValue: String(ar.extTypeIdx || 0),
+      extTypeOptions,
+      onExtTypeSelect: (e) => this.onAreaExtTypeChange(ar, e),
     }));
 
     return {
@@ -3657,7 +3778,7 @@ class Component extends DCLogic {
       showColorSwatches: tool !== 'eraser',
       toolOptions,
       previewToolOptions,
-      showPenSize: tool === 'pen' || tool === 'highlighter' || tool === 'eraser',
+      showPenSize: tool === 'pen' || tool === 'line' || tool === 'highlighter' || tool === 'eraser',
       showTextSize: tool === 'text',
       penSize, textSize,
       onPenSizeChange: this.onPenSizeChange,
@@ -3689,6 +3810,9 @@ class Component extends DCLogic {
       })),
       floorColorSwatches: AREA_COLORS.map((hex) => ({ hex, select: () => this.selectFloorTypeColor(hex) })),
       cancelFloorTypePrompt: this.cancelFloorTypePrompt,
+      showFreezeExitConfirm: this.state.showFreezeExitConfirm,
+      confirmFreehandPlacement: this.confirmFreehandPlacement,
+      confirmInputLength: this.confirmInputLength,
       showPitchPicker: this.state.showPitchPicker,
       pitchPickerOptions: Array.from({ length: 12 }, (_, i) => i + 1).map((n) => {
         const pitch = `${n}/12`;
@@ -3729,13 +3853,18 @@ class Component extends DCLogic {
       onFlooringWasteChange: this.onFlooringWasteChange,
       finishTypes: this.state.finishTypes.map((v, i) => {
         const matched = flooringAreasList.filter((a) => a.finishTypeIdx === i);
-        const combinedSqFt = matched.reduce((sum, a) => sum + (a.sqFt || 0), 0);
+        const rawSqFt = matched.reduce((sum, a) => sum + (a.sqFt || 0), 0);
+        const wastePct = (this.state.flooringWastePct !== '' && this.state.flooringWastePct != null) ? this.state.flooringWastePct : 15;
+        const combinedSqFt = rawSqFt * (1 + wastePct / 100);
         return {
-          idx: i, num: i + 1, value: v,
+          idx: i, num: i + 1, code: `FL${String(i + 1).padStart(2, '0')}`, value: v,
+          placeholder: i === 2 ? 'e.g. CARPET, HARDWOOD' : '',
+          colorValue: this.state.finishTypeColors[i] || AREA_COLORS[i % AREA_COLORS.length],
+          onColorChange: (e) => this.onFinishTypeColorChange(i, e),
           onChange: (e) => this.onFinishTypeChange(i, e),
+          combinedLabel: matched.length ? `${matched.map((a) => a.title).join(' + ')} — ${Math.round(combinedSqFt)} sq ft combined (w/ waste)` : '',
           onRemove: () => this.removeFinishType(i),
           hasMatches: matched.length > 0,
-          combinedLabel: matched.length ? `${matched.map((a) => a.title).join(' + ')} — ${Math.round(combinedSqFt)} sq ft combined` : '',
         };
       }),
       addFinishType: this.addFinishType,
@@ -3745,7 +3874,8 @@ class Component extends DCLogic {
         const combinedSlopedSqFt = matched.reduce((sum, a) => sum + (a.roof ? a.roof.slopedSqFt : 0), 0);
         const combinedSquares = matched.reduce((sum, a) => sum + (a.roof ? parseFloat(a.roof.squares) : 0), 0);
         return {
-          idx: i, num: i + 1, value: v,
+          idx: i, num: i + 1, code: `R${String(i + 1).padStart(2, '0')}`, value: v,
+          placeholder: i === 2 ? 'e.g. COPPER, ASPHALT MEMBRANE (LOW-SLOPE)' : '',
           onChange: (e) => this.onRoofTypeChange(i, e),
           onRemove: () => this.removeRoofingType(i),
           hasMatches: matched.length > 0,
@@ -3753,6 +3883,24 @@ class Component extends DCLogic {
         };
       }),
       addRoofingType: this.addRoofingType,
+      scheduleExteriorAreas: scheduleExteriorAreasEnriched,
+      exteriorTypes: this.state.exteriorTypes.map((v, i) => {
+        const matched = exteriorAreasList.filter((a) => (a.extTypeIdx || 0) === i);
+        const rawExtSqFt = matched.reduce((sum, a) => sum + (a.sqFt || 0), 0);
+        const extWastePct = (this.state.exteriorWastePct !== '' && this.state.exteriorWastePct != null) ? this.state.exteriorWastePct : 15;
+        const combinedSqFt = rawExtSqFt * (1 + extWastePct / 100);
+        return {
+          idx: i, code: `EXT${String(i + 1).padStart(2, '0')}`, value: v,
+          placeholder: i === 3 ? 'e.g. BRICK, LEDGESTONE/STACKEDSTONE, FIELDSTONE, ROUNDSTONE' : '',
+          onChange: (e) => this.onExteriorTypeChange(i, e),
+          onRemove: () => this.removeExteriorType(i),
+          hasMatches: matched.length > 0,
+          combinedLabel: matched.length ? `${matched.map((a) => a.title).join(' + ')} — ${Math.round(combinedSqFt)} sq ft combined (w/ waste)` : '',
+        };
+      }),
+      addExteriorType: this.addExteriorType,
+      exteriorWastePct: this.state.exteriorWastePct,
+      onExteriorWasteChange: this.onExteriorWasteChange,
       scheduleNotes: this.state.scheduleNotes,
       onScheduleNotesChange: this.onScheduleNotesChange,
       mainFloorThickness: this.state.mainFloorThickness,
@@ -3857,6 +4005,8 @@ class Component extends DCLogic {
       lineLengthInches: this.state.lineLengthInches,
       onLineLengthInchesChange: this.onLineLengthInchesChange,
       onLineLengthInchesBlur: this.onLineLengthInchesBlur,
+      onLineLengthFeetFocus: this.onLineLengthFeetFocus,
+      onLengthInputKeyDown: this.onLengthInputKeyDown,
       onLineLengthFeetChange: this.onLineLengthFeetChange,
       confirmLineLength: this.confirmLineLength,
       cancelLineLength: this.cancelLineLength,
