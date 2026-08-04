@@ -115,8 +115,8 @@
         <sc-if value="{{ showLengthBox }}" hint-placeholder-val="{{ true }}">
           <div title="&quot;R&quot;" style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:0 10px; height:32px; box-sizing:border-box; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; letter-spacing:0.02em;">
             LENGTH:
-            <input ref="{{ feetInputRef }}" type="number" value="{{ lineLengthFeet }}" onChange="{{ onLineLengthFeetChange }}" placeholder="FT" style="width:44px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px;" />'
-            <input type="number" value="{{ lineLengthInches }}" onChange="{{ onLineLengthInchesChange }}" placeholder="IN" style="width:44px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px;" />&quot;
+            <input ref="{{ feetInputRef }}" type="text" inputMode="numeric" value="{{ lineLengthFeet }}" onChange="{{ onLineLengthFeetChange }}" placeholder="FT" style="width:24px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />'-
+            <input type="text" value="{{ lineLengthInches }}" onChange="{{ onLineLengthInchesChange }}" onBlur="{{ onLineLengthInchesBlur }}" placeholder="IN" style="width:38px; text-align:right; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:3px 5px; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif;" />&quot;
             <sc-if value="{{ lengthFrozen }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ confirmLineLength }}" style="border:1px solid #5980a6; background:#5980a6; color:#fff; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">COMPLETE</button>
               <button onClick="{{ cancelLineLength }}" title="Resume freehand" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:4px 8px; font-size:11px; cursor:pointer;">↺</button>
@@ -215,17 +215,6 @@
               <button onClick="{{ cancelText }}" style="border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
             </div>
           </sc-if>
-          <sc-if value="{{ zoomChoiceRect }}" hint-placeholder-val="{{ false }}">
-            <div
-              onMouseDown="{{ stopPropagation }}"
-              onClick="{{ stopPropagation }}"
-              style="position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); padding:8px; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); z-index:50;"
-            >
-              <button onClick="{{ confirmViewZoom }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">VIEW ZOOM</button>
-              <button onClick="{{ confirmCreateDetail }}" style="border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.7); padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">CREATE ZOOM DETAIL</button>
-              <button onClick="{{ cancelZoomChoice }}" style="border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); padding:6px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">✕</button>
-            </div>
-          </sc-if>
           <sc-if value="{{ snipRect }}" hint-placeholder-val="{{ false }}">
             <div
               onMouseDown="{{ stopPropagation }}"
@@ -250,24 +239,10 @@
               onClick="{{ stopPropagation }}"
               style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(220,38,38,0.7), 0 4px 18px rgba(220,38,38,0.5); padding:20px 24px; max-width:320px; z-index:60;"
             >
-              <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:rgba(255,255,255,0.9); text-transform:uppercase; margin-bottom:10px;">LINES tool</div>
+              <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:rgba(255,255,255,0.9); text-transform:uppercase; margin-bottom:10px;">LINE tool</div>
               <div style="font-size:14px; color:rgba(255,255,255,0.7); line-height:1.4; margin-bottom:14px;">Click to set the start point, then click again to set the end point. Hold SHIFT to lock vertical/horizontal, or CTRL to lock to 45°. Press SPACE to enter an exact length. Each line continues from the last point — right-click to end the chain. Click anywhere to continue.</div>
               <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,0.7); cursor:pointer;">
                 <input type="checkbox" checked="{{ linesIntroChecked }}" onChange="{{ onLinesIntroCheckChange }}" style="width:16px; height:16px; cursor:pointer;" />
-                Don't show again
-              </label>
-            </div>
-          </sc-if>
-          <sc-if value="{{ showZoomIntro }}" hint-placeholder-val="{{ false }}">
-            <div
-              onMouseDown="{{ stopPropagation }}"
-              onClick="{{ stopPropagation }}"
-              style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 0 3px rgba(124,58,237,0.7), 0 4px 18px rgba(124,58,237,0.5); padding:20px 24px; max-width:320px; z-index:60;"
-            >
-              <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:rgba(255,255,255,0.9); text-transform:uppercase; margin-bottom:10px;">Zoom tool</div>
-              <div style="font-size:14px; color:rgba(255,255,255,0.7); line-height:1.4; margin-bottom:14px;">1ST CLICK - 1ST CORNER OF BOX<br />2ND CLICK - 2ND CORNER, BOX COMPLETED</div>
-              <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,0.7); cursor:pointer;">
-                <input type="checkbox" checked="{{ zoomIntroChecked }}" onChange="{{ onZoomIntroCheckChange }}" style="width:16px; height:16px; cursor:pointer;" />
                 Don't show again
               </label>
             </div>
@@ -439,6 +414,21 @@
       options="{{ formatOptions }}"
       show-button="{{ false }}"
     ></dc-import>
+
+    <dc-import name="SaveBox" hint-size="100%,60px"
+      is-mobile="{{ isMobile }}"
+      label="Pages"
+      radio-name="markupPages"
+      options="{{ pageModeOptions }}"
+      show-button="{{ false }}"
+    ></dc-import>
+    <sc-if value="{{ showPageSelector }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-wrap:wrap; gap:6px; padding:14px 18px; border:1px solid rgba(29,31,32,0.16); margin-top:0;">
+        <sc-for list="{{ exportPageChips }}" as="p" hint-placeholder-count="6">
+          <button onClick="{{ p.toggle }}" style="width:40px; height:32px; border:1px solid {{ p.borderColor }}; background:{{ p.bg }}; color:{{ p.color }}; font-size:12px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; cursor:pointer;">{{ p.label }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
 
     <dc-import name="SaveBox" hint-size="100%,60px"
       is-mobile="{{ isMobile }}"
@@ -631,8 +621,6 @@ class Component extends DCLogic {
     textInputValue: '',
     showLinesIntro: false,
     linesIntroChecked: false,
-    showZoomIntro: false,
-    zoomIntroChecked: false,
     showEraserIntro: false,
     eraserIntroChecked: false,
     showAreaCategoryPrompt: false,
@@ -666,6 +654,8 @@ class Component extends DCLogic {
     progressText: '',
     urlInput: '',
     dpi: '300',
+    exportPageMode: 'full',
+    selectedExportPages: {},
     saveMode: 'vector',
     includeLinks: true,
     isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
@@ -1011,17 +1001,6 @@ class Component extends DCLogic {
       ctx.fillRect(x, y, w, h);
       ctx.restore();
     }
-    if (this.state.zoomChoiceRect && pageNum === this.state.currentPage) {
-      const { x, y, w, h } = this.state.zoomChoiceRect;
-      ctx.save();
-      ctx.strokeStyle = '#7c3aed';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 5]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.fillStyle = 'rgba(124,58,237,0.12)';
-      ctx.fillRect(x, y, w, h);
-      ctx.restore();
-    }
   }
 
   paintActionAtRatio(ctx, a, ratio) {
@@ -1251,7 +1230,14 @@ class Component extends DCLogic {
       for (let i = 0; i < a.points.length - 1; i++) d = Math.min(d, segDist(pt, a.points[i], a.points[i + 1]));
       return d;
     } else if (a.type === 'dimension') {
-      return segDist(pt, a.a, a.b);
+      const off = a.offset || 0;
+      if (Math.abs(off) < 0.5) return segDist(pt, a.a, a.b);
+      const dx = a.b[0] - a.a[0], dy = a.b[1] - a.a[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const px = -dy / len, py = dx / len;
+      const sa = [a.a[0] + px * off, a.a[1] + py * off];
+      const sb = [a.b[0] + px * off, a.b[1] + py * off];
+      return segDist(pt, sa, sb);
     } else if (a.type === 'area') {
       if (this.pointInPolygon(pt, a.points)) return 0;
       let d = Infinity;
@@ -1587,7 +1573,6 @@ class Component extends DCLogic {
       }
     }
     if (this.state.showLinesIntro) { this.dismissLinesIntro(); return; }
-    if (this.state.showZoomIntro) { this.dismissZoomIntro(); return; }
     if (this.state.showEraserIntro) { this.dismissEraserIntro(); return; }
     if (this.selectedIndices.size === 1) {
       const pageNum = this.state.currentPage;
@@ -1638,7 +1623,7 @@ class Component extends DCLogic {
       }
     }
     if (this.state.tool === 'zoom') {
-      if (this.state.zoomActive || this.state.zoomChoiceRect) return;
+      if (this.state.zoomActive) return;
       const pt = this.canvasPoint(e.clientX, e.clientY);
       if (this.zoomStage !== 1) {
         this.zoomStart = pt;
@@ -1650,30 +1635,52 @@ class Component extends DCLogic {
       this.zoomStage = 0;
       this.zoomStart = null;
       if (w < 12 || h < 12) { this.redrawPage(this.state.currentPage); return; }
-      this.setState({ zoomChoiceRect: { x, y, w, h } }, () => this.redrawPage(this.state.currentPage));
+      const r = { x, y, w, h };
+      const canvas = this.overlayCanvasRef.current;
+      const wrapRect = this.wrapRef.current.getBoundingClientRect();
+      const ratioX = wrapRect.width / canvas.width, ratioY = wrapRect.height / canvas.height;
+      const cssX = r.x * ratioX, cssY = r.y * ratioY, cssW = r.w * ratioX, cssH = r.h * ratioY;
+      const zoomScale = Math.min(wrapRect.width / cssW, wrapRect.height / cssH);
+      const tx = -cssX, ty = -cssY;
+      this.setState({ zoomActive: true, zoomTransform: `scale(${zoomScale}) translate(${tx}px, ${ty}px)`, tool: 'pen', zoomedRect: r });
       return;
     }
     if (this.state.tool === 'dimension') {
       const pageNum = this.state.currentPage;
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pt = this.findSnapPoint(raw, pageNum) || raw;
-      if (this.dimStage !== 1) {
+      if (this.dimStage === 0) {
         this.dimAnchor = pt;
         this.dimStage = 1;
         return;
       }
-      const snapEnd = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
-      const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
+      if (this.dimStage === 1) {
+        const snapEnd = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
+        const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
+        if (Math.hypot(end[0] - this.dimAnchor[0], end[1] - this.dimAnchor[1]) < 4) {
+          this.dimStage = 0;
+          this.dimAnchor = null;
+          this.redrawPage(pageNum);
+          return;
+        }
+        this.dimEnd = end;
+        this.dimStage = 2;
+        this.redrawPage(pageNum);
+        return;
+      }
+      const anchor = this.dimAnchor, end = this.dimEnd;
+      const dx = end[0] - anchor[0], dy = end[1] - anchor[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const px = -dy / len, py = dx / len;
+      const offset = (pt[0] - anchor[0]) * px + (pt[1] - anchor[1]) * py;
       this.dimStage = 0;
-      const anchor = this.dimAnchor;
       this.dimAnchor = null;
-      if (Math.hypot(end[0] - anchor[0], end[1] - anchor[1]) < 4) { this.redrawPage(this.state.currentPage); return; }
+      this.dimEnd = null;
       const scale = this.getCurrentScale(pageNum);
       if (!scale) { this.redrawPage(pageNum); return; }
-      const pixelDist = Math.hypot(end[0] - anchor[0], end[1] - anchor[1]);
-      const label = this.pixelDistanceToLabel(pixelDist, pageNum, scale);
+      const label = this.pixelDistanceToLabel(len, pageNum, scale);
       this.actionsByPage[pageNum] = this.actionsByPage[pageNum] || [];
-      this.actionsByPage[pageNum].push({ type: 'dimension', a: anchor, b: end, color: scale.color, label });
+      this.actionsByPage[pageNum].push({ type: 'dimension', a: anchor, b: end, color: scale.color, label, offset });
       this.redoByPage[pageNum] = [];
       this.redrawPage(pageNum);
       this.setState({ undoStackLen: this.actionsByPage[pageNum].length, redoStackLen: 0 });
@@ -1794,7 +1801,7 @@ class Component extends DCLogic {
     const rect = this.wrapRef.current ? this.wrapRef.current.getBoundingClientRect() : null;
     let showMagnifier = false, magSide = this.magSide || 'right', magY = 0, magLeftX = 0, magRightX = 0;
     let clientX = e.clientX, clientY = e.clientY;
-    const activeDrawing = (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) || (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0) || (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor);
+    const activeDrawing = (this.state.tool === 'dimension' && (this.dimStage === 1 || this.dimStage === 2) && this.dimAnchor) || (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0) || (this.state.tool === 'line' && this.lineStage === 1 && this.lineAnchor);
     if (!activeDrawing && this.state.liveLengthLabel) this.setState({ liveLengthLabel: '' });
     if (rect) {
       const isIdle = !this.isDrawing && this.lineStage !== 1 && this.dimStage !== 1 && this.zoomStage !== 1 && !(this.areaPoints && this.areaPoints.length) && !this.leaderAnchor;
@@ -1809,20 +1816,25 @@ class Component extends DCLogic {
       }
     }
     if (rect) {
-      const cx = clientX - rect.left, cy = clientY - rect.top;
+      const wrapEl = this.wrapRef.current;
+      const scaleCorrX = wrapEl && wrapEl.offsetWidth ? rect.width / wrapEl.offsetWidth : 1;
+      const scaleCorrY = wrapEl && wrapEl.offsetHeight ? rect.height / wrapEl.offsetHeight : 1;
+      const cx = (clientX - rect.left) / scaleCorrX, cy = (clientY - rect.top) / scaleCorrY;
       if (this.state.loaded && this.state.zoomBubbleEnabled && (MARKER_TOOLS.includes(this.state.tool) || this.state.tool === 'zoom')) {
         showMagnifier = true;
         const magSize = this.state.magSize || 140, margin = 16;
-        const centerX = rect.width / 2, deadzone = 80;
+        const localWidth = wrapEl ? wrapEl.offsetWidth : rect.width;
+        const localHeight = wrapEl ? wrapEl.offsetHeight : rect.height;
+        const centerX = localWidth / 2, deadzone = 80;
         const prevSide = this.magSide || 'right';
         let computedSide = prevSide;
         if (cx < centerX - deadzone) computedSide = 'right';
         else if (cx > centerX + deadzone) computedSide = 'left';
         magSide = this._resizingMagSide || computedSide;
         this.magSide = magSide;
-        magY = rect.height - magSize / 2 - margin;
+        magY = localHeight - magSize / 2 - margin;
         magLeftX = magSize / 2 + margin;
-        magRightX = rect.width - magSize / 2 - margin;
+        magRightX = localWidth - magSize / 2 - margin;
         const pt = this.canvasPoint(clientX, clientY);
         this.updateMagnifier(pt, magSize, this.magnifierCanvasRefLeft.current);
         this.updateMagnifier(pt, magSize, this.magnifierCanvasRefRight.current);
@@ -1882,6 +1894,22 @@ class Component extends DCLogic {
       ctx.restore();
       return;
     }
+    if (this.state.tool === 'dimension' && this.dimStage === 0) {
+      const raw = this.canvasPoint(clientX, clientY);
+      const pageNum = this.state.currentPage;
+      const snapped = this.findSnapPoint(raw, pageNum);
+      this.redrawPage(pageNum);
+      if (snapped) {
+        const ctx = this.overlayCanvasRef.current.getContext('2d');
+        ctx.save();
+        ctx.strokeStyle = '#1e3a5f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(snapped[0], snapped[1], 7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
     if (this.state.tool === 'dimension' && this.dimStage === 1 && this.dimAnchor) {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
@@ -1903,6 +1931,22 @@ class Component extends DCLogic {
         ctx.stroke();
         ctx.restore();
       }
+      return;
+    }
+    if (this.state.tool === 'dimension' && this.dimStage === 2 && this.dimAnchor && this.dimEnd) {
+      const raw = this.canvasPoint(e.clientX, e.clientY);
+      const pageNum = this.state.currentPage;
+      const anchor = this.dimAnchor, end = this.dimEnd;
+      const dx = end[0] - anchor[0], dy = end[1] - anchor[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const px = -dy / len, py = dx / len;
+      const offset = (raw[0] - anchor[0]) * px + (raw[1] - anchor[1]) * py;
+      this.redrawPage(pageNum);
+      const scale = this.getCurrentScale(pageNum);
+      const color = scale ? scale.color : 'rgba(30,58,95,0.7)';
+      const label = scale ? this.pixelDistanceToLabel(len, pageNum, scale) : '?';
+      const ctx = this.overlayCanvasRef.current.getContext('2d');
+      this.drawDimension(ctx, { a: anchor, b: end, color, label, offset }, 1);
       return;
     }
     if (this.state.tool === 'area' && this.areaPoints && this.areaPoints.length > 0 && !this.state.lengthFrozen) {
@@ -1928,7 +1972,7 @@ class Component extends DCLogic {
         if (segLabel !== this.state.liveLengthLabel) this.setState({ liveLengthLabel: segLabel });
         if (scale) {
           const fi = this.pixelDistanceToFeetInches(segLen, pageNum, scale);
-          this.setState({ lineLengthFeet: String(fi.feet), lineLengthInches: String(fi.inches) });
+          this.setState({ lineLengthFeet: String(fi.feet), lineLengthInches: fi.inchesStr });
         }
       }
       ctx.save();
@@ -1982,7 +2026,7 @@ class Component extends DCLogic {
         if (segLabel !== this.state.liveLengthLabel) this.setState({ liveLengthLabel: segLabel });
         if (scale) {
           const fi = this.pixelDistanceToFeetInches(len, this.state.currentPage, scale);
-          this.setState({ lineLengthFeet: String(fi.feet), lineLengthInches: String(fi.inches) });
+          this.setState({ lineLengthFeet: String(fi.feet), lineLengthInches: fi.inchesStr });
         }
       }
       this.redrawPage(this.state.currentPage);
@@ -2227,6 +2271,14 @@ class Component extends DCLogic {
   setSaveModeFlat = () => this.setState({ saveMode: 'flat' });
   setSaveModeVector = () => this.setState({ saveMode: 'vector' });
   setDpi150 = () => this.setState({ dpi: '150' });
+  setExportModeFull = () => this.setState({ exportPageMode: 'full' });
+  setExportModeSelect = () => this.setState({ exportPageMode: 'select' });
+  toggleExportPage = (pageNum) => {
+    const selectedExportPages = { ...this.state.selectedExportPages };
+    if (selectedExportPages[pageNum]) delete selectedExportPages[pageNum];
+    else selectedExportPages[pageNum] = true;
+    this.setState({ selectedExportPages });
+  };
   setDpi300 = () => this.setState({ dpi: '300' });
   setDpi600 = () => this.setState({ dpi: '600' });
 
@@ -2250,9 +2302,8 @@ class Component extends DCLogic {
     this.zoomStart = null;
     if (this.state.loaded) this.redrawPage(this.state.currentPage);
     const showLinesIntro = tool === 'line' && !localStorage.getItem('pdfMarkupLinesIntroSeen');
-    const showZoomIntro = tool === 'zoom' && !localStorage.getItem('pdfMarkupZoomIntroSeen');
     const showEraserIntro = tool === 'eraser' && !localStorage.getItem('pdfMarkupEraserIntroSeen');
-    this.setState({ tool, colorKey, placingText: null, snipRect: null, showLinesIntro, showZoomIntro, showEraserIntro });
+    this.setState({ tool, colorKey, placingText: null, snipRect: null, showLinesIntro, showEraserIntro });
   }
 
   dismissLinesIntro = () => {
@@ -2268,13 +2319,6 @@ class Component extends DCLogic {
   };
 
   onEraserIntroCheckChange = (e) => this.setState({ eraserIntroChecked: e.target.checked });
-
-  dismissZoomIntro = () => {
-    if (this.state.zoomIntroChecked) localStorage.setItem('pdfMarkupZoomIntroSeen', '1');
-    this.setState({ showZoomIntro: false });
-  };
-
-  onZoomIntroCheckChange = (e) => this.setState({ zoomIntroChecked: e.target.checked });
 
   exitZoom = () => this.setState({ zoomActive: false, zoomTransform: 'none' });
 
@@ -2314,9 +2358,10 @@ class Component extends DCLogic {
       this.redrawPage(this.state.currentPage);
       return true;
     }
-    if (this.state.tool === 'dimension' && this.dimStage === 1) {
+    if (this.state.tool === 'dimension' && (this.dimStage === 1 || this.dimStage === 2)) {
       this.dimStage = 0;
       this.dimAnchor = null;
+      this.dimEnd = null;
       this.redrawPage(this.state.currentPage);
       return true;
     }
@@ -2336,6 +2381,7 @@ class Component extends DCLogic {
   onLineLengthFeetChange = (e) => this.setState({ lineLengthFeet: e.target.value });
   onZoomBubbleToggle = (e) => this.setState({ zoomBubbleEnabled: e.target.checked });
   onLineLengthInchesChange = (e) => this.setState({ lineLengthInches: e.target.value });
+  onLineLengthInchesBlur = () => this.setState({ lineLengthInches: this.formatInchesFraction(this.parseInchesInput(this.state.lineLengthInches)) });
   cancelLineLength = () => this.setState({ lengthFrozen: false });
 
   confirmLineLength = () => {
@@ -2344,8 +2390,7 @@ class Component extends DCLogic {
     const scale = this.getCurrentScale(pageNum);
     if (!scale || !this.lineAnchor || !this.lineDir) { this.setState({ lengthFrozen: false }); return; }
     const feet = parseFloat(this.state.lineLengthFeet) || 0;
-    const inches = parseFloat(this.state.lineLengthInches) || 0;
-    const totalInches = feet * 12 + inches;
+    const totalInches = feet * 12 + this.parseInchesInput(this.state.lineLengthInches);
     const displayScale = this.pageScales[pageNum] || 1;
     let paperInches;
     if (scale.unit === 'imperial') {
@@ -2373,8 +2418,7 @@ class Component extends DCLogic {
     const scale = this.getCurrentScale(pageNum);
     if (!scale || !this.areaPoints || !this.areaPoints.length || !this.areaDir) { this.setState({ lengthFrozen: false }); return; }
     const feet = parseFloat(this.state.lineLengthFeet) || 0;
-    const inches = parseFloat(this.state.lineLengthInches) || 0;
-    const totalInches = feet * 12 + inches;
+    const totalInches = feet * 12 + this.parseInchesInput(this.state.lineLengthInches);
     const displayScale = this.pageScales[pageNum] || 1;
     let paperInches;
     if (scale.unit === 'imperial') {
@@ -2407,36 +2451,14 @@ class Component extends DCLogic {
     this.setState({ lengthFrozen: false });
   };
 
-  confirmViewZoom = () => {
-    const r = this.state.zoomChoiceRect;
-    if (!r) return;
-    const canvas = this.overlayCanvasRef.current;
-    const rect = this.wrapRef.current.getBoundingClientRect();
-    const ratioX = rect.width / canvas.width, ratioY = rect.height / canvas.height;
-    const cssX = r.x * ratioX, cssY = r.y * ratioY, cssW = r.w * ratioX, cssH = r.h * ratioY;
-    const scale = Math.min(rect.width / cssW, rect.height / cssH);
-    const tx = -cssX, ty = -cssY;
-    this.setState({ zoomActive: true, zoomTransform: `scale(${scale}) translate(${tx}px, ${ty}px)`, tool: 'pen', zoomChoiceRect: null, zoomedRect: r });
-  };
-
-  confirmCreateDetail = () => {
-    const r = this.state.zoomChoiceRect;
-    if (!r) return;
-    const detailNum = String(this.extraPages.length + 1).padStart(2, '0');
-    this.setState({ snipRect: r, snipTitle: `DETAIL ${detailNum}:`, zoomChoiceRect: null });
-  };
-
-  cancelZoomChoice = () => {
-    this.zoomStage = 0;
-    this.zoomStart = null;
-    this.setState({ zoomChoiceRect: null }, () => { if (this.state.loaded) this.redrawPage(this.state.currentPage); });
-  };
 
   createDetailFromZoomedView = () => {
     const r = this.state.zoomedRect;
     if (!r) return;
     const detailNum = String(this.extraPages.length + 1).padStart(2, '0');
-    this.setState({ snipRect: r, snipTitle: `DETAIL ${detailNum}:`, zoomActive: false, zoomTransform: 'none' });
+    this.setState({ snipRect: r, snipTitle: `DETAIL ${detailNum}:`, zoomActive: false, zoomTransform: 'none' }, () => {
+      this.captureSnip();
+    });
   };
 
   forceScaleUpdate() { this.setState((s) => ({ scaleVersion: s.scaleVersion + 1 })); }
@@ -2835,15 +2857,45 @@ class Component extends DCLogic {
     const displayScale = this.pageScales[pageNum] || 1;
     const paperInches = (pixelDist / displayScale) / 72;
     const realInches = scale.unit === 'imperial' ? paperInches * scale.ratio : (paperInches * 25.4 * scale.ratio) / 25.4;
-    const feet = Math.floor(realInches / 12);
-    let inches = Math.round((realInches - feet * 12) * 8) / 8;
-    return { feet, inches };
+    const totalSixteenths = Math.round(realInches * 16);
+    const feet = Math.floor(totalSixteenths / (12 * 16));
+    const remSixteenths = totalSixteenths - feet * 12 * 16;
+    return { feet, inchesStr: this.formatInchesFraction(remSixteenths / 16) };
+  }
+
+  formatInchesFraction(value) {
+    const sixteenths = Math.round(Math.max(0, value) * 16);
+    const whole = Math.floor(sixteenths / 16);
+    const frac = sixteenths % 16;
+    if (frac === 0) return String(whole);
+    const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+    const g = gcd(frac, 16);
+    const num = frac / g, den = 16 / g;
+    return whole > 0 ? `${whole} ${num}/${den}` : `${num}/${den}`;
+  }
+
+  parseInchesInput(str) {
+    if (!str) return 0;
+    let s = String(str).trim().replace(/"/g, '');
+    s = s.replace(/^(\d+)-(\d+\/\d+)$/, '$1 $2');
+    const parts = s.split(/\s+/).filter(Boolean);
+    let total = 0;
+    parts.forEach((p) => {
+      if (p.includes('/')) {
+        const [n, d] = p.split('/').map(Number);
+        if (d) total += n / d;
+      } else {
+        total += parseFloat(p) || 0;
+      }
+    });
+    return total;
   }
 
   drawDimension(ctx, a, ratio) {
     const r = ratio || 1;
     const ax = a.a[0] * r, ay = a.a[1] * r;
     const bx = a.b[0] * r, by = a.b[1] * r;
+    const offsetPx = (a.offset || 0) * r;
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
@@ -2855,29 +2907,47 @@ class Component extends DCLogic {
     const ux = dx / len, uy = dy / len;
     const px = -uy, py = ux;
     const tick = 8 * r;
+    const sax = ax + px * offsetPx, say = ay + py * offsetPx;
+    const sbx = bx + px * offsetPx, sby = by + py * offsetPx;
+    if (Math.abs(offsetPx) > 0.5) {
+      const dir = offsetPx > 0 ? 1 : -1;
+      const gap = 3 * r, extend = 4 * r;
+      const startOff = gap, endOff = Math.abs(offsetPx) + extend;
+      ctx.lineWidth = 1 * r;
+      ctx.beginPath();
+      ctx.moveTo(ax + px * dir * startOff, ay + py * dir * startOff);
+      ctx.lineTo(ax + px * dir * endOff, ay + py * dir * endOff);
+      ctx.moveTo(bx + px * dir * startOff, by + py * dir * startOff);
+      ctx.lineTo(bx + px * dir * endOff, by + py * dir * endOff);
+      ctx.stroke();
+      ctx.lineWidth = 2 * r;
+    }
     ctx.beginPath();
-    ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
+    ctx.moveTo(sax, say); ctx.lineTo(sbx, sby);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(ax - px * tick, ay - py * tick); ctx.lineTo(ax + px * tick, ay + py * tick);
-    ctx.moveTo(bx - px * tick, by - py * tick); ctx.lineTo(bx + px * tick, by + py * tick);
+    ctx.moveTo(sax - px * tick, say - py * tick); ctx.lineTo(sax + px * tick, say + py * tick);
+    ctx.moveTo(sbx - px * tick, sby - py * tick); ctx.lineTo(sbx + px * tick, sby + py * tick);
     ctx.stroke();
-    const midX = (ax + bx) / 2, midY = (ay + by) / 2;
-    const labelOffset = 14 * r;
-    const lx = midX + px * labelOffset, ly = midY + py * labelOffset;
+    const midX = (sax + sbx) / 2, midY = (say + sby) / 2;
     ctx.font = `600 ${20 * r}px 'Barlow Condensed', sans-serif`;
     const textW = ctx.measureText(a.label).width;
     const padX = 8 * r, padY = 5 * r;
     const boxW = textW + padX * 2, boxH = 20 * r + padY * 2;
+    let lineAngle = Math.atan2(sby - say, sbx - sax);
+    if (lineAngle > Math.PI / 2) lineAngle -= Math.PI;
+    else if (lineAngle < -Math.PI / 2) lineAngle += Math.PI;
+    ctx.translate(midX, midY);
+    ctx.rotate(lineAngle);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(lx - boxW / 2, ly - boxH / 2, boxW, boxH);
+    ctx.fillRect(-boxW / 2, -boxH / 2, boxW, boxH);
     ctx.lineWidth = 1.5 * r;
     ctx.strokeStyle = a.color;
-    ctx.strokeRect(lx - boxW / 2, ly - boxH / 2, boxW, boxH);
+    ctx.strokeRect(-boxW / 2, -boxH / 2, boxW, boxH);
     ctx.fillStyle = a.color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(a.label, lx, ly);
+    ctx.fillText(a.label, 0, 0);
     ctx.restore();
   }
 
@@ -3126,7 +3196,7 @@ class Component extends DCLogic {
     this.areaPoints = [];
     this.selectedIndices.clear();
     this.snipDragging = false;
-    this.setState({ currentPage: pageNum, placingText: null, snipRect: null, zoomActive: false, zoomTransform: 'none', zoomChoiceRect: null }, () => this.renderPage(pageNum));
+    this.setState({ currentPage: pageNum, placingText: null, snipRect: null, zoomActive: false, zoomTransform: 'none' }, () => this.renderPage(pageNum));
   }
 
   syncThumbImages = () => {
@@ -3182,7 +3252,7 @@ class Component extends DCLogic {
     this.originalNumPages = 0;
     this.scalesByPage = {};
     this.currentScaleIdByPage = {};
-    this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1, zoomActive: false, zoomTransform: 'none', zoomChoiceRect: null });
+    this.setState({ loaded: false, fileName: '', numPages: 0, currentPage: 1, zoomActive: false, zoomTransform: 'none' });
     if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('markup');
   };
 
@@ -3198,6 +3268,8 @@ class Component extends DCLogic {
 
   async exportVector() {
     if (!this.pdfDoc || !this.originalBytes) return;
+    const includedPages = this.state.exportPageMode === 'select' ? new Set(Object.keys(this.state.selectedExportPages).map(Number)) : null;
+    if (includedPages && includedPages.size === 0) { alert('Select at least one page to export.'); return; }
     this.setState({ exporting: true, progressText: 'Preparing vector export…' });
     try {
       const { PDFDocument, StandardFonts, rgb, degrees } = window.PDFLib;
@@ -3243,9 +3315,16 @@ class Component extends DCLogic {
       for (let i = 1; i <= this.originalNumPages; i++) {
         if (this.actionsByPage[i]) mainPageActions[i] = this.actionsByPage[i];
       }
-      const payload = { v: 1, actionsByPage: mainPageActions, areaColorIndex: this.areaColorIndex, areaCategoryCounters: this.areaCategoryCounters };
-      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-      outDoc.setSubject('PDFMARKUPDATA:' + b64);
+      if (includedPages) {
+        const totalPages = this.originalNumPages + this.extraPages.length;
+        for (let idx = totalPages; idx >= 1; idx--) {
+          if (!includedPages.has(idx)) outDoc.removePage(idx - 1);
+        }
+      } else {
+        const payload = { v: 1, actionsByPage: mainPageActions, areaColorIndex: this.areaColorIndex, areaCategoryCounters: this.areaCategoryCounters };
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+        outDoc.setSubject('PDFMARKUPDATA:' + b64);
+      }
       const bytes = await outDoc.save();
       const blob = new Blob([bytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -3309,20 +3388,31 @@ class Component extends DCLogic {
       const ux = dx / len, uy = dy / len;
       const px = -uy, py = ux;
       const tick = lenPt(8);
-      page.drawLine({ start: { x: ax, y: ay }, end: { x: bx, y: by }, thickness: lenPt(2), color });
-      page.drawLine({ start: { x: ax - px * tick, y: ay - py * tick }, end: { x: ax + px * tick, y: ay + py * tick }, thickness: lenPt(2), color });
-      page.drawLine({ start: { x: bx - px * tick, y: by - py * tick }, end: { x: bx + px * tick, y: by + py * tick }, thickness: lenPt(2), color });
-      const midX = (ax + bx) / 2, midY = (ay + by) / 2;
-      const labelOffset = lenPt(14);
-      const lx = midX + px * labelOffset, ly = midY + py * labelOffset;
+      const offPt = lenPt(a.offset || 0);
+      const sax = ax + px * offPt, say = ay + py * offPt;
+      const sbx = bx + px * offPt, sby = by + py * offPt;
+      if (Math.abs(offPt) > 0.5) {
+        const dir = offPt > 0 ? 1 : -1;
+        const gap = lenPt(3), extend = lenPt(4);
+        const startOff = gap, endOff = Math.abs(offPt) + extend;
+        page.drawLine({ start: { x: ax + px * dir * startOff, y: ay + py * dir * startOff }, end: { x: ax + px * dir * endOff, y: ay + py * dir * endOff }, thickness: lenPt(1), color });
+        page.drawLine({ start: { x: bx + px * dir * startOff, y: by + py * dir * startOff }, end: { x: bx + px * dir * endOff, y: by + py * dir * endOff }, thickness: lenPt(1), color });
+      }
+      page.drawLine({ start: { x: sax, y: say }, end: { x: sbx, y: sby }, thickness: lenPt(2), color });
+      page.drawLine({ start: { x: sax - px * tick, y: say - py * tick }, end: { x: sax + px * tick, y: say + py * tick }, thickness: lenPt(2), color });
+      page.drawLine({ start: { x: sbx - px * tick, y: sby - py * tick }, end: { x: sbx + px * tick, y: sby + py * tick }, thickness: lenPt(2), color });
+      const midX = (sax + sbx) / 2, midY = (say + sby) / 2;
       const size = lenPt(20);
       const textW = boldFont.widthOfTextAtSize(a.label, size) * 0.8;
       const padX = lenPt(8), padY = lenPt(5);
       const boxW = textW + padX * 2, boxH = size + padY * 2;
-      page.drawSvgPath(this.rotatedBoxPath(lx, ly, boxW, boxH, angleRad), { x: 0, y: 0, color: rgb(1, 1, 1), borderColor: color, borderWidth: lenPt(1.5) });
-      const tCos = Math.cos(angleRad), tSin = Math.sin(angleRad);
-      const tx = lx - (textW / 2) * tCos + (size / 3) * tSin, ty = ly - (textW / 2) * tSin - (size / 3) * tCos;
-      page.drawText(a.label, { x: tx, y: ty, font: boldFont, size, color, rotate: textRotate });
+      let lineAngleRad = Math.atan2(sby - say, sbx - sax);
+      if (lineAngleRad > Math.PI / 2) lineAngleRad -= Math.PI;
+      else if (lineAngleRad < -Math.PI / 2) lineAngleRad += Math.PI;
+      page.drawSvgPath(this.rotatedBoxPath(midX, midY, boxW, boxH, lineAngleRad), { x: 0, y: 0, color: rgb(1, 1, 1), borderColor: color, borderWidth: lenPt(1.5) });
+      const tCos = Math.cos(lineAngleRad), tSin = Math.sin(lineAngleRad);
+      const tx = midX - (textW / 2) * tCos + (size / 3) * tSin, ty = midY - (textW / 2) * tSin - (size / 3) * tCos;
+      page.drawText(a.label, { x: tx, y: ty, font: boldFont, size, color, rotate: window.PDFLib.degrees(lineAngleRad * 180 / Math.PI) });
     } else if (a.type === 'area') {
       const color = hexToColor(a.color);
       const pts = a.points.map(toPt);
@@ -3365,11 +3455,16 @@ class Component extends DCLogic {
 
   async exportFlattened() {
     if (!this.pdfDoc) return;
+    const includedPages = this.state.exportPageMode === 'select' ? new Set(Object.keys(this.state.selectedExportPages).map(Number)) : null;
+    if (includedPages && includedPages.size === 0) { alert('Select at least one page to export.'); return; }
     this.setState({ exporting: true, progressText: 'Preparing…' });
     const { jsPDF } = window.jspdf;
     let outDoc = null;
     const exportScale = parseInt(this.state.dpi, 10) / 72;
+    const pageNumToOutputIndex = {};
+    let addedCount = 0;
     for (let i = 1; i <= this.state.numPages; i++) {
+      if (includedPages && !includedPages.has(i)) continue;
       this.setState({ progressText: `Rendering page ${i} of ${this.state.numPages}…` });
       let widthPt, heightPt, canvas, ctx;
       if (i <= this.originalNumPages) {
@@ -3418,19 +3513,25 @@ class Component extends DCLogic {
       }
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-      if (i === 1) {
+      if (!outDoc) {
         outDoc = new jsPDF({ unit: 'pt', compress: true });
       }
       outDoc.addPage([widthPt, heightPt], widthPt > heightPt ? 'l' : 'p');
       outDoc.addImage(dataUrl, 'JPEG', 0, 0, widthPt, heightPt, undefined, 'FAST');
+      addedCount++;
+      pageNumToOutputIndex[i] = addedCount;
     }
+    if (!outDoc) { this.setState({ exporting: false, progressText: '' }); return; }
     outDoc.deletePage(1);
 
     this.setState({ progressText: 'Finalizing…' });
     if (this._pendingLinks) {
       this._pendingLinks.forEach((l) => {
-        outDoc.setPage(l.page);
-        outDoc.link(l.ptX, l.ptY, l.ptW, l.ptH, { pageNumber: l.target });
+        const fromIdx = pageNumToOutputIndex[l.page];
+        const toIdx = pageNumToOutputIndex[l.target];
+        if (!fromIdx || !toIdx) return;
+        outDoc.setPage(fromIdx);
+        outDoc.link(l.ptX, l.ptY, l.ptW, l.ptH, { pageNumber: toIdx });
       });
       this._pendingLinks = null;
     }
@@ -3473,7 +3574,7 @@ class Component extends DCLogic {
       { key: 'pen', label: 'PEN' },
       { key: 'highlighter', label: 'HIGHLIGHTER' },
       { key: 'eraser', label: 'ERASER' },
-      { key: 'line', label: 'LINES', shortcut: 'L' },
+      { key: 'line', label: 'LINE', shortcut: 'L' },
       { key: 'text', label: 'TEXT', shortcut: 'T' },
       { key: 'dimension', label: 'DIMENSION', shortcut: 'D' },
       { key: 'area', label: 'AREA', shortcut: 'A' },
@@ -3754,18 +3855,15 @@ class Component extends DCLogic {
       feetInputRef: this.feetInputRef,
       lineLengthFeet: this.state.lineLengthFeet,
       lineLengthInches: this.state.lineLengthInches,
-      onLineLengthFeetChange: this.onLineLengthFeetChange,
       onLineLengthInchesChange: this.onLineLengthInchesChange,
+      onLineLengthInchesBlur: this.onLineLengthInchesBlur,
+      onLineLengthFeetChange: this.onLineLengthFeetChange,
       confirmLineLength: this.confirmLineLength,
       cancelLineLength: this.cancelLineLength,
       zoomTransformStyle: this.state.zoomActive ? this.state.zoomTransform : 'none',
       zoomActive: this.state.zoomActive,
       exitZoom: this.exitZoom,
       createDetailFromZoomedView: this.createDetailFromZoomedView,
-      zoomChoiceRect: this.state.zoomChoiceRect,
-      confirmViewZoom: this.confirmViewZoom,
-      confirmCreateDetail: this.confirmCreateDetail,
-      cancelZoomChoice: this.cancelZoomChoice,
       showScaleBar: tool === 'dimension' || tool === 'line' || tool === 'area',
       hasScale: this.state.loaded,
       scaleChips: (() => {
@@ -3788,10 +3886,6 @@ class Component extends DCLogic {
       onLinesIntroCheckChange: this.onLinesIntroCheckChange,
       linesIntroChecked: this.state.linesIntroChecked,
       dismissLinesIntro: this.dismissLinesIntro,
-      showZoomIntro: this.state.showZoomIntro,
-      onZoomIntroCheckChange: this.onZoomIntroCheckChange,
-      zoomIntroChecked: this.state.zoomIntroChecked,
-      dismissZoomIntro: this.dismissZoomIntro,
       placingText,
       textBoxX: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.left : 0) : 0,
       textBoxY: placingText ? (this.state.textBoxCss ? this.state.textBoxCss.top : 0) : 0,
@@ -3814,6 +3908,15 @@ class Component extends DCLogic {
         { label: isMobile ? 'VECTOR' : 'VECTOR (keep editable text/lines)', checked: this.state.saveMode === 'vector', onSelect: this.setSaveModeVector },
         { label: isMobile ? 'FLATTENED' : 'FLATTENED (image, smaller/simple)', checked: this.state.saveMode === 'flat', onSelect: this.setSaveModeFlat },
       ].map((o) => ({ ...o, bg: o.checked ? accent : 'transparent', color: o.checked ? '#f2f2f3' : '#1d1f20' })),
+      pageModeOptions: [
+        { label: 'FULL PDF', checked: this.state.exportPageMode === 'full', onSelect: this.setExportModeFull },
+        { label: 'SELECT PAGES', checked: this.state.exportPageMode === 'select', onSelect: this.setExportModeSelect },
+      ].map((o) => ({ ...o, bg: o.checked ? accent : 'transparent', color: o.checked ? '#f2f2f3' : '#1d1f20' })),
+      showPageSelector: this.state.exportPageMode === 'select',
+      exportPageChips: Array.from({ length: numPages }, (_, i) => i + 1).map((p) => {
+        const selected = !!this.state.selectedExportPages[p];
+        return { label: String(p).padStart(2, '0'), toggle: () => this.toggleExportPage(p), bg: selected ? accent : 'transparent', color: selected ? '#f2f2f3' : '#1d1f20', borderColor: selected ? accent : 'rgba(29,31,32,0.16)' };
+      }),
       dpiOptions: [
         { label: isMobile ? '150 DPI' : '150 DPI (smaller file)', checked: this.state.dpi === '150', onSelect: this.setDpi150 },
         { label: isMobile ? '300 DPI' : '300 DPI (print quality)', checked: this.state.dpi === '300', onSelect: this.setDpi300 },
