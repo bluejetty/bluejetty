@@ -131,6 +131,9 @@
         <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" title="Previous page" style="position:absolute; left:24px; bottom:24px; z-index:70; width:44px; height:44px; border:none; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:{{ prevArrowOpacity }};" style-hover="opacity:0.85;">‹</button>
         <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" title="Next page" style="position:absolute; right:24px; bottom:76px; z-index:70; width:44px; height:44px; border:none; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:{{ nextArrowOpacity }};" style-hover="opacity:0.85;">›</button>
         <div style="position:absolute; right:24px; bottom:24px; z-index:70; background:rgba(0,0,0,0.5); color:#fff; font-size:13px; padding:10px 16px; border-radius:22px; opacity:{{ nextArrowOpacity }};">Page {{ currentPage }} of {{ numPages }}</div>
+        <sc-if value="{{ showFloatingPointUndo }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ undoPointEdit }}" title="Undo the last area point move/insert/delete" style="position:absolute; left:50%; top:20px; transform:translateX(-50%); z-index:80; background:rgba(0,0,0,0.65); color:#fff; border:1px solid #ff8c00; padding:9px 18px; border-radius:22px; font-size:13px; font-weight:600; font-family:'Barlow Condensed',system-ui,sans-serif; text-transform:uppercase; letter-spacing:0.02em; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.35);" style-hover="background:rgba(255,140,0,0.25);">↺ Undo Point Edit</button>
+        </sc-if>
         <div
           ref="{{ wrapRef }}"
           onMouseDown="{{ onPointerDown }}"
@@ -152,16 +155,22 @@
               <div style="position:absolute; top:50%; right:0; width:calc(50% - 5px); height:1px; background:{{ cursorBorder }}; transform:translateY(-50%);"></div>
               <div style="position:absolute; left:50%; top:0; height:calc(50% - 5px); width:1px; background:{{ cursorBorder }}; transform:translateX(-50%);"></div>
               <div style="position:absolute; left:50%; bottom:0; height:calc(50% - 5px); width:1px; background:{{ cursorBorder }}; transform:translateX(-50%);"></div>
-              <div style="position:absolute; left:50%; top:50%; width:{{ cursorSize }}px; height:{{ cursorSize }}px; border-radius:50%; background:{{ cursorBg }}; border:1px solid {{ cursorBorder }}; transform:translate(-50%,-50%);"></div>
+              <div style="position:absolute; left:50%; top:50%; width:{{ cursorSize }}px; height:{{ cursorSize }}px; border-radius:50%; background:{{ cursorBg }}; border:1px solid {{ cursorBorder }}; box-shadow:{{ cursorGlowShadow }}; transform:translate(-50%,-50%);"></div>
               <div style="position:absolute; left:50%; top:50%; width:1px; height:1px; background:#000000; transform:translate(-50%,-50%);"></div>
             </div>
           </sc-if>
           <sc-if value="{{ showMagnifier }}" hint-placeholder-val="{{ false }}">
-            <div style="position:absolute; left:{{ magLeftX }}px; top:{{ magY }}px; width:140px; height:140px; transform:translate(-50%,-50%); border-radius:{{ magBorderRadius }}; overflow:hidden; border:2px solid rgba(29,31,32,0.6); box-shadow:0 2px 10px rgba(0,0,0,0.35); pointer-events:none; background:#fff; opacity:{{ magLeftOpacity }}; transition:opacity 1s ease;">
-              <canvas ref="{{ magnifierCanvasRefLeft }}" style="width:100%; height:100%; display:block;"></canvas>
+            <div style="position:absolute; left:{{ magLeftX }}px; top:{{ magY }}px; width:{{ magSize }}px; height:{{ magSize }}px; transform:translate(-50%,-50%); pointer-events:none; opacity:{{ magLeftOpacity }}; display:{{ magLeftDisplay }}; transition:{{ magLeftTransition }};">
+              <div style="position:absolute; inset:0; border-radius:{{ magBorderRadius }}; overflow:hidden; border:2px solid rgba(29,31,32,0.6); box-shadow:0 2px 10px rgba(0,0,0,0.35); background:#fff;">
+                <canvas ref="{{ magnifierCanvasRefLeft }}" style="width:100%; height:100%; display:block;"></canvas>
+              </div>
+              <div onMouseDown="{{ onMagTabLeftDown }}" title="Drag to resize" style="position:absolute; left:85.355%; top:14.645%; width:18px; height:18px; transform:translate(-50%,-50%); border-radius:50%; background:transparent; border:1px solid #1e3a5f; cursor:nesw-resize; pointer-events:auto; opacity:{{ magTabOpacity }}; box-shadow:{{ magTabGlowLeftShadow }}; transition:opacity 0.6s ease, box-shadow 0.15s ease;" style-hover="box-shadow:0 0 12px 5px rgba(220,38,38,0.85);"></div>
             </div>
-            <div style="position:absolute; left:{{ magRightX }}px; top:{{ magY }}px; width:140px; height:140px; transform:translate(-50%,-50%); border-radius:{{ magBorderRadius }}; overflow:hidden; border:2px solid rgba(29,31,32,0.6); box-shadow:0 2px 10px rgba(0,0,0,0.35); pointer-events:none; background:#fff; opacity:{{ magRightOpacity }}; transition:opacity 1s ease;">
-              <canvas ref="{{ magnifierCanvasRefRight }}" style="width:100%; height:100%; display:block;"></canvas>
+            <div style="position:absolute; left:{{ magRightX }}px; top:{{ magY }}px; width:{{ magSize }}px; height:{{ magSize }}px; transform:translate(-50%,-50%); pointer-events:none; opacity:{{ magRightOpacity }}; display:{{ magRightDisplay }}; transition:{{ magRightTransition }};">
+              <div style="position:absolute; inset:0; border-radius:{{ magBorderRadius }}; overflow:hidden; border:2px solid rgba(29,31,32,0.6); box-shadow:0 2px 10px rgba(0,0,0,0.35); background:#fff;">
+                <canvas ref="{{ magnifierCanvasRefRight }}" style="width:100%; height:100%; display:block;"></canvas>
+              </div>
+              <div onMouseDown="{{ onMagTabRightDown }}" title="Drag to resize" style="position:absolute; left:14.645%; top:14.645%; width:18px; height:18px; transform:translate(-50%,-50%); border-radius:50%; background:transparent; border:1px solid #1e3a5f; cursor:nwse-resize; pointer-events:auto; opacity:{{ magTabOpacity }}; box-shadow:{{ magTabGlowRightShadow }}; transition:opacity 0.6s ease, box-shadow 0.15s ease;" style-hover="box-shadow:0 0 12px 5px rgba(220,38,38,0.85);"></div>
             </div>
           </sc-if>
           <sc-if value="{{ showPlainCursorDot }}" hint-placeholder-val="{{ false }}">
@@ -358,6 +367,7 @@
           <button onClick="{{ clearAllMarkup }}" title="Clear all markup, keep the PDF" style="border:1px solid #5980a6; background:transparent; color:#5980a6; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.08);">CLEAR</button>
           <button onClick="{{ undo }}" disabled="{{ undoDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ undoOpacity }};">Undo</button>
           <button onClick="{{ redo }}" disabled="{{ redoDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ redoOpacity }};">Redo</button>
+          <button onClick="{{ undoPointEdit }}" disabled="{{ pointEditUndoDisabled }}" title="Undo the last area point move/insert/delete" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ pointEditUndoOpacity }};">Undo Point</button>
         </div>
 
         <sc-if value="{{ showTextHint }}" hint-placeholder-val="{{ false }}">
@@ -439,19 +449,30 @@
                 </label>
               </div>
               <sc-for list="{{ scheduleFlooringAreas }}" as="ar" hint-placeholder-count="0">
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid rgba(29,31,32,0.1); font-size:13px; gap:8px;">
                   <span style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:{{ ar.color }}; display:inline-block;"></span>{{ ar.title }}</span>
-                  <span style="color:rgba(29,31,32,0.5);">Flat area: {{ ar.label }} — pg {{ ar.page }}</span>
+                  <span style="color:rgba(29,31,32,0.5); flex:1; text-align:right;">Flat area: {{ ar.label }} — pg {{ ar.page }}</span>
+                  <select value="{{ ar.finishTypeValue }}" onChange="{{ ar.onFinishTypeSelect }}" style="border:1px solid rgba(29,31,32,0.16); padding:3px 5px; font-size:12px; background:#fff;">
+                    <option value="">— Type —</option>
+                    <sc-for list="{{ ar.finishTypeOptions }}" as="opt" hint-placeholder-count="3">
+                      <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    </sc-for>
+                  </select>
                 </div>
               </sc-for>
 
               <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(29,31,32,0.16);">
                 <div style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:6px;">Finish Types</div>
                 <sc-for list="{{ finishTypes }}" as="ft" hint-placeholder-count="3">
-                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">Type {{ ft.num }}:</span>
-                    <input type="text" value="{{ ft.value }}" onChange="{{ ft.onChange }}" placeholder="e.g. Tile" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px;" />
-                    <button onClick="{{ ft.onRemove }}" style="border:none; background:none; color:rgba(29,31,32,0.4); font-size:14px; cursor:pointer; padding:0 4px;">×</button>
+                  <div style="margin-bottom:6px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="font-size:12px; color:rgba(29,31,32,0.55); white-space:nowrap;">Type {{ ft.num }}:</span>
+                      <input type="text" value="{{ ft.value }}" onChange="{{ ft.onChange }}" placeholder="e.g. Tile" style="flex:1; border:1px solid rgba(29,31,32,0.16); padding:4px 6px; font-size:12px;" />
+                      <button onClick="{{ ft.onRemove }}" style="border:none; background:none; color:rgba(29,31,32,0.4); font-size:14px; cursor:pointer; padding:0 4px;">×</button>
+                    </div>
+                    <sc-if value="{{ ft.hasMatches }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:11px; color:rgba(29,31,32,0.5); padding-left:52px; margin-top:2px;">{{ ft.combinedLabel }}</div>
+                    </sc-if>
                   </div>
                 </sc-for>
                 <button onClick="{{ addFinishType }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:4px 10px; font-size:12px; cursor:pointer; color:rgba(29,31,32,0.7);">+ Add finish type</button>
@@ -589,6 +610,8 @@ class Component extends DCLogic {
     zoomBubbleEnabled: true,
     lineLengthFeet: '',
     lineLengthInches: '',
+    areaHoverGlow: false,
+    magSize: 140,
   };
 
   fileInputRef = React.createRef();
@@ -613,6 +636,7 @@ class Component extends DCLogic {
   eraserTargets = null;
   idleLockAnchor = null;
   draggingAreaVertex = null;
+  pointEditStackByPage = {};
   draggingAreaLabel = null;
   pendingCompletedArea = null;
   areaColorIndex = 0;
@@ -1169,6 +1193,29 @@ class Component extends DCLogic {
     return inside;
   }
 
+  isCursorFullyInsideArea(pt, area, radius) {
+    if (!this.pointInPolygon(pt, area.points)) return false;
+    const n = area.points.length;
+    for (let i = 0; i < n; i++) {
+      const a1 = area.points[i], a2 = area.points[(i + 1) % n];
+      const dx = a2[0] - a1[0], dy = a2[1] - a1[1];
+      const len2 = dx * dx + dy * dy;
+      let t = len2 ? ((pt[0] - a1[0]) * dx + (pt[1] - a1[1]) * dy) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      const ex = a1[0] + t * dx, ey = a1[1] + t * dy;
+      if (Math.hypot(pt[0] - ex, pt[1] - ey) < radius) return false;
+    }
+    return true;
+  }
+
+  getAreaCursorRadiusCanvas() {
+    const canvas = this.overlayCanvasRef.current;
+    if (!canvas) return 6;
+    const rect = canvas.getBoundingClientRect();
+    const ratio = rect.width ? canvas.width / rect.width : 1;
+    return 6 * ratio;
+  }
+
   computeAreaLabelLines(a) {
     const roofSqFt = this.computeRoofSlopedSqFt(a);
     const lines = [];
@@ -1243,6 +1290,38 @@ class Component extends DCLogic {
     return best;
   }
 
+  onMagTabDown = (side, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = this.wrapRef.current ? this.wrapRef.current.getBoundingClientRect() : null;
+    if (!rect) return;
+    this._resizingMagSide = side;
+    this.magSide = side;
+    this.setState({ magSide: side, magResizing: true });
+    const cx = (side === 'left' ? this.state.magLeftX : this.state.magRightX) + rect.left;
+    const cy = (this.state.magY || 0) + rect.top;
+    const minSize = 64; // ~1/3 of previous 2in minimum
+    const move = (ev) => {
+      const dx = ev.clientX - cx, dy = ev.clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      const centerDist = Math.hypot(rect.left + rect.width / 2 - cx, rect.top + rect.height / 2 - cy);
+      const maxSize = Math.min(minSize * 5, Math.max(minSize, centerDist * 2));
+      const newSize = Math.round(Math.max(minSize, Math.min(maxSize, dist * 2)));
+      this.setState({ magSize: newSize });
+    };
+    const up = () => {
+      this._resizingMagSide = null;
+      this.setState({ magResizing: true });
+      setTimeout(() => this.setState({ magResizing: false }), 60);
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+  onMagTabLeftDown = (e) => this.onMagTabDown('left', e);
+  onMagTabRightDown = (e) => this.onMagTabDown('right', e);
+
   updateMagnifier(canvasPt, magSize, mag) {
     const bg = this.bgCanvasRef.current, overlay = this.overlayCanvasRef.current;
     if (!bg || !overlay || !mag) return;
@@ -1277,15 +1356,20 @@ class Component extends DCLogic {
     const pageNum = this.state.currentPage;
     const pt = this.canvasPoint(e.clientX, e.clientY);
     const actions = this.actionsByPage[pageNum] || [];
-    let bestIdx = -1, bestDist = 16;
-    actions.forEach((act, idx) => {
-      if (act.type !== 'area') return;
-      const d = this.actionHitDistance(act, pt);
-      if (d < bestDist) { bestDist = d; bestIdx = idx; }
-    });
+    const cursorRadius = this.getAreaCursorRadiusCanvas();
+    let bestIdx = -1;
+    for (let idx = 0; idx < actions.length; idx++) {
+      const act = actions[idx];
+      if (act.type !== 'area') continue;
+      if (this.isCursorFullyInsideArea(pt, act, cursorRadius)) { bestIdx = idx; break; }
+    }
     if (bestIdx !== -1) {
-      this.selectedIndices.clear();
-      this.selectedIndices.add(bestIdx);
+      if (this.selectedIndices.has(bestIdx)) {
+        this.selectedIndices.clear();
+      } else {
+        this.selectedIndices.clear();
+        this.selectedIndices.add(bestIdx);
+      }
       this.forceSelectionUpdate();
       this.redrawPage(pageNum);
     }
@@ -1315,6 +1399,7 @@ class Component extends DCLogic {
         const threshold = 12 * (canvas.width / rect.width);
         const vIdx = a.points.findIndex(([x, y]) => Math.hypot(pt[0] - x, pt[1] - y) < threshold);
         if (vIdx !== -1) {
+          this.snapshotAreaPoints(pageNum, idx, a.points);
           this.draggingAreaVertex = { pageNum, actionIdx: idx, vertexIdx: vIdx };
           return;
         }
@@ -1334,6 +1419,7 @@ class Component extends DCLogic {
           if (bestSeg !== -1) {
             const p1 = a.points[bestSeg], p2 = a.points[(bestSeg + 1) % a.points.length];
             const newPt = [p1[0] + (p2[0] - p1[0]) * bestT, p1[1] + (p2[1] - p1[1]) * bestT];
+            this.snapshotAreaPoints(pageNum, idx, a.points);
             a.points.splice(bestSeg + 1, 0, newPt);
             this.draggingAreaVertex = { pageNum, actionIdx: idx, vertexIdx: bestSeg + 1 };
             this.redrawPage(pageNum);
@@ -1391,15 +1477,20 @@ class Component extends DCLogic {
       const pt = snapped || (this.areaPoints && this.areaPoints.length ? this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e) : raw);
       if (!this.areaPoints || this.areaPoints.length === 0) {
         const existingActions = this.actionsByPage[pageNum] || [];
-        let hitIdx = -1, hitDist = 16;
-        existingActions.forEach((act, idx) => {
-          if (act.type !== 'area') return;
-          const d = this.actionHitDistance(act, raw);
-          if (d < hitDist) { hitDist = d; hitIdx = idx; }
-        });
+        const cursorRadius = this.getAreaCursorRadiusCanvas();
+        let hitIdx = -1;
+        for (let idx = 0; idx < existingActions.length; idx++) {
+          const act = existingActions[idx];
+          if (act.type !== 'area') continue;
+          if (this.isCursorFullyInsideArea(raw, act, cursorRadius)) { hitIdx = idx; break; }
+        }
         if (hitIdx !== -1) {
-          this.selectedIndices.clear();
-          this.selectedIndices.add(hitIdx);
+          if (this.selectedIndices.has(hitIdx)) {
+            this.selectedIndices.clear();
+          } else {
+            this.selectedIndices.clear();
+            this.selectedIndices.add(hitIdx);
+          }
           this.forceSelectionUpdate();
           this.redrawPage(pageNum);
           return;
@@ -1565,8 +1656,13 @@ class Component extends DCLogic {
       const cx = clientX - rect.left, cy = clientY - rect.top;
       if (this.state.loaded && this.state.zoomBubbleEnabled && (MARKER_TOOLS.includes(this.state.tool) || this.state.tool === 'zoom')) {
         showMagnifier = true;
-        const magSize = 140, margin = 16;
-        magSide = cx < rect.width / 2 ? 'right' : 'left';
+        const magSize = this.state.magSize || 140, margin = 16;
+        const centerX = rect.width / 2, deadzone = 80;
+        const prevSide = this.magSide || 'right';
+        let computedSide = prevSide;
+        if (cx < centerX - deadzone) computedSide = 'right';
+        else if (cx > centerX + deadzone) computedSide = 'left';
+        magSide = this._resizingMagSide || computedSide;
         this.magSide = magSide;
         magY = rect.height - magSize / 2 - margin;
         magLeftX = magSize / 2 + margin;
@@ -1574,8 +1670,45 @@ class Component extends DCLogic {
         const pt = this.canvasPoint(clientX, clientY);
         this.updateMagnifier(pt, magSize, this.magnifierCanvasRefLeft.current);
         this.updateMagnifier(pt, magSize, this.magnifierCanvasRefRight.current);
+        const leftDotX = magLeftX + magSize * (0.85355 - 0.5);
+        const leftDotY = magY + magSize * (0.14645 - 0.5);
+        const rightDotX = magRightX + magSize * (0.14645 - 0.5);
+        const rightDotY = magY + magSize * (0.14645 - 0.5);
+        const proxLeft = Math.hypot(cx - leftDotX, cy - leftDotY) < 50;
+        const proxRight = Math.hypot(cx - rightDotX, cy - rightDotY) < 50;
+        if (proxLeft !== !!this.state.magTabProximityLeft || proxRight !== !!this.state.magTabProximityRight) {
+          this.setState({ magTabProximityLeft: proxLeft, magTabProximityRight: proxRight });
+        }
       }
       this.setState({ cursorX: cx, cursorY: cy, showCursorDot: true, showMagnifier, magSide, magY, magLeftX, magRightX });
+    }
+    if (this.state.tool === 'area' && !(this.areaPoints && this.areaPoints.length) && !this.draggingAreaVertex && !this.draggingAreaLabel) {
+      const ptCanvas = this.canvasPoint(clientX, clientY);
+      const cursorRadius = this.getAreaCursorRadiusCanvas();
+      const actions = this.actionsByPage[this.state.currentPage] || [];
+      let hovering = false;
+      for (let idx = 0; idx < actions.length; idx++) {
+        const act = actions[idx];
+        if (act.type !== 'area') continue;
+        if (this.selectedIndices.has(idx)) continue;
+        if (this.isCursorFullyInsideArea(ptCanvas, act, cursorRadius)) { hovering = true; break; }
+      }
+      if (hovering !== !!this.state.areaHoverGlow) this.setState({ areaHoverGlow: hovering });
+      const pageNum = this.state.currentPage;
+      const snapped = this.findSnapPoint(ptCanvas, pageNum);
+      this.redrawPage(pageNum);
+      if (snapped) {
+        const ctx = this.overlayCanvasRef.current.getContext('2d');
+        ctx.save();
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(snapped[0], snapped[1], 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    } else if (this.state.areaHoverGlow) {
+      this.setState({ areaHoverGlow: false });
     }
     if (this.state.tool === 'zoom' && this.zoomStage === 1 && this.zoomStart) {
       const pt = this.canvasPoint(clientX, clientY);
@@ -1642,6 +1775,13 @@ class Component extends DCLogic {
         ctx.fillStyle = '#7c3aed';
         ctx.fill();
       });
+      if (snapped && !canClose) {
+        ctx.beginPath();
+        ctx.arc(snapped[0], snapped[1], 9, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
       if (canClose) {
         ctx.beginPath();
         ctx.arc(first[0], first[1], 9, 0, Math.PI * 2);
@@ -2244,7 +2384,7 @@ class Component extends DCLogic {
     }
     const scheduleAreas = [];
     Object.keys(this.actionsByPage).forEach((pageKey) => {
-      (this.actionsByPage[pageKey] || []).forEach((a) => {
+      (this.actionsByPage[pageKey] || []).forEach((a, actionIdx) => {
         if (a.type === 'area' && a.title) {
           let roof = null;
           if (a.pitch) {
@@ -2255,7 +2395,7 @@ class Component extends DCLogic {
             const squares = (slopedSqFt * (1 + waste / 100)) / 100;
             roof = { pitch: a.pitch, slopedSqFt: Math.round(slopedSqFt), squares: squares.toFixed(2) };
           }
-          scheduleAreas.push({ title: a.title, label: a.label, color: a.color, page: pageKey, roof, category: a.category });
+          scheduleAreas.push({ title: a.title, label: a.label, color: a.color, page: pageKey, roof, category: a.category, pageKey, actionIdx, sqFt: a.sqFt || 0, finishTypeIdx: a.finishTypeIdx != null ? a.finishTypeIdx : null });
         }
       });
     });
@@ -2308,6 +2448,14 @@ class Component extends DCLogic {
   };
   addFinishType = () => this.setState({ finishTypes: [...this.state.finishTypes, ''] });
   removeFinishType = (idx) => this.setState({ finishTypes: this.state.finishTypes.filter((_, i) => i !== idx) });
+  onAreaFinishTypeChange = (ar, e) => {
+    const val = e.target.value;
+    const finishTypeIdx = val === '' ? null : parseInt(val, 10);
+    const action = (this.actionsByPage[ar.pageKey] || [])[ar.actionIdx];
+    if (action) action.finishTypeIdx = finishTypeIdx;
+    const scheduleAreas = this.state.scheduleAreas.map((x) => (x === ar ? { ...x, finishTypeIdx } : x));
+    this.setState({ scheduleAreas });
+  };
   onMainFloorThicknessChange = (e) => this.setState({ mainFloorThickness: e.target.value });
   onMainFloorWallHeightChange = (e) => this.setState({ mainFloorWallHeight: e.target.value });
   onSecondFloorThicknessChange = (e) => this.setState({ secondFloorThickness: e.target.value });
@@ -2577,6 +2725,27 @@ class Component extends DCLogic {
   increasePenSize = () => this.setState((s) => ({ penSize: Math.min(30, s.penSize + 1) }));
   onTextSizeChange = (e) => this.setState({ textSize: parseInt(e.target.value, 10) });
 
+  snapshotAreaPoints = (pageNum, actionIdx, points) => {
+    const stack = this.pointEditStackByPage[pageNum] || (this.pointEditStackByPage[pageNum] = []);
+    stack.push({ actionIdx, points: points.map((p) => p.slice()) });
+    if (stack.length > 30) stack.shift();
+    this.setState({ pointEditUndoCount: stack.length });
+  };
+
+  undoPointEdit = () => {
+    const pageNum = this.state.currentPage;
+    const stack = this.pointEditStackByPage[pageNum] || [];
+    const snap = stack.pop();
+    if (!snap) return;
+    const a = (this.actionsByPage[pageNum] || [])[snap.actionIdx];
+    if (a && a.type === 'area') a.points = snap.points;
+    this.selectedIndices.clear();
+    this.selectedIndices.add(snap.actionIdx);
+    this.redrawPage(pageNum);
+    this.forceSelectionUpdate();
+    this.setState({ pointEditUndoCount: stack.length });
+  };
+
   undo = () => {
     const pageNum = this.state.currentPage;
     const actions = this.actionsByPage[pageNum] || [];
@@ -2604,6 +2773,7 @@ class Component extends DCLogic {
     const pageNum = this.state.currentPage;
     this.actionsByPage[pageNum] = [];
     this.redoByPage[pageNum] = [];
+    this.pointEditStackByPage[pageNum] = [];
     this.redrawPage(pageNum);
     this.setState({ undoStackLen: 0, redoStackLen: 0 });
   };
@@ -2671,6 +2841,7 @@ class Component extends DCLogic {
     this.pdfDoc = null;
     this.actionsByPage = {};
     this.redoByPage = {};
+    this.pointEditStackByPage = {};
     this.extraPages = [];
     this.thumbSrcs = {};
     this.originalNumPages = 0;
@@ -2685,6 +2856,7 @@ class Component extends DCLogic {
     this.selectedIndices.clear();
     this.actionsByPage = {};
     this.redoByPage = {};
+    this.pointEditStackByPage = {};
     if (this.state.loaded) this.redrawPage(this.state.currentPage);
     this.setState({ undoStackLen: 0, redoStackLen: 0 });
   };
@@ -2942,7 +3114,7 @@ class Component extends DCLogic {
   onMobileNav = (e) => { const v = e.target.value; if (v) window.location.href = v; };
 
   renderVals() {
-    const { fileName, loading, loaded, numPages, currentPage, tool, colorKey, penSize, textSize, cursorX, cursorY, showCursorDot, placingText, textInputValue, undoStackLen, redoStackLen, exporting, progressText, dragOver, isMobile } = this.state;
+    const { fileName, loading, loaded, numPages, currentPage, tool, colorKey, penSize, textSize, cursorX, cursorY, showCursorDot, placingText, textInputValue, undoStackLen, redoStackLen, exporting, progressText, dragOver, isMobile, areaHoverGlow } = this.state;
     const accent = '#5980a6';
     const colorHex = COLORS[colorKey];
     const pageThumbs = Array.from({ length: numPages }, (_, i) => i + 1).map((p) => ({
@@ -2981,7 +3153,7 @@ class Component extends DCLogic {
     if (tool === 'pen') { cursorSize = Math.max(10, penSize * 2); cursorBg = 'transparent'; cursorBorder = colorHex; }
     else if (tool === 'line') { cursorSize = Math.max(10, penSize * 2); cursorBg = 'transparent'; cursorBorder = colorHex; }
     else if (tool === 'dimension') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = '#1e3a5f'; }
-    else if (tool === 'area') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = '#7c3aed'; }
+    else if (tool === 'area') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = areaHoverGlow ? '#ff8c00' : '#7c3aed'; }
     else if (tool === 'highlighter') { cursorSize = Math.max(14, penSize * 3.2); cursorBg = colorHex + '55'; cursorBorder = colorHex; }
     else if (tool === 'eraser') { cursorSize = Math.max(16, penSize * 2.2); cursorBg = 'rgba(255,255,255,0.15)'; cursorBorder = '#ffffff'; }
     else if (tool === 'text') { cursorSize = 14; cursorBg = 'transparent'; cursorBorder = colorHex; }
@@ -2990,6 +3162,15 @@ class Component extends DCLogic {
     const cursorRadius = (tool === 'snip' || tool === 'zoom') ? '3px' : '50%';
     const isMarkerOrText = tool === 'pen' || tool === 'line' || tool === 'dimension' || tool === 'area' || tool === 'highlighter' || tool === 'text';
     const crosshairSize = cursorSize + 24;
+
+    const flooringAreasList = this.state.scheduleAreas.filter((a) => a.category === 'FLOORING');
+    const finishTypeOptions = this.state.finishTypes.map((v, i) => ({ value: String(i), label: `Type ${i + 1}` }));
+    const scheduleFlooringAreasEnriched = flooringAreasList.map((ar) => ({
+      ...ar,
+      finishTypeValue: ar.finishTypeIdx != null ? String(ar.finishTypeIdx) : '',
+      finishTypeOptions,
+      onFinishTypeSelect: (e) => this.onAreaFinishTypeChange(ar, e),
+    }));
 
     return {
       isMobile,
@@ -3027,6 +3208,10 @@ class Component extends DCLogic {
       increasePenSize: this.increasePenSize,
       onTextSizeChange: this.onTextSizeChange,
       undo: this.undo, redo: this.redo, clearPage: this.clearPage, clearAllMarkup: this.clearAllMarkup,
+      undoPointEdit: this.undoPointEdit,
+      pointEditUndoDisabled: !(this.pointEditStackByPage[currentPage] || []).length,
+      pointEditUndoOpacity: (this.pointEditStackByPage[currentPage] || []).length ? 1 : 0.4,
+      showFloatingPointUndo: tool === 'area' && !!(this.pointEditStackByPage[currentPage] || []).length,
       showEraserIntro: this.state.showEraserIntro,
       eraserIntroChecked: this.state.eraserIntroChecked,
       onEraserIntroCheckChange: this.onEraserIntroCheckChange,
@@ -3068,13 +3253,23 @@ class Component extends DCLogic {
       scheduleWallHeight: this.state.scheduleWallHeight,
       scheduleFloorThickness: this.state.scheduleFloorThickness,
       scheduleAreas: this.state.scheduleAreas,
-      scheduleFlooringAreas: this.state.scheduleAreas.filter((a) => a.category === 'FLOORING'),
+      scheduleFlooringAreas: scheduleFlooringAreasEnriched,
       scheduleRoofingAreas: this.state.scheduleAreas.filter((a) => a.category === 'ROOFING'),
       roofWastePct: this.state.roofWastePct,
       onRoofWasteChange: this.onRoofWasteChange,
       flooringWastePct: this.state.flooringWastePct,
       onFlooringWasteChange: this.onFlooringWasteChange,
-      finishTypes: this.state.finishTypes.map((v, i) => ({ idx: i, num: i + 1, value: v, onChange: (e) => this.onFinishTypeChange(i, e), onRemove: () => this.removeFinishType(i) })),
+      finishTypes: this.state.finishTypes.map((v, i) => {
+        const matched = flooringAreasList.filter((a) => a.finishTypeIdx === i);
+        const combinedSqFt = matched.reduce((sum, a) => sum + (a.sqFt || 0), 0);
+        return {
+          idx: i, num: i + 1, value: v,
+          onChange: (e) => this.onFinishTypeChange(i, e),
+          onRemove: () => this.removeFinishType(i),
+          hasMatches: matched.length > 0,
+          combinedLabel: matched.length ? `${matched.map((a) => a.title).join(' + ')} — ${Math.round(combinedSqFt)} sq ft combined` : '',
+        };
+      }),
       addFinishType: this.addFinishType,
       mainFloorThickness: this.state.mainFloorThickness,
       mainFloorWallHeight: this.state.mainFloorWallHeight,
@@ -3115,13 +3310,24 @@ class Component extends DCLogic {
       showCrosshairCursor: showCursorDot && loaded && isMarkerOrText,
       showPlainCursorDot: showCursorDot && loaded && !isMarkerOrText,
       cursorX, cursorY, cursorSize, cursorBg, cursorBorder, cursorRadius, crosshairSize,
+      cursorGlowShadow: (tool === 'area' && areaHoverGlow) ? '0 0 8px 3px rgba(255,140,0,0.9)' : 'none',
       magnifierCanvasRefLeft: this.magnifierCanvasRefLeft,
       magnifierCanvasRefRight: this.magnifierCanvasRefRight,
+      magSize: this.state.magSize || 140,
+      onMagTabLeftDown: this.onMagTabLeftDown,
+      onMagTabRightDown: this.onMagTabRightDown,
+      magTabOpacity: this.state.showMagnifier ? 0.85 : 0,
+      magTabGlowLeftShadow: this.state.magSide !== 'left' ? (this.state.magTabProximityLeft ? '0 0 12px 5px rgba(220,38,38,0.85)' : '0 0 10px 4px rgba(255,140,0,0.7)') : 'none',
+      magTabGlowRightShadow: this.state.magSide !== 'right' ? (this.state.magTabProximityRight ? '0 0 12px 5px rgba(220,38,38,0.85)' : '0 0 10px 4px rgba(255,140,0,0.7)') : 'none',
       magLeftX: this.state.magLeftX || 0,
       magRightX: this.state.magRightX || 0,
       magY: this.state.magY || 0,
       magLeftOpacity: this.state.magSide === 'left' ? 1 : 0,
       magRightOpacity: this.state.magSide === 'right' ? 1 : 0,
+      magLeftTransition: this.state.magResizing ? 'opacity 0s' : (this.state.magSide === 'left' ? 'opacity 7s ease 1s' : 'opacity 7s ease'),
+      magRightTransition: this.state.magResizing ? 'opacity 0s' : (this.state.magSide === 'right' ? 'opacity 7s ease 1s' : 'opacity 7s ease'),
+      magLeftDisplay: (this.state.magResizing && this.state.magSide !== 'left') ? 'none' : 'block',
+      magRightDisplay: (this.state.magResizing && this.state.magSide !== 'right') ? 'none' : 'block',
       showMagnifier: !!this.state.showMagnifier && loaded,
       magBorderRadius: tool === 'zoom' ? '10px' : '50%',
       showZoomCenterDot: tool === 'zoom',

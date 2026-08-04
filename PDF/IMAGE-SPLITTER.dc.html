@@ -193,18 +193,23 @@
       </div>
 
       <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:16px; display:flex; flex-direction:column; gap:12px;">
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span style="font-size:13px; color:rgba(29,31,32,0.6);">Save as</span>
-          <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
-            <button onClick="{{ setSaveModeZip }}" style="padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:{{ zipModeBg }}; color:{{ zipModeColor }}; font-family:inherit;">Zip file</button>
-            <button onClick="{{ setSaveModeFiles }}" style="padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ filesModeBg }}; color:{{ filesModeColor }}; font-family:inherit;">Separate files</button>
+        <sc-if value="{{ isMultiFile }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-size:13px; color:rgba(29,31,32,0.6);">Save as</span>
+            <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
+              <button onClick="{{ setSaveModeZip }}" style="padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:{{ zipModeBg }}; color:{{ zipModeColor }}; font-family:inherit;">Zip file</button>
+              <button onClick="{{ setSaveModeFiles }}" style="padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; border:none; border-left:1px solid rgba(29,31,32,0.16); background:{{ filesModeBg }}; color:{{ filesModeColor }}; font-family:inherit;">Separate files</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:13px; color:rgba(29,31,32,0.6); white-space:nowrap;">{{ folderNameLabel }}</span>
-          <input type="text" value="{{ folderName }}" onChange="{{ onFolderNameChange }}" placeholder="{{ folderNamePlaceholder }}" style="flex:1; padding:6px 10px; font-size:13px; border:1px solid rgba(29,31,32,0.16);" />
-        </div>
-        <p style="font-size:12px; color:rgba(29,31,32,0.5); margin:0;">Files are named <strong>{{ fileNamePreview }}</strong>. <sc-if value="{{ showFilesFallbackNote }}" hint-placeholder-val="{{ false }}">Your browser can't create a folder directly — separate files will download individually with this naming.</sc-if></p>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:13px; color:rgba(29,31,32,0.6); white-space:nowrap;">{{ folderNameLabel }}</span>
+            <input type="text" value="{{ folderName }}" onChange="{{ onFolderNameChange }}" placeholder="{{ folderNamePlaceholder }}" style="flex:1; padding:6px 10px; font-size:13px; border:1px solid rgba(29,31,32,0.16);" />
+          </div>
+          <p style="font-size:12px; color:rgba(29,31,32,0.5); margin:0;">Files are named <strong>{{ fileNamePreview }}</strong>. <sc-if value="{{ showFilesFallbackNote }}" hint-placeholder-val="{{ false }}">Your browser can't create a folder directly — separate files will download individually with this naming.</sc-if></p>
+        </sc-if>
+        <sc-if value="{{ isMultiFile }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:12px; color:rgba(29,31,32,0.5); margin:0;">Single file — will download directly as <strong>{{ fileNamePreview }}</strong>.</p>
+        </sc-if>
       </div>
 
       <dc-import name="SaveBox" hint-size="100%,60px"
@@ -565,7 +570,26 @@ class Component extends DCLogic {
   onFolderNameChange = (e) => this.setState({ folderName: e.target.value });
   setSaveModeZip = () => this.setState({ saveMode: 'zip' });
   setSaveModeFiles = () => this.setState({ saveMode: 'files' });
-  doSave = () => (this.state.saveMode === 'files' ? this.saveFiles() : this.saveZip());
+  doSave = () => {
+    const slices = this.getSlices();
+    const checkedCount = slices.filter((s, i) => this.checkedMap[i] === true).length;
+    if (checkedCount <= 1) return this.saveSingle();
+    return this.state.saveMode === 'files' ? this.saveFiles() : this.saveZip();
+  };
+
+  saveSingle = async () => {
+    const slices = this.getSlices();
+    const checked = slices.filter((s, i) => this.checkedMap[i] === true);
+    if (!checked.length) return;
+    this.setState({ saving: true });
+    const s = checked[0];
+    const dataUrl = this.sliceDataURL(s);
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `${this.getBaseName()}.${this.state.exportFormat}`;
+    a.click();
+    this.setState({ saving: false });
+  };
 
   saveZip = async () => {
     const slices = this.getSlices();
@@ -681,9 +705,10 @@ class Component extends DCLogic {
         { label: '300 DPI (print quality)', checked: dpi === '300', onSelect: this.setDpi300 },
         { label: '600 DPI (high resolution image)', checked: dpi === '600', onSelect: this.setDpi600 },
       ].map((o) => ({ ...o, bg: o.checked ? accent : 'transparent', color: o.checked ? '#f2f2f3' : '#1d1f20' })),
-      saveLabel: saving ? 'SAVING…' : (this.state.saveMode === 'files' ? `SAVE ${exportFormat.toUpperCase()} FILES` : `${exportFormat.toUpperCase()}-FLATTEN / SAVE`),
+      saveLabel: saving ? 'SAVING…' : (checkedCount <= 1 ? `SAVE ${exportFormat.toUpperCase()}` : (this.state.saveMode === 'files' ? `SAVE ${exportFormat.toUpperCase()} FILES` : `${exportFormat.toUpperCase()}-FLATTEN / SAVE`)),
       saveDisabled: saving || checkedCount === 0,
       doSave: this.doSave,
+      isMultiFile: checkedCount > 1,
       saveMode: this.state.saveMode,
       setSaveModeZip: this.setSaveModeZip,
       setSaveModeFiles: this.setSaveModeFiles,
@@ -695,7 +720,7 @@ class Component extends DCLogic {
       onFolderNameChange: this.onFolderNameChange,
       folderNameLabel: this.state.saveMode === 'files' ? 'Folder name' : 'File name',
       folderNamePlaceholder: this.filename !== 'image' ? this.filename : 'output',
-      fileNamePreview: `${this.getBaseName()}_01.${exportFormat}`,
+      fileNamePreview: checkedCount <= 1 ? `${this.getBaseName()}.${exportFormat}` : `${this.getBaseName()}_01.${exportFormat}`,
       showFilesFallbackNote: this.state.saveMode === 'files' && typeof window !== 'undefined' && !window.showDirectoryPicker,
       hasChecked: checkedCount > 0,
       checkedCount,
