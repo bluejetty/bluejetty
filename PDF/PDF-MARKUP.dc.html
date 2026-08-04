@@ -1509,7 +1509,7 @@ class Component extends DCLogic {
     const pageNum = this.state.currentPage;
     const raw = this.canvasPoint(e.clientX, e.clientY);
     const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
-    const pt = snapped || (this.areaPoints && this.areaPoints.length ? this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e) : raw);
+    const pt = snapped || (this.areaPoints && this.areaPoints.length ? this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e, pageNum) : raw);
     if (!this.areaPoints || this.areaPoints.length === 0) {
       const existingActions = this.actionsByPage[pageNum] || [];
       const cursorRadius = this.getAreaCursorRadiusCanvas();
@@ -1715,7 +1715,7 @@ class Component extends DCLogic {
       }
       if (this.dimStage === 1) {
         const snapEnd = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
-        const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e);
+        const end = snapEnd || this.applyLineLock(this.dimAnchor, raw, e, pageNum);
         if (Math.hypot(end[0] - this.dimAnchor[0], end[1] - this.dimAnchor[1]) < 4) {
           this.dimStage = 0;
           this.dimAnchor = null;
@@ -1811,7 +1811,18 @@ class Component extends DCLogic {
     this.currentStrokeStyle = { tool: this.state.tool, ...params };
   };
 
-  applyLineLock(start, current, e) {
+  collectVertexPoints(pageNum) {
+    const actions = this.actionsByPage[pageNum] || [];
+    const pts = [];
+    actions.forEach((a) => {
+      if (a.type === 'stroke' && a.tool === 'line' && a.points && a.points.length === 2) pts.push(...a.points);
+      else if (a.type === 'dimension') pts.push(a.a, a.b);
+      else if (a.type === 'area') pts.push(...a.points);
+    });
+    return pts;
+  }
+
+  applyLineLock(start, current, e, pageNum) {
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
       const key = start[0] + ',' + start[1];
       if (this._lockAnchorKey !== key) { this._lockAngle = null; this._lockAnchorKey = key; }
@@ -1822,8 +1833,22 @@ class Component extends DCLogic {
         const angle = Math.atan2(dy, dx);
         this._lockAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
       }
-      const proj = dx * Math.cos(this._lockAngle) + dy * Math.sin(this._lockAngle);
-      return [start[0] + Math.cos(this._lockAngle) * proj, start[1] + Math.sin(this._lockAngle) * proj];
+      const dirX = Math.cos(this._lockAngle), dirY = Math.sin(this._lockAngle);
+      let proj = dx * dirX + dy * dirY;
+      if (pageNum != null) {
+        const canvas = this.overlayCanvasRef.current;
+        const rect = canvas ? canvas.getBoundingClientRect() : null;
+        const perpThreshold = rect ? 10 * (canvas.width / rect.width) : 10;
+        let bestProj = null, bestPerp = perpThreshold;
+        this.collectVertexPoints(pageNum).forEach((p) => {
+          const relX = p[0] - start[0], relY = p[1] - start[1];
+          const pProj = relX * dirX + relY * dirY;
+          const perp = Math.abs(-relX * dirY + relY * dirX);
+          if (pProj > 1 && perp < bestPerp) { bestPerp = perp; bestProj = pProj; }
+        });
+        if (bestProj != null) proj = bestProj;
+      }
+      return [start[0] + dirX * proj, start[1] + dirY * proj];
     }
     this._lockAngle = null;
     this._lockAnchorKey = null;
@@ -1973,7 +1998,7 @@ class Component extends DCLogic {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
       const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
-      const pt = snapped || this.applyLineLock(this.dimAnchor, raw, e);
+      const pt = snapped || this.applyLineLock(this.dimAnchor, raw, e, pageNum);
       this.redrawPage(pageNum);
       const scale = this.getCurrentScale(pageNum);
       const color = scale ? scale.color : 'rgba(30,58,95,0.7)';
@@ -2012,7 +2037,7 @@ class Component extends DCLogic {
       const raw = this.canvasPoint(e.clientX, e.clientY);
       const pageNum = this.state.currentPage;
       const snapped = (e.shiftKey || e.ctrlKey || e.metaKey) ? null : this.findSnapPoint(raw, pageNum);
-      const pt = snapped || this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e);
+      const pt = snapped || this.applyLineLock(this.areaPoints[this.areaPoints.length - 1], raw, e, pageNum);
       this.redrawPage(pageNum);
       const canvas = this.overlayCanvasRef.current;
       const ctx = canvas.getContext('2d');
