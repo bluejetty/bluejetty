@@ -11,8 +11,8 @@
   <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6);">{{ label }}</div>
   <div style="display:inline-flex; overflow:hidden; border:1px solid rgba(29,31,32,0.16);">
     <sc-for list="{{ options }}" as="opt" hint-placeholder-count="3">
-      <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; cursor:pointer; border-left:1px solid rgba(29,31,32,0.16); background:{{ opt.bg }}; color:{{ opt.color }};" style-first-child="border-left:none;">
-        <input type="radio" name="{{ radioName }}" checked="{{ opt.checked }}" onChange="{{ opt.onSelect }}" style="position:absolute; opacity:0; width:0; height:0;" />
+      <label style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:13px; cursor:{{ opt.cursor }}; border-left:1px solid rgba(29,31,32,0.16); background:{{ opt.bg }}; color:{{ opt.color }}; opacity:{{ opt.opacity }}; pointer-events:{{ opt.pointerEvents }};" style-first-child="border-left:none;">
+        <input type="radio" name="{{ radioName }}" checked="{{ opt.checked }}" disabled="{{ opt.disabled }}" onChange="{{ opt.onSelect }}" style="position:absolute; opacity:0; width:0; height:0;" />
         {{ opt.label }}
       </label>
     </sc-for>
@@ -33,7 +33,12 @@ class Component extends DCLogic {
     return {
       label: this.props.label ?? 'Resolution',
       radioName: this.props.radioName ?? 'dpi-resolution',
-      options: this.props.options ?? [],
+      options: (this.props.options ?? []).map((o) => ({
+        ...o,
+        opacity: o.disabled ? 0.45 : 1,
+        cursor: o.disabled ? 'not-allowed' : 'pointer',
+        pointerEvents: o.disabled ? 'none' : 'auto',
+      })),
       showButton: this.props.showButton ?? true,
       buttonLabel: this.props.buttonLabel ?? 'SAVE',
       onButtonClick: this.props.onButtonClick,
