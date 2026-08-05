@@ -1646,7 +1646,7 @@ class Component extends DCLogic {
       this.redrawPage(pageNum);
       return;
     }
-    if (this.areaPoints.length === 1 && (e.shiftKey || this.rectPending)) {
+    if (this.areaPoints.length === 1 && this.rectPending) {
       this.rectPending = false;
       const rectPts = [first, [raw[0], first[1]], raw, [first[0], raw[1]]];
       const scale = this.getCurrentScale(pageNum);
