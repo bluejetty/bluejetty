@@ -360,7 +360,7 @@
         <sc-if value="{{ showPenSize }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex; align-items:center; gap:8px;">
             <button onClick="{{ decreasePenSize }}" style="border:1px solid #5980a6; background:transparent; color:#5980a6; width:26px; height:26px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;" style-hover="background:rgba(89,128,166,0.1);">▼</button>
-            <span style="font-size:13px; color:rgba(29,31,32,0.6); width:36px; text-align:center;">{{ penSize }}px</span>
+            <span style="font-size:13px; color:rgba(29,31,32,0.6); width:36px; text-align:center;">{{ sizeDisplay }}px</span>
             <button onClick="{{ increasePenSize }}" style="border:1px solid #5980a6; background:transparent; color:#5980a6; width:26px; height:26px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;" style-hover="background:rgba(89,128,166,0.1);">▲</button>
           </div>
         </sc-if>
@@ -377,8 +377,8 @@
             <button onClick="{{ deleteSelected }}" style="border:1px solid #ff8c00; background:transparent; color:#ff8c00; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;">{{ deleteSelectedLabel }}</button>
           </sc-if>
           <button onClick="{{ clearAllMarkup }}" title="Clear all markup, keep the PDF" style="border:1px solid #5980a6; background:transparent; color:#5980a6; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif;" style-hover="background:rgba(89,128,166,0.08);">CLEAR</button>
-          <button onClick="{{ undo }}" disabled="{{ undoDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ undoOpacity }};">Undo</button>
-          <button onClick="{{ redo }}" disabled="{{ redoDisabled }}" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ redoOpacity }};">Redo</button>
+          <!--UNDOBTN--><button onClick="{{ undo }}" disabled="{{ undoDisabled }}" style="display:none; border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ undoOpacity }};">Undo</button>
+          <!--REDOBTN--><button onClick="{{ redo }}" disabled="{{ redoDisabled }}" style="display:none; border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ redoOpacity }};">Redo</button>
           <button onClick="{{ undoPointEdit }}" disabled="{{ pointEditUndoDisabled }}" title="Undo the last area point move/insert/delete" style="border:1px solid rgba(29,31,32,0.16); background:transparent; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; opacity:{{ pointEditUndoOpacity }};">Undo Point</button>
         </div>
 
@@ -640,7 +640,8 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const COLORS = { blue: '#1d4ed8', red: '#dc2626', green: '#16a34a', yellow: '#ffea00', orange: '#f97316' };
-const TOOL_INTRO_TOOLS = ['line', 'area', 'dimension', 'zoom', 'eraser', 'text'];
+const TOOL_INTRO_TOOLS = []; // temporarily disabled — content/logic below kept for later re-enabling
+const TOOL_INTRO_TOOLS_FULL = ['line', 'area', 'dimension', 'zoom', 'eraser', 'text'];
 const TOOL_INTRO_CONTENT = {
   line: { title: 'LINE tool', color: 'rgba(220,38,38,0.7)', body: "Click to set the start point, then click again for the end point. Hold SHIFT or CTRL to lock straight (0\u00b0/45\u00b0/90\u00b0). Press R or L to freeze and type an exact length. Passing near an existing point circles it and locks your length to match it. Shift-click the 2nd point for a rectangle, Ctrl-click for a circle. Each line continues from the last point \u2014 click near the start (or double-click) to close the loop, right-click or Esc to end." },
   area: { title: 'AREA tool', color: 'rgba(124,58,237,0.7)', body: "Click to place each corner, click near the first point (or double-click) to close the shape. Hold SHIFT or CTRL to lock straight; passing near an existing point circles it and locks your length to match it. Shift-click the 2nd point for a rectangle, Ctrl-click for a circle. Press R or L to type an exact length. After closing, pick a category and it's added to the schedule. Select a finished shape to drag a corner, grab an edge to add a corner, or Alt-drag an edge to bow it into an arc." },
@@ -663,6 +664,7 @@ class Component extends DCLogic {
     tool: 'pen',
     colorKey: 'blue',
     penSize: 1.5,
+    eraserSize: 30,
     textSize: 24,
     cursorX: -100,
     cursorY: -100,
@@ -1560,8 +1562,8 @@ class Component extends DCLogic {
     ctx.stroke();
   }
 
-  strokeParamsFor(tool, colorHex, penSize) {
-    if (tool === 'eraser') return { lineWidth: penSize * 2.2, opacity: 1, color: '#000000' };
+  strokeParamsFor(tool, colorHex, penSize, eraserSize) {
+    if (tool === 'eraser') return { lineWidth: eraserSize != null ? eraserSize : penSize * 2.2, opacity: 1, color: '#000000' };
     if (tool === 'highlighter') return { lineWidth: Math.max(18, penSize * 5), opacity: 0.3, color: colorHex };
     return { lineWidth: penSize, opacity: 1, color: colorHex };
   }
@@ -2068,7 +2070,7 @@ class Component extends DCLogic {
       const actions = this.actionsByPage[pageNum] || [];
       this.eraserTargets = this.selectedIndices.size > 0 ? new Set([...this.selectedIndices].map((i) => actions[i]).filter(Boolean)) : null;
     }
-    const params = this.strokeParamsFor(this.state.tool, COLORS[this.state.colorKey], this.state.penSize);
+    const params = this.strokeParamsFor(this.state.tool, COLORS[this.state.colorKey], this.state.penSize, this.state.eraserSize);
     this.currentStrokeStyle = { tool: this.state.tool, ...params };
   };
 
@@ -3717,9 +3719,9 @@ class Component extends DCLogic {
   };
   onToggleIncludeLinks = (e) => this.setState({ includeLinks: e.target.checked });
   onSnipTitleChange = (e) => this.setState({ snipTitle: e.target.value });
-  onPenSizeChange = (e) => this.setState({ penSize: parseFloat(e.target.value) });
-  decreasePenSize = () => this.setState((s) => ({ penSize: Math.max(0.5, Math.round((s.penSize - 0.5) * 10) / 10) }));
-  increasePenSize = () => this.setState((s) => ({ penSize: Math.min(30, Math.round((s.penSize + 0.5) * 10) / 10) }));
+  onPenSizeChange = (e) => this.setState((s) => (s.tool === 'eraser' ? { eraserSize: parseFloat(e.target.value) } : { penSize: parseFloat(e.target.value) }));
+  decreasePenSize = () => this.setState((s) => (s.tool === 'eraser' ? { eraserSize: Math.max(4, Math.round((s.eraserSize - 2) * 10) / 10) } : { penSize: Math.max(0.5, Math.round((s.penSize - 0.5) * 10) / 10) }));
+  increasePenSize = () => this.setState((s) => (s.tool === 'eraser' ? { eraserSize: Math.min(120, Math.round((s.eraserSize + 2) * 10) / 10) } : { penSize: Math.min(30, Math.round((s.penSize + 0.5) * 10) / 10) }));
   onTextSizeChange = (e) => this.setState({ textSize: parseInt(e.target.value, 10) });
 
   snapshotAreaPoints = (pageNum, actionIdx, points) => {
@@ -4144,7 +4146,7 @@ class Component extends DCLogic {
   onMobileNav = (e) => { const v = e.target.value; if (v) window.location.href = v; };
 
   renderVals() {
-    const { fileName, loading, loaded, numPages, currentPage, tool, colorKey, penSize, textSize, cursorX, cursorY, showCursorDot, placingText, textInputValue, undoStackLen, redoStackLen, exporting, progressText, dragOver, isMobile, areaHoverGlow } = this.state;
+    const { fileName, loading, loaded, numPages, currentPage, tool, colorKey, penSize, eraserSize, textSize, cursorX, cursorY, showCursorDot, placingText, textInputValue, undoStackLen, redoStackLen, exporting, progressText, dragOver, isMobile, areaHoverGlow } = this.state;
     const accent = '#5980a6';
     const colorHex = COLORS[colorKey];
     const pageThumbs = Array.from({ length: numPages }, (_, i) => i + 1).map((p) => ({
@@ -4196,7 +4198,7 @@ class Component extends DCLogic {
     else if (tool === 'dimension') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = '#1e3a5f'; }
     else if (tool === 'area') { cursorSize = 12; cursorBg = 'transparent'; cursorBorder = areaHoverGlow ? '#ff8c00' : '#7c3aed'; }
     else if (tool === 'highlighter') { cursorSize = Math.max(14, penSize * 3.2); cursorBg = colorHex + '55'; cursorBorder = colorHex; }
-    else if (tool === 'eraser') { cursorSize = Math.max(16, penSize * 2.2); cursorBg = 'rgba(255,255,255,0.15)'; cursorBorder = '#ffffff'; }
+    else if (tool === 'eraser') { cursorSize = Math.max(16, eraserSize); cursorBg = 'rgba(255,255,255,0.15)'; cursorBorder = '#ffffff'; }
     else if (tool === 'text') { cursorSize = 14; cursorBg = 'transparent'; cursorBorder = colorHex; }
     else if (tool === 'snip') { cursorSize = 16; cursorBg = 'transparent'; cursorBorder = accent; }
     else if (tool === 'zoom') { cursorSize = 16; cursorBg = 'transparent'; cursorBorder = '#7c3aed'; }
@@ -4263,6 +4265,7 @@ class Component extends DCLogic {
       showPenSize: tool === 'pen' || tool === 'line' || tool === 'highlighter' || tool === 'eraser',
       showTextSize: tool === 'text',
       penSize, textSize,
+      sizeDisplay: tool === 'eraser' ? eraserSize : penSize,
       onPenSizeChange: this.onPenSizeChange,
       decreasePenSize: this.decreasePenSize,
       increasePenSize: this.increasePenSize,
