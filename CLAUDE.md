@@ -26,6 +26,16 @@ user with `SendUserFile`** — they upload it themselves. Say plainly that the
 commit is local and unpushed. If a stop hook complains about unpushed commits,
 that is expected here; acknowledge it and stop rather than retrying the push.
 
+## Standing preferences
+
+- **Confirm the destination before pushing.** The user owns more than one
+  repository and the DOCU app is served from a different one than this. Never
+  assume the repo you are sitting in is the one the change belongs to — name
+  the repo and branch and get a yes first.
+- **Hand over a backup zip with the work**, not just loose files: the changed
+  files at their real paths, the list of files to delete, and a `git bundle`
+  of any unpushed commits so the history survives the container.
+
 ## The DOCU app (`docu/index.html`)
 
 One self-contained bundled page, ~860 KB, and **not hand-editable as it
