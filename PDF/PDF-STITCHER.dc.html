@@ -113,7 +113,7 @@
     <dc-import name="SaveBox" hint-size="100%,60px"
       is-mobile="{{ isMobile }}"
       label="Resolution"
-      radio-name="creatorDpi"
+      radio-name="stitcherDpi"
       options="{{ dpiOptions }}"
       show-button="{{ true }}"
       button-label="{{ generateLabel }}"
@@ -154,7 +154,7 @@ class Component extends DCLogic {
   lastMinuteKey = '';
   interval = null;
 
-  STORAGE_KEY = 'pdfCreatorState_v1';
+  STORAGE_KEY = 'pdfStitcherState_v1';
 
   bufToBase64(buf) {
     const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
