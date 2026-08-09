@@ -20,7 +20,7 @@
   <div style="max-width:900px; width:100%;">
     <dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
 
-<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-CREATOR</div>
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-STITCHER</div>
 
 <dc-import name="DropBox" hint-size="100%,165px"
       headline="DROP-BOX"
@@ -113,7 +113,7 @@
     <dc-import name="SaveBox" hint-size="100%,60px"
       is-mobile="{{ isMobile }}"
       label="Resolution"
-      radio-name="creatorDpi"
+      radio-name="stitcherDpi"
       options="{{ dpiOptions }}"
       show-button="{{ true }}"
       button-label="{{ generateLabel }}"
@@ -123,7 +123,7 @@
       button-opacity="{{ generateOpacity }}"
     ></dc-import>
 
-    <dc-import name="ToolHeader" activeTool="PDF-CREATOR" on-clear="{{ clearPage }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
+    <dc-import name="ToolHeader" activeTool="PDF-STITCHER" on-clear="{{ clearPage }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
 
   </div>
 </div>
@@ -154,7 +154,7 @@ class Component extends DCLogic {
   lastMinuteKey = '';
   interval = null;
 
-  STORAGE_KEY = 'pdfCreatorState_v1';
+  STORAGE_KEY = 'pdfStitcherState_v1';
 
   bufToBase64(buf) {
     const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
