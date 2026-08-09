@@ -1,81 +1,73 @@
 # bluejetty — working notes for Claude
 
-## DON'T TRY TO PUSH — IT WON'T WORK
+This repo serves **bluejetty.ca**: a one-page site at the root, and the PDF and
+image tool suite under `PDF/`.
 
-Sessions on this repo have **read-only** GitHub access. Clones and fetches
-succeed; every write is refused:
+## Pushing works — with one setup condition
 
-- `git push` → `403` from `https://github.com/bluejetty/bluejetty/`
-- GitHub API `create_branch` / `push_files` → `403 Resource not accessible by
-  integration`
+The Claude GitHub App is installed on the `bluejetty` account, so sessions can
+push and open PRs normally. Push to a branch and let the user merge the PR; do
+not push to `main`.
 
-This is a permission grant, not a flaky network. Retrying and backoff do not
-help — it has been tried at length. **Do not spend the user's time on it.**
+Two things that will still refuse, both fixed outside a session:
 
-**A personal access token does not help either — do not ask for one.** The
-session's proxy intercepts every GitHub request and applies its own policy
-regardless of the credential presented. Tested with a valid PAT: `GET /user`
-returns 200, but `GET /repos/bluejetty/bluejetty` returns 403 with a
-proxy-authored message, *"GitHub access is not enabled for this session. An
-org admin must connect the Claude GitHub App for this organization."* The fix
-is connecting that app, which happens outside any session. If the user offers
-a token, tell them it cannot work here and that pasting it exposes it.
+- **The app is installed per GitHub account.** The user also owns `dzmarkup`.
+  Installing on one account does not cover the other, and the claude.ai side
+  links one GitHub account at a time.
+- **A repo must be selected in the picker when the session is created.** The
+  git proxy only injects a credential for repos in the session's source set —
+  it will refuse a repo added later with *"not in this session's authorized
+  repository set"*, and `add_repo` refuses to add one from a different owner.
+  A collaborator grant on GitHub does not change this.
 
-Commit locally so the work has a record, then **hand the finished file to the
-user with `SendUserFile`** — they upload it themselves. Say plainly that the
-commit is local and unpushed. If a stop hook complains about unpushed commits,
-that is expected here; acknowledge it and stop rather than retrying the push.
+If a push 403s, check those two before assuming anything else. A personal
+access token does **not** help — the proxy applies its own policy regardless of
+the credential presented, so asking for one only exposes it.
 
 ## Standing preferences
 
-- **Confirm the destination before pushing.** The user owns more than one
-  repository and the DOCU app is served from a different one than this. Never
-  assume the repo you are sitting in is the one the change belongs to — name
-  the repo and branch and get a yes first.
+- **Confirm the destination before pushing.** The user owns two GitHub accounts
+  (`bluejetty` and `dzmarkup`) with several repos between them, so a change can
+  look right and still land in the wrong place. Name the repo and branch and
+  get a yes first.
 - **Hand over a backup zip with the work**, not just loose files: the changed
   files at their real paths, the list of files to delete, and a `git bundle`
   of any unpushed commits so the history survives the container.
 
-## The DOCU app (`docu/index.html`)
+## The DOCU app is not in this repo
 
-One self-contained bundled page, ~860 KB, and **not hand-editable as it
-stands**. Structure:
+DOCU lives at **dzdocu.com**, in the `dzmarkup/dzdocu` repo, and has its own
+`CLAUDE.md` there. A copy used to sit at `docu/index.html` here as a test bed
+before it got its own domain; it has been removed. Do not re-add it, and do not
+treat anything in this repo as the source for that app.
 
-- Line 378 — JSON manifest of assets (gzip + base64: fonts, the framework, the
-  `doc-page` web component).
-- Line 390 — the whole application document as one JSON-escaped string.
+## The PDF tool suite (`PDF/`)
 
-To change it: parse line 390 with `json.loads`, edit the extracted HTML, then
-re-serialise. Escaping detail that matters — the original escapes `</` as
-`</`, so apply `.replace('</', '<\\u002F')` after `json.dumps` and assert
-the round-trip before writing.
+Nine tools plus a hub. `PDF/index.html` redirects to `PDF/PDF-IMG-MGR.dc.html`,
+which is the hub; the nine tools are listed in two places that must stay in
+step — the `TOOLS` array and `activeTool` enum in `ToolHeader.dc.html`, and the
+tile list in `PDF-IMG-MGR.dc.html`. Each tool needs a matching
+`PDF/<NAME>.dc.html` and `PDF/assets/<NAME>.png`.
 
-Verify print changes for real rather than by eye. Playwright is installed
-globally (`/opt/node22/lib/node_modules/playwright`), Chromium lives at
-`/opt/pw-browsers` — drive the app, then `page.pdf({ preferCSSPageSize: true,
-printBackground: true })` and count `/Type /Page` in the output. That is what
-catches an extra sheet.
+Icons are rendered at 94px. Keep them around 840px wide like the existing set —
+one was committed at 3683px / 4.3 MB and every hub visit paid for it.
 
-### Label printing — the trap that caused the black page
+Shared code lives in `PDF/support.js`, `PDF/shared-file-store.js` and
+`PDF/pdfEngine.js`, with shared components in `DropBox.dc.html`,
+`Notepad.dc.html`, `SaveBox.dc.html` and `ToolHeader.dc.html`. There is a
+design system under `PDF/_ds/`.
 
-Two screen-only affordances used to reach the printer and cost a whole extra
-sheet:
+The tools load React, Babel and 29 libraries from `unpkg.com` and
+`cdnjs.cloudflare.com` at runtime, so they break when those CDNs do — and
+`@babel/standalone` means the browser compiles JSX on every page load.
+Vendoring those locally is the largest available improvement.
 
-- `.doc-stage-wrap` carries a 60px top gutter so the sheet clears the fixed
-  toolbar. A label page is *exactly* one sheet tall, so 60px of offset pushed
-  the whole page onto sheet 2.
-- The `doc-page` host's desk colour (`#2b2b2b`) is set as an **inline** style —
-  and re-applied in JS by `updateColsLayout()` — so it outranks the component's
-  own `:host { background: none }` print rule. The component forces
-  `print-color-adjust: exact`, so it prints even with "Background graphics"
-  off. That is what filled the empty sheet 1 solid dark.
+## Known and unfinished
 
-Both are reset in the document's print CSS. If a dark sheet ever comes back,
-check those two rules survived a rebuild.
-
-### Label addresses
-
-Which address sits on which page is keyed by **page id** (`pageAddresses`), not
-by position — "+ Page" can insert a repeated or blank label mid-run, and a
-positional list makes the return-address toggle rewrite later pages with the
-wrong address. The map is persisted with the document.
+- **The homepage links to nothing but a PDF and a phone number.** Eleven
+  working tools and no visitor can find them; `/PDF/` is invisible. Highest
+  value-per-hour item in the repo.
+- **~28 MB of unlinked PDFs sit at the root** (`CanadaNBC2020.pdf`,
+  `CanadaNBC2020Sec9Illustrated.pdf`, `HOME-PLANS-…pdf`). These are deliberate —
+  the user hosts them for direct linking. Do not delete them.
+- There is a stale `PDF` branch on the remote, left over from a reorganisation.
