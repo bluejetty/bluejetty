@@ -12,6 +12,15 @@ succeed; every write is refused:
 This is a permission grant, not a flaky network. Retrying and backoff do not
 help — it has been tried at length. **Do not spend the user's time on it.**
 
+**A personal access token does not help either — do not ask for one.** The
+session's proxy intercepts every GitHub request and applies its own policy
+regardless of the credential presented. Tested with a valid PAT: `GET /user`
+returns 200, but `GET /repos/bluejetty/bluejetty` returns 403 with a
+proxy-authored message, *"GitHub access is not enabled for this session. An
+org admin must connect the Claude GitHub App for this organization."* The fix
+is connecting that app, which happens outside any session. If the user offers
+a token, tell them it cannot work here and that pasting it exposes it.
+
 Commit locally so the work has a record, then **hand the finished file to the
 user with `SendUserFile`** — they upload it themselves. Say plainly that the
 commit is local and unpushed. If a stop hook complains about unpushed commits,
