@@ -7,3 +7,10 @@ uri = "file://pdf-repo.zip"
 type = "unspecified"
 title = "pdf-repo.zip"
 description = "All PDF tool files + CNAME file — unzip, open the PDF folder, drag everything inside it into GitHub's upload area."
+
+[[outputs]]
+id = "fioi6TQIrRJQpPt1EuUo1"
+uri = "file://flat-status-update.zip"
+type = "unspecified"
+title = "flat-status-update.zip"
+description = "4 files to upload to bluejetty/pdf on GitHub."
