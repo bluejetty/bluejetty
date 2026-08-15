@@ -48,13 +48,13 @@
       margin-top: 0.5rem;
     }
 
-    .phone {
+    . {
       color: #2154b4;
       font-size: 1.25rem;
       margin-top: 1rem;
     }
 
-    .phone a {
+    . a {
       color: #2154b4;
       text-decoration: none;
     }
@@ -72,13 +72,11 @@
       text-decoration: none;
     }
 
-
 /* ===== LINK GLOW EFFECT ===== */
-/* Adjust these 3 values to tune the glow */
 :root {
-  --glow-spread: 14px;        /* How far the glow spreads (try 8px to 30px) */
-  --glow-opacity: 0.75;       /* Intensity: 0.0 = invisible, 1.0 = solid */
-  --glow-color: 30, 144, 255; /* RGB for #1e90ff (dodger blue) */
+  --glow-spread: 14px;
+  --glow-opacity: 0.75;
+  --glow-color: 30, 144, 255;
 }
 
 a {
@@ -92,43 +90,36 @@ a:hover {
     0 0 var(--glow-spread) rgba(var(--glow-color), calc(var(--glow-opacity) * 0.3));
 }
 
-
-
-
-
-
-    
-    .links a:hover {
+.links a:hover {
   box-shadow: 
     0 0 calc(var(--glow-spread) * 0.5) rgba(var(--glow-color), var(--glow-opacity)),
     0 0 var(--glow-spread) rgba(var(--glow-color), calc(var(--glow-opacity) * 0.5));
-  border-radius: 4px; /* Softens the box edges so the glow looks smooth */
+  border-radius: 4px;
 }
 
-
-
-
-/* ===== PHONE TOOLTIP ===== */
-.phone-tip {
+/* ===== TOP-CENTER TOOLTIP (shared by  & info) ===== */
+.phone-tip,
+.info-tip {
   position: relative;
   display: inline-block;
   cursor: pointer;
 }
 
-.phone-tip .tip-box {
+.phone-tip .tip-box,
+.info-tip .tip-box {
   visibility: hidden;
-  width: 260px;
+  width: 280px;
   background-color: #ffffff;
   color: #161e5e;
   text-align: center;
   border: 2px solid #1e90ff;
   border-radius: 10px;
   padding: 10px 12px;
-  position: absolute;
-  z-index: 100;
-  bottom: 130%;
+  position: fixed;
+  top: 20px;
   left: 50%;
-  margin-left: -130px;
+  transform: translateX(-50%);
+  z-index: 1000;
   opacity: 0;
   transition: opacity 0.25s ease;
   font-family: Arial, sans-serif;
@@ -137,23 +128,12 @@ a:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
-.phone-tip:hover .tip-box {
+.phone-tip:hover .tip-box,
+.info-tip:hover .tip-box {
   visibility: visible;
   opacity: 1;
 }
-
-/* Optional little arrow pointing down */
-.phone-tip .tip-box::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1e90ff transparent transparent transparent;
-}
-
+  </style>
     
   </style>
 </head>
@@ -173,10 +153,10 @@ a:hover {
 
 <center> 
 <p>
-<a href="tel:1-306-649-0350"><font face="Arial" color="#2154b4" size="5"><span class="phone-tip">LANDLINE PHONE:  306 649-0350
+<span class="phone-tip">
+  <a href="tel:1-306-649-0350"><font face="Arial" color="#2154b4" size="5">LANDLINE PHONE: 306 649-0350</font></a>
   <span class="tip-box">CALL 306 649-0350 LANDLINE TO DISCUSS YOUR PROJECT WITH A DRAFTER.</span>
-</span></font></a>
-</p><br>
+</span></p><br>
 
 <p>
   <span class="info-tip">
