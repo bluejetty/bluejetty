@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="./shared-file-store.js"></script>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+    .pg-table { width:100%; border-collapse:collapse; }
+    .pg-table th { font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.45); padding:6px 8px; text-align:left; border-bottom:1px solid rgba(29,31,32,0.10); background:#fafafa; white-space:nowrap; }
+    .pg-table td { padding:5px 8px; border-bottom:1px solid rgba(29,31,32,0.05); vertical-align:middle; }
+    .pg-table tr:last-child td { border-bottom:none; }
+    .pg-table tr:hover td { background:rgba(89,128,166,0.04); }
+    .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+    .meta-cell { padding:7px 14px; border-bottom:1px solid rgba(29,31,32,0.06); }
+    .meta-cell:nth-child(odd) { border-right:1px solid rgba(29,31,32,0.06); }
+    .meta-label { font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.4); font-family:'Barlow Condensed',system-ui,sans-serif; margin-bottom:1px; }
+    .meta-value { font-size:13px; color:#1d1f20; font-weight:500; word-break:break-word; }
+    .meta-value.dim { color:rgba(29,31,32,0.5); font-weight:400; }
+    .badge { display:inline-block; padding:2px 7px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:11px; letter-spacing:0.04em; border-radius:2px; }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
+  <div style="max-width:960px; width:100%;">
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-STATUS</div>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="6px"
+      file-types-label="PDF"
+      accept-types=".pdf,application/pdf"
+      url-placeholder="Or paste a PDF URL…"
+      has-file-name="{{ true }}"
+      file-name="{{ fileName }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ urlInput }}"
+      on-url-input-change="{{ onUrlInputChange }}"
+      load-from-url="{{ loadFromUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onPasteClick }}"
+    ></dc-import>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:12px;">{{ error }}</div>
+    </sc-if>
+
+    <sc-if value="{{ analyzing }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:6px;">
+        <div style="background:#e9e9ea; height:6px; margin-bottom:10px;">
+          <div style="background:#5980a6; height:100%; width:{{ progressPercent }}%; transition:width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; color:rgba(29,31,32,0.6); font-size:13px;">{{ progressText }}</div>
+      </div>
+    </sc-if>
+
+    <!-- Empty state -->
+    <sc-if value="{{ noResult }}" hint-placeholder-val="{{ true }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; padding:16px 20px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:10px;">What PDF-STATUS detects</div>
+        <div style="font-size:12px; color:rgba(29,31,32,0.55); line-height:1.7; margin-bottom:12px;">
+          <b>File:</b> title, author, creator app, producer, creation &amp; modification dates, PDF version, file size, linearized, bookmarks, attachments.<br/>
+          <b>Per page:</b> named size &amp; dimensions, rotation, estimated DPI, image count, vector paths, flat status, annotations, form fields.
+        </div>
+        <div style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(29,31,32,0.4); margin-bottom:6px;">Flat status scale</div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; background:#3d6b4f; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>1 — VECTOR PDF</b> · Live vector, text and/or form fields.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; background:#7a5c1e; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>2 — MIXED</b> · Raster and live content on the same page or across pages.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; background:#2c455d; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>3 — OCR / SEARCHABLE SCAN</b> · Raster with invisible OCR text layer.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; background:#8a2c2c; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>4 — FULL FLAT</b> · Pure raster, nothing selectable.</div></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════════════ RESULTS ═══════════════════ -->
+    <sc-if value="{{ hasResult }}" hint-placeholder-val="{{ false }}">
+
+      <!-- Overall status badge -->
+      <div style="background:{{ statusBg }}; color:{{ statusColor }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:{{ statusFontSize }}px; letter-spacing:0.04em; text-transform:uppercase; padding:13px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; border:1px solid rgba(29,31,32,0.16); border-bottom:none;">
+        <span>{{ statusLabel }}</span>
+        <span style="font-size:12px; opacity:0.75; font-weight:400; letter-spacing:0.01em;">{{ summaryLine }}</span>
+      </div>
+      <div style="padding:10px 18px; font-size:13px; color:rgba(29,31,32,0.65); border:1px solid rgba(29,31,32,0.16); border-bottom:none;">{{ statusDesc }}</div>
+
+      <!-- Feature badges -->
+      <div style="padding:8px 18px; border:1px solid rgba(29,31,32,0.16); border-bottom:none; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+        <sc-for list="{{ featureBadges }}" as="fb" hint-placeholder-count="3">
+          <span style="display:inline-block; padding:3px 9px; background:{{ fb.bg }}; color:{{ fb.color }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;">{{ fb.label }}</span>
+        </sc-for>
+      </div>
+
+      <!-- ─── File metadata grid ─── -->
+      <div style="border:1px solid rgba(29,31,32,0.16); border-bottom:none;">
+        <div style="font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:rgba(29,31,32,0.4); padding:7px 14px 4px; background:#f8f8f8; border-bottom:1px solid rgba(29,31,32,0.08); font-family:'Barlow Condensed',sans-serif; font-weight:600;">File &amp; Document Metadata</div>
+        <div class="meta-grid">
+          <sc-for list="{{ metaRows }}" as="mr" hint-placeholder-count="8">
+            <div class="meta-cell">
+              <div class="meta-label">{{ mr.label }}</div>
+              <div class="meta-value {{ mr.dim }}">{{ mr.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─── Per-page table ─── -->
+      <div style="border:1px solid rgba(29,31,32,0.16); overflow:hidden;">
+        <div style="font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:rgba(29,31,32,0.4); padding:7px 14px 4px; background:#f8f8f8; border-bottom:1px solid rgba(29,31,32,0.08); font-family:'Barlow Condensed',sans-serif; font-weight:600;">Per-Page Analysis</div>
+        <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
+          <table class="pg-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Size</th>
+                <th>Dims (in)</th>
+                <th>Rot</th>
+                <th>DPI</th>
+                <th>Images</th>
+                <th>Vectors</th>
+                <th>Annots</th>
+                <th>Forms</th>
+                <th>Status</th>
+                <th style="display:{{ detailColDisplay }};">Content</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ pageRows }}" as="pr" hint-placeholder-count="3">
+                <tr>
+                  <td style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; color:rgba(29,31,32,0.4);">{{ pr.pageNum }}</td>
+                  <td style="font-size:12px; font-weight:600; white-space:nowrap;">{{ pr.sizeName }}</td>
+                  <td style="font-size:11px; color:rgba(29,31,32,0.5); white-space:nowrap;">{{ pr.dims }}</td>
+                  <td style="font-size:11px; white-space:nowrap;">
+                    <span style="background:{{ pr.rotBg }}; color:{{ pr.rotColor }}; padding:1px 5px; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:10px; letter-spacing:0.04em;">{{ pr.rotLabel }}</span>
+                  </td>
+                  <td style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; color:{{ pr.dpiColor }}; white-space:nowrap;">{{ pr.dpiLabel }}</td>
+                  <td style="font-size:12px; color:{{ pr.imgCountColor }}; text-align:center;">{{ pr.imageCount }}</td>
+                  <td style="text-align:center;">
+                    <span style="font-size:11px; color:{{ pr.vecColor }};">{{ pr.vecLabel }}</span>
+                  </td>
+                  <td style="font-size:12px; color:{{ pr.annotColor }}; text-align:center;">{{ pr.annotCount }}</td>
+                  <td style="font-size:12px; color:{{ pr.formColor }}; text-align:center;">{{ pr.formCount }}</td>
+                  <td style="white-space:nowrap;">
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.03em; color:{{ pr.statusColor }};">{{ pr.statusLabel }}</span>
+                  </td>
+                  <td style="font-size:10px; color:rgba(29,31,32,0.4); display:{{ detailColDisplay }};">{{ pr.detail }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:9px 14px; border-top:1px solid rgba(29,31,32,0.08); display:flex; justify-content:flex-end;">
+          <button onClick="{{ clearPage }}" style="border:1px solid rgba(29,31,32,0.2); background:none; padding:6px 16px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; color:rgba(29,31,32,0.55); text-transform:uppercase; cursor:pointer; letter-spacing:0.04em;" style-hover="color:#8a2c2c; border-color:#8a2c2c;">CLEAR / ANALYSE NEW FILE</button>
+        </div>
+      </div>
+
+    </sc-if>
+
+    <div style="margin-top:14px;">
+      <dc-import name="ToolHeader" activeTool="PDF-STATUS" on-clear="{{ clearPage }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUS = { NOT_FLAT: 1, MIXED: 2, OCR_FLAT: 3, FULL_FLAT: 4 };
+const STATUS_INFO = {
+  [STATUS.NOT_FLAT]:  { label:'STATUS 1 — VECTOR PDF',            bg:'#3d6b4f', color:'#f2f2f3', desc:'Fully live content — vector text, shapes, and/or form fields. Fully editable and selectable.' },
+  [STATUS.MIXED]:     { label:'STATUS 2 — MIXED',                 bg:'#7a5c1e', color:'#f2f2f3', desc:'Mix of flat raster and live vector content. Some pages or elements are rasterized; others contain live text or forms.' },
+  [STATUS.OCR_FLAT]:  { label:'STATUS 3 — OCR / SEARCHABLE SCAN', bg:'#2c455d', color:'#f2f2f3', desc:'Visually raster with an invisible OCR text layer. Text is searchable and copyable, but visuals are pixel-based.' },
+  [STATUS.FULL_FLAT]: { label:'STATUS 4 — FULL FLAT',             bg:'#8a2c2c', color:'#f2f2f3', desc:'Fully rasterized — pure images. No text layer, no vector data, nothing selectable or searchable.' },
+};
+const PAGE_LABEL = { flat:'FLAT', ocr:'OCR/SRCH', live:'VECTOR', mixed:'MIXED' };
+const PAGE_COLOR = { flat:'#8a2c2c', ocr:'#2c455d', live:'#3d6b4f', mixed:'#7a5c1e' };
+
+const KNOWN_SIZES = [
+  [612,792,'Letter'],[612,1008,'Legal'],[792,1224,'Tabloid'],[1224,792,'Ledger'],
+  [595,842,'A4'],[420,595,'A5'],[841,1190,'A3'],[1190,1684,'A2'],[1684,2384,'A1'],[2384,3370,'A0'],
+  [396,612,'Half Letter'],[522,756,'Executive'],[283,420,'A6'],[499,709,'B5'],[709,1001,'B4'],
+];
+function sizeName(wPt, hPt) {
+  const lo=Math.min(wPt,hPt), hi=Math.max(wPt,hPt);
+  for (const [sw,sh,n] of KNOWN_SIZES) {
+    const slo=Math.min(sw,sh), shi=Math.max(sw,sh);
+    if (Math.abs(lo-slo)<=4 && Math.abs(hi-shi)<=4) return n;
+  }
+  return 'Custom';
+}
+function fmtDims(w,h) { return `${(w/72).toFixed(2)}" × ${(h/72).toFixed(2)}"`; }
+function fmtDate(d) {
+  if (!d || typeof d !== 'string') return null;
+  const m=d.match(/D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?/);
+  if (!m) return null;
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let s=`${m[3]} ${mo[parseInt(m[2],10)-1]||m[2]} ${m[1]}`;
+  if (m[4]&&m[5]) s+=` ${m[4]}:${m[5]}`;
+  return s;
+}
+function fmtSize(b) {
+  if (b>=1e6) return (b/1e6).toFixed(1)+' MB';
+  if (b>=1e3) return Math.round(b/1e3)+' KB';
+  return b+' B';
+}
+function trunc(s,n=48) { if (!s) return null; s=s.trim(); return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function present(v) { return (v!==null && v!==undefined && v!==''); }
+
+class Component extends DCLogic {
+  state = {
+    fileName:'', analyzing:false, progressPercent:0, progressText:'',
+    error:null, dragOver:false, urlInput:'',
+    isMobile: typeof window!=='undefined' && window.innerWidth<640,
+    overallStatus:null, pageResults:[], fileMeta:null,
+  };
+  fileInputRef = React.createRef();
+  currentFile = null;
+
+  clearPage = () => {
+    if (!confirm('Clear the file and results?')) return;
+    this.currentFile=null;
+    this.setState({ fileName:'', analyzing:false, progressPercent:0, progressText:'', error:null, overallStatus:null, pageResults:[], fileMeta:null });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('pdfstatus');
+  };
+
+  componentDidMount() {
+    if (window.pdfjsLib) window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    this.consumeHandoff();
+    if (window.SharedFileStore) window.SharedFileStore.loadSharedFile('pdfstatus').then((f)=>{ if(f) this.handleFile(f,true); });
+    this._blockNav=(e)=>{ e.preventDefault(); if(e.dataTransfer) e.dataTransfer.dropEffect='copy'; };
+    window.addEventListener('dragover',this._blockNav);
+    window.addEventListener('drop',this._blockNav);
+    this._onResize=()=>{ const m=window.innerWidth<640; if(m!==this.state.isMobile) this.setState({isMobile:m}); };
+    window.addEventListener('resize',this._onResize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('dragover',this._blockNav);
+    window.removeEventListener('drop',this._blockNav);
+    window.removeEventListener('resize',this._onResize);
+  }
+
+  async consumeHandoff() {
+    try {
+      const raw=localStorage.getItem('pdfImageManagerHandoff');
+      if(!raw) return; localStorage.removeItem('pdfImageManagerHandoff');
+      const data=JSON.parse(raw);
+      const match=(data.files||[]).find((f)=>f.type==='application/pdf');
+      if(!match) return;
+      const blob=await (await fetch(match.dataUrl)).blob();
+      this.handleFile(new File([blob],match.name,{type:match.type}));
+    } catch(e){ console.warn('Handoff load failed',e); }
+  }
+
+  onDropzoneClick=()=>this.fileInputRef.current&&this.fileInputRef.current.click();
+  onDragOver=(e)=>{e.preventDefault();this.setState({dragOver:true});};
+  onDragLeave=(e)=>{e.preventDefault();this.setState({dragOver:false});};
+  onDrop=(e)=>{e.preventDefault();this.setState({dragOver:false});const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)this.handleFile(f);};
+  stopPropagation=(e)=>e.stopPropagation();
+  onUrlInputChange=(e)=>this.setState({urlInput:e.target.value});
+  onPasteClick=async()=>{
+    try {
+      if(navigator.clipboard&&navigator.clipboard.read){
+        const items=await navigator.clipboard.read();
+        for(const item of items) for(const type of item.types) if(type==='application/pdf'){
+          const blob=await item.getType(type); this.handleFile(new File([blob],'pasted.pdf',{type})); return;
+        }
+      }
+      alert('No PDF found in clipboard.');
+    } catch(e){ alert('Could not read clipboard.'); }
+  };
+  async loadFromUrl(){
+    const url=(this.state.urlInput||'').trim(); if(!url) return;
+    try {
+      const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+      const blob=await res.blob();
+      const name=(url.split('/').pop()||'file.pdf').split('?')[0]||'file.pdf';
+      this.setState({urlInput:''}); this.handleFile(new File([blob],name,{type:blob.type||'application/pdf'}));
+    } catch(e){ alert('Could not load that URL: '+e.message); }
+  }
+  onFileInput=(e)=>{ const f=e.target.files&&e.target.files[0]; if(f) this.handleFile(f); };
+
+  classifyPage(hasImages,hasVisibleText,hasOcrText,hasFormFields){
+    const live=hasVisibleText||hasFormFields;
+    if(live&&hasImages) return 'mixed';
+    if(live) return 'live';
+    if(hasOcrText&&hasImages) return 'ocr';
+    if(hasImages) return 'flat';
+    return 'live';
+  }
+
+  async handleFile(file, fromShared) {
+    this.setState({error:null,overallStatus:null,pageResults:[],fileMeta:null});
+    if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){
+      this.setState({error:'Please select a valid PDF file.'}); return;
+    }
+    this.currentFile=file;
+    this.setState({fileName:file.name,analyzing:true,progressPercent:5,progressText:'Loading PDF…'});
+    try {
+      if(!window.pdfjsLib) throw new Error('PDF engine failed to load.');
+      const ab=await file.arrayBuffer();
+      const pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
+      const totalPages=pdf.numPages;
+
+      // ── File-level metadata ──────────────────────────────
+      const meta={
+        pages:totalPages, size:fmtSize(file.size),
+        title:null, author:null, subject:null, keywords:null,
+        creator:null, producer:null, created:null, modified:null,
+        pdfVersion:null, linearized:null,
+        hasOutline:false, outlineCount:null,
+        hasAttachments:false, attachmentCount:null,
+        hasFormsGlobal:false,
+      };
+      try {
+        const m=await pdf.getMetadata();
+        const info=m.info||{};
+        meta.title=trunc(info.Title);
+        meta.author=trunc(info.Author);
+        meta.subject=trunc(info.Subject);
+        meta.keywords=trunc(info.Keywords,80);
+        meta.creator=trunc(info.Creator,56);
+        meta.producer=trunc(info.Producer,56);
+        meta.created=fmtDate(info.CreationDate);
+        meta.modified=fmtDate(info.ModDate);
+      } catch(e){}
+      try {
+        if(pdf.pdfInfo){
+          meta.pdfVersion=pdf.pdfInfo.PDFFormatVersion||null;
+          meta.linearized=pdf.pdfInfo.linearized!=null ? (pdf.pdfInfo.linearized?'Yes (web optimized)':'No') : null;
+        }
+      } catch(e){}
+      try {
+        const outline=await pdf.getOutline();
+        if(outline&&outline.length>0){
+          meta.hasOutline=true;
+          meta.outlineCount=outline.length;
+        }
+      } catch(e){}
+      try {
+        const att=await pdf.getAttachments();
+        if(att&&Object.keys(att).length>0){
+          meta.hasAttachments=true;
+          meta.attachmentCount=Object.keys(att).length;
+        }
+      } catch(e){}
+
+      this.setState({fileMeta:meta});
+
+      const OPS=window.pdfjsLib.OPS;
+      const pageResults=[];
+
+      // ── Per-page analysis ────────────────────────────────
+      for(let i=1;i<=totalPages;i++){
+        const pct=5+((i-1)/totalPages)*90;
+        this.setState({progressPercent:pct,progressText:`Analysing page ${i} of ${totalPages}…`});
+
+        const page=await pdf.getPage(i);
+        const rotation=page.rotate||0;
+        const vp72=page.getViewport({scale:1,rotation:0}); // raw, no auto-rotation
+        const srcW=vp72.width, srcH=vp72.height;
+        const opList=await page.getOperatorList();
+
+        let hasImages=false, anyInvisibleTR=false, anyVisibleTR=false, seenText=false;
+        let currentTR=0, imageCount=0, hasVectors=false, imageDpi=null;
+
+        for(let j=0;j<opList.fnArray.length;j++){
+          const fn=opList.fnArray[j];
+          if(fn===OPS.paintImageXObject||fn===OPS.paintInlineImageXObject||fn===OPS.paintImageMaskXObject){
+            hasImages=true; imageCount++;
+            if(imageDpi===null&&fn===OPS.paintImageXObject){
+              const nm=opList.argsArray[j][0];
+              try {
+                const imgData=await new Promise((res)=>{try{page.objs.get(nm,res);}catch(e){res(null);}});
+                if(imgData&&imgData.width&&imgData.height){
+                  const dpiX=imgData.width/(srcW/72), dpiY=imgData.height/(srcH/72);
+                  imageDpi=Math.round((dpiX+dpiY)/2);
+                }
+              } catch(e){}
+            }
+          }
+          if(fn===OPS.setTextRenderingMode) currentTR=opList.argsArray[j][0];
+          if(fn===OPS.showText||fn===OPS.showSpacedText||fn===OPS.nextLineShowText||fn===OPS.nextLineSetSpacingShowText){
+            seenText=true;
+            if(currentTR===3) anyInvisibleTR=true; else anyVisibleTR=true;
+          }
+          // Vector path operations
+          if(fn===OPS.constructPath||fn===OPS.stroke||fn===OPS.fill||fn===OPS.fillStroke||fn===OPS.eoFill||fn===OPS.eoFillStroke||fn===OPS.closePath){
+            hasVectors=true;
+          }
+        }
+
+        const annotations=await page.getAnnotations();
+        const formFields=annotations.filter((a)=>a.subtype==='Widget');
+        const otherAnnots=annotations.filter((a)=>a.subtype!=='Widget');
+        if(formFields.length>0) meta.hasFormsGlobal=true;
+
+        const hasOcrText=anyInvisibleTR&&!anyVisibleTR&&seenText;
+        const hasVisibleText=anyVisibleTR;
+        const pageType=this.classifyPage(hasImages,hasVisibleText,hasOcrText,formFields.length>0);
+
+        const detail=[
+          imageCount>0?`${imageCount} img`:'',
+          hasVisibleText?'live text':'',
+          hasOcrText?'OCR':'',
+          hasVectors?'vectors':'',
+          formFields.length>0?`${formFields.length} fields`:'',
+          otherAnnots.length>0?`${otherAnnots.length} annots`:'',
+        ].filter(Boolean).join(', ')||'—';
+
+        const sn=sizeName(srcW,srcH);
+        const orient=(srcW>srcH)!=(rotation===90||rotation===270)?'LAND':'PORT';
+        pageResults.push({
+          pageNum:i, type:pageType, sizeName:sn, dims:fmtDims(srcW,srcH),
+          rotation, imageDpi, imageCount, hasVectors, hasVisibleText, hasOcrText,
+          formCount:formFields.length, annotCount:otherAnnots.length, detail, orient,
+        });
+        page.cleanup();
+      }
+
+      // Overall flat status roll-up
+      const types=new Set(pageResults.map((p)=>p.type));
+      let overallStatus;
+      if(types.size===1){
+        const t=[...types][0];
+        overallStatus=t==='flat'?STATUS.FULL_FLAT:t==='ocr'?STATUS.OCR_FLAT:t==='live'?STATUS.NOT_FLAT:STATUS.MIXED;
+      } else if(types.has('live')||types.has('mixed')){
+        overallStatus=(types.has('flat')||types.has('ocr'))?STATUS.MIXED:STATUS.NOT_FLAT;
+      } else if(types.has('ocr')&&types.has('flat')){
+        overallStatus=STATUS.OCR_FLAT;
+      } else {
+        overallStatus=STATUS.FULL_FLAT;
+      }
+
+      // Update meta with global forms flag
+      this.setState({fileMeta:{...meta}});
+      this.setState({analyzing:false,progressPercent:100,overallStatus,pageResults});
+      if(!fromShared&&window.SharedFileStore) window.SharedFileStore.saveSharedFile(file,'pdfstatus');
+    } catch(err){
+      console.error(err);
+      this.setState({analyzing:false,error:'Error analysing PDF: '+(err.message||'Could not read PDF.'),progressPercent:0,progressText:''});
+    }
+  }
+
+  renderVals(){
+    const {fileName,analyzing,progressPercent,progressText,error,dragOver,isMobile,overallStatus,pageResults,fileMeta}=this.state;
+    const hasResult=!analyzing&&overallStatus!==null;
+    const noResult=!analyzing&&overallStatus===null;
+    const info=overallStatus?STATUS_INFO[overallStatus]:null;
+    const totalPages=pageResults.length;
+
+    // Summary line
+    let summaryParts=[totalPages===1?'1 page':`${totalPages} pages`];
+    if(pageResults.length){
+      const dpis=pageResults.map((p)=>p.imageDpi).filter(Boolean);
+      if(dpis.length){
+        const mn=Math.min(...dpis),mx=Math.max(...dpis);
+        summaryParts.push(mn===mx?`~${mn} DPI`:`~${mn}–${mx} DPI`);
+      }
+      const sizes=[...new Set(pageResults.map((p)=>p.sizeName))];
+      if(sizes.length<=4) summaryParts.push(sizes.join(', '));
+    }
+    if(fileMeta&&fileMeta.size) summaryParts.push(fileMeta.size);
+    const summaryLine=summaryParts.join(' · ');
+
+    // Feature badges
+    const featureBadges=[];
+    if(fileMeta){
+      if(fileMeta.hasOutline) featureBadges.push({label:`Bookmarks (${fileMeta.outlineCount})`,bg:'#eef3f8',color:'#2c455d'});
+      if(fileMeta.hasFormsGlobal) featureBadges.push({label:'Has Forms',bg:'#f5f0e8',color:'#7a5c1e'});
+      if(fileMeta.hasAttachments) featureBadges.push({label:`Attachments (${fileMeta.attachmentCount})`,bg:'#f0f0f5',color:'#3d3d6b'});
+    }
+    const hasAnnots=pageResults.some((p)=>p.annotCount>0);
+    if(hasAnnots) featureBadges.push({label:'Has Annotations',bg:'#f0f5f0',color:'#3d6b4f'});
+    if(!featureBadges.length) featureBadges.push({label:'No special features detected',bg:'transparent',color:'rgba(29,31,32,0.35)'});
+
+    // Metadata rows — only show fields that have values
+    const metaRows=[];
+    const addMeta=(label,value,dim=false)=>{ if(present(value)) metaRows.push({label,value:String(value),dim:dim?'dim':''}); };
+    addMeta('Pages',fileMeta?fileMeta.pages:null);
+    addMeta('File Size',fileMeta?fileMeta.size:null);
+    addMeta('PDF Version',fileMeta?fileMeta.pdfVersion:null);
+    addMeta('Linearized',fileMeta?fileMeta.linearized:null);
+    addMeta('Title',fileMeta?fileMeta.title:null);
+    addMeta('Author',fileMeta?fileMeta.author:null);
+    addMeta('Subject',fileMeta?fileMeta.subject:null);
+    addMeta('Keywords',fileMeta?fileMeta.keywords:null,true);
+    addMeta('Creator App',fileMeta?fileMeta.creator:null);
+    addMeta('PDF Producer',fileMeta?fileMeta.producer:null,true);
+    addMeta('Created',fileMeta?fileMeta.created:null);
+    addMeta('Modified',fileMeta?fileMeta.modified:null);
+    addMeta('Bookmarks',fileMeta&&fileMeta.hasOutline?`Yes (${fileMeta.outlineCount} top-level items)`:'None');
+    addMeta('Attachments',fileMeta&&fileMeta.hasAttachments?`Yes (${fileMeta.attachmentCount} files)`:'None');
+    addMeta('Forms',fileMeta&&fileMeta.hasFormsGlobal?'Yes':'None');
+
+    // If meta grid has odd number, pad with empty cell
+    if(metaRows.length%2!==0) metaRows.push({label:'',value:'',dim:''});
+
+    // Per-page rows
+    const pageRows=pageResults.map((p)=>{
+      const rotBg=p.rotation?'rgba(29,31,32,0.08)':'transparent';
+      const rotColor=p.rotation?'#1d1f20':'rgba(29,31,32,0.25)';
+      return {
+        ...p,
+        dpiLabel:p.imageDpi?`~${p.imageDpi}`:'—',
+        dpiColor:p.imageDpi?'#1d1f20':'rgba(29,31,32,0.28)',
+        imgCountColor:p.imageCount>0?'#1d1f20':'rgba(29,31,32,0.28)',
+        vecLabel:p.hasVectors?'✓':'—',
+        vecColor:p.hasVectors?'#3d6b4f':'rgba(29,31,32,0.28)',
+        annotColor:p.annotCount>0?'#1d1f20':'rgba(29,31,32,0.28)',
+        formColor:p.formCount>0?'#7a5c1e':'rgba(29,31,32,0.28)',
+        rotLabel:p.rotation?`${p.rotation}°`:'0°',
+        rotBg, rotColor,
+        statusLabel:PAGE_LABEL[p.type]||p.type,
+        statusColor:PAGE_COLOR[p.type]||'#1d1f20',
+      };
+    });
+
+    return {
+      isMobile, fileName, error, analyzing, progressPercent, progressText,
+      outerPadding:isMobile?'10px 14px 28px':'18px 24px 56px',
+      dropBorderColor:dragOver?'#5980a6':'rgba(29,31,32,0.16)',
+      dropBg:dragOver?'#eef6ff':'#f2f2f3',
+      fileInputRef:this.fileInputRef,
+      onDropzoneClick:this.onDropzoneClick,
+      onDragOver:this.onDragOver,
+      onDragLeave:this.onDragLeave,
+      onDrop:this.onDrop,
+      onFileInput:this.onFileInput,
+      urlInput:this.state.urlInput,
+      onUrlInputChange:this.onUrlInputChange,
+      loadFromUrl:()=>this.loadFromUrl(),
+      stopPropagation:this.stopPropagation,
+      onPasteClick:this.onPasteClick,
+      clearPage:this.clearPage,
+      hasResult, noResult,
+      statusLabel:info?info.label:'',
+      statusBg:info?info.bg:'#5980a6',
+      statusColor:info?info.color:'#f2f2f3',
+      statusDesc:info?info.desc:'',
+      statusFontSize:isMobile?14:18,
+      summaryLine, featureBadges, metaRows, pageRows,
+      detailColDisplay:isMobile?'none':'table-cell',
+    };
+  }
+}
+</script>
+</body>
+</html>
