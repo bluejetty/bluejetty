@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "cNI6Lx05X4x9O9tWHHRgm"
+uri = "file://pdf-repo.zip"
+type = "unspecified"
+title = "pdf-repo.zip"
+description = "All PDF tool files + CNAME file — unzip, open the PDF folder, drag everything inside it into GitHub's upload area."
