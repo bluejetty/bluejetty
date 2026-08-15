@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./shared-file-store.js"></script>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
+  <div style="max-width:900px; width:100%;">
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-COMPRESS</div>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="6px"
+      file-types-label="PDF"
+      accept-types=".pdf,application/pdf"
+      url-placeholder="Or paste a PDF URL…"
+      has-file-name="{{ true }}"
+      file-name="{{ fileName }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ urlInput }}"
+      on-url-input-change="{{ onUrlInputChange }}"
+      load-from-url="{{ loadFromUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onPasteClick }}"
+    ></dc-import>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:12px;">{{ error }}</div>
+    </sc-if>
+
+    <!-- Source DPI notice -->
+    <sc-if value="{{ hasSourceNote }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:10px 14px; font-size:13px; color:{{ sourceNoteColor }}; background:{{ sourceNoteBg }}; border:1px solid {{ sourceNoteBorder }}; margin-bottom:6px;">{{ sourceNote }}</div>
+    </sc-if>
+
+    <!-- Progress -->
+    <sc-if value="{{ generating }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:6px;">
+        <div style="background:#e9e9ea; height:6px; margin-bottom:10px;">
+          <div style="background:#5980a6; height:100%; width:{{ progressPercent }}%; transition:width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; color:rgba(29,31,32,0.6); font-size:13px;">{{ progressText }}</div>
+      </div>
+    </sc-if>
+
+    <!-- Size result -->
+    <sc-if value="{{ hasSizeResult }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:10px 16px; border:1px solid {{ sizeResultBorder }}; background:{{ sizeResultBg }}; font-size:13px; color:{{ sizeResultColor }}; margin-bottom:6px;">{{ sizeResult }}</div>
+    </sc-if>
+
+    <dc-import name="SaveBox" hint-size="100%,60px"
+      is-mobile="{{ isMobile }}"
+      label="Output resolution"
+      radio-name="compressDpi"
+      options="{{ dpiOptions }}"
+      show-button="{{ true }}"
+      button-label="{{ compressLabel }}"
+      on-button-click="{{ compress }}"
+      button-disabled="{{ compressDisabled }}"
+      button-cursor="{{ compressCursor }}"
+      button-opacity="{{ compressOpacity }}"
+    ></dc-import>
+
+    <dc-import name="ToolHeader" activeTool="PDF-COMPRESS" on-clear="{{ clearAll }}" clear-label="CLICK TO CLEAR" hint-size="100%,120px"></dc-import>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    fileName: '',
+    pageCount: 0,
+    dpi: '150',
+    sourceDpi: null,
+    generating: false,
+    progressPercent: 0,
+    progressText: '',
+    sizeResult: null,
+    error: null,
+    dragOver: false,
+    urlInput: '',
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+  };
+
+  fileInputRef = React.createRef();
+  currentFile = null;
+
+  _fmtSize(bytes) {
+    if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    if (bytes >= 1e3) return Math.round(bytes / 1e3) + ' KB';
+    return bytes + ' B';
+  }
+
+  async _detectSourceDpi(pdf) {
+    try {
+      const page = await pdf.getPage(1);
+      const vp = page.getViewport({ scale: 1 });
+      const opList = await page.getOperatorList();
+      const OPS = window.pdfjsLib.OPS;
+      for (let j = 0; j < opList.fnArray.length; j++) {
+        if (opList.fnArray[j] === OPS.paintImageXObject) {
+          const name = opList.argsArray[j][0];
+          const imgData = await new Promise((res) => {
+            try { page.objs.get(name, res); } catch(e) { res(null); }
+          });
+          if (imgData && imgData.width && imgData.height) {
+            const dpiX = imgData.width / (vp.width / 72);
+            const dpiY = imgData.height / (vp.height / 72);
+            page.cleanup();
+            return Math.round((dpiX + dpiY) / 2);
+          }
+        }
+      }
+      page.cleanup();
+      return null;
+    } catch(e) { return null; }
+  }
+
+  clearAll = () => {
+    if (!confirm('Clear file? This cannot be undone.')) return;
+    this.currentFile = null;
+    this.setState({ fileName: '', pageCount: 0, sourceDpi: null, sizeResult: null, error: null, progressPercent: 0, progressText: '' });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('pdfcompress');
+  };
+
+  componentDidMount() {
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    this.consumeHandoff();
+    if (window.SharedFileStore) {
+      window.SharedFileStore.loadSharedFile('pdfcompress').then((f) => { if (f) this.handleFile(f, true); });
+    }
+    this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
+    window.addEventListener('dragover', this._blockNav);
+    window.addEventListener('drop', this._blockNav);
+    this._onResize = () => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile !== this.state.isMobile) this.setState({ isMobile });
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('dragover', this._blockNav);
+    window.removeEventListener('drop', this._blockNav);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  onDropzoneClick = () => this.fileInputRef.current && this.fileInputRef.current.click();
+  onDragOver = (e) => { e.preventDefault(); this.setState({ dragOver: true }); };
+  onDragLeave = (e) => { e.preventDefault(); this.setState({ dragOver: false }); };
+  onDrop = (e) => {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) this.handleFile(file);
+  };
+  stopPropagation = (e) => e.stopPropagation();
+  onUrlInputChange = (e) => this.setState({ urlInput: e.target.value });
+
+  onPasteClick = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type === 'application/pdf') {
+              const blob = await item.getType(type);
+              this.handleFile(new File([blob], 'pasted.pdf', { type }));
+              return;
+            }
+          }
+        }
+      }
+      alert('No PDF found in clipboard.');
+    } catch(err) { alert('Could not read clipboard.'); }
+  };
+
+  async loadFromUrl() {
+    const url = (this.state.urlInput || '').trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const name = (url.split('/').pop() || 'file.pdf').split('?')[0] || 'file.pdf';
+      this.setState({ urlInput: '' });
+      this.handleFile(new File([blob], name, { type: blob.type || 'application/pdf' }));
+    } catch(err) { alert('Could not load that URL: ' + err.message); }
+  }
+
+  onFileInput = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) this.handleFile(file);
+  };
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const match = (data.files || []).find((f) => f.type === 'application/pdf');
+      if (!match) return;
+      const blob = await (await fetch(match.dataUrl)).blob();
+      this.handleFile(new File([blob], match.name, { type: match.type }));
+    } catch(err) { console.warn('Handoff load failed', err); }
+  }
+
+  async handleFile(file, fromShared) {
+    this.setState({ error: null, sourceDpi: null, sizeResult: null });
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      this.setState({ error: 'Please select a valid PDF file.' });
+      return;
+    }
+    this.currentFile = file;
+    this.setState({ fileName: file.name, pageCount: 0 });
+    try {
+      const ab = await file.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+      this.setState({ pageCount: pdf.numPages });
+      // Detect source DPI in the background
+      this._detectSourceDpi(pdf).then((dpi) => {
+        if (dpi !== null) {
+          // Auto-select a sensible output DPI below the source
+          let auto = '150';
+          if (dpi <= 100) auto = '72';
+          else if (dpi <= 160) auto = '100';
+          else if (dpi <= 220) auto = '150';
+          else if (dpi <= 320) auto = '200';
+          else auto = '300';
+          this.setState({ sourceDpi: dpi, dpi: auto });
+        } else {
+          this.setState({ sourceDpi: 0 }); // 0 = vector / unknown
+        }
+      });
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.saveSharedFile(file, 'pdfcompress');
+    } catch(err) {
+      this.setState({ error: 'Error loading PDF: ' + (err.message || 'Could not read PDF.') });
+    }
+  }
+
+  setDpi = (v) => () => this.setState({ dpi: v });
+
+  async compress() {
+    if (!this.currentFile) return;
+    const { dpi, sourceDpi, pageCount } = this.state;
+    const outputDpi = parseInt(dpi, 10);
+
+    // Warn if trying to "compress" a vector PDF
+    if (sourceDpi === 0) {
+      if (!confirm('This appears to be a vector PDF. Compressing will rasterize it and may increase the file size.\n\nContinue anyway?')) return;
+    }
+    // Warn if output DPI >= source DPI
+    if (sourceDpi && sourceDpi > 0 && outputDpi >= sourceDpi) {
+      if (!confirm(`The source is already ~${sourceDpi} DPI. Compressing at ${outputDpi} DPI won't reduce quality further and may not save much space.\n\nContinue anyway?`)) return;
+    }
+
+    this.setState({ error: null, generating: true, sizeResult: null, progressPercent: 5, progressText: 'Loading PDF…' });
+    try {
+      const ab = await this.currentFile.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+      const { jsPDF } = window.jspdf;
+      const scale = outputDpi / 72;
+      let outputPdf = null;
+
+      for (let i = 1; i <= pageCount; i++) {
+        const pct = 5 + ((i - 1) / pageCount) * 90;
+        this.setState({ progressPercent: pct, progressText: `Compressing page ${i} of ${pageCount}…` });
+
+        const page = await pdf.getPage(i);
+        const vp72 = page.getViewport({ scale: 1 });
+        const srcW = vp72.width, srcH = vp72.height;
+        const vp = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(vp.width);
+        canvas.height = Math.round(vp.height);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+        // More aggressive JPEG quality for smaller files
+        const quality = outputDpi <= 100 ? 0.75 : outputDpi <= 150 ? 0.82 : 0.88;
+        const imgData = canvas.toDataURL('image/jpeg', quality);
+
+        if (i === 1) {
+          outputPdf = new jsPDF({
+            orientation: srcW > srcH ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [srcW, srcH],
+            compress: true,
+          });
+        } else {
+          outputPdf.addPage([srcW, srcH], srcW > srcH ? 'landscape' : 'portrait');
+        }
+        outputPdf.addImage(imgData, 'JPEG', 0, 0, srcW, srcH, undefined, 'FAST');
+        page.cleanup();
+      }
+
+      this.setState({ progressPercent: 98, progressText: 'Finalizing…' });
+      const outputData = outputPdf.output('arraybuffer');
+      const inputSize = this.currentFile.size;
+      const outputSize = outputData.byteLength;
+      const bigger = outputSize > inputSize;
+      const pct2 = Math.round(Math.abs(outputSize - inputSize) / inputSize * 100);
+      const sizeMsg = bigger
+        ? `⚠ Output is larger: ${this._fmtSize(inputSize)} → ${this._fmtSize(outputSize)} (+${pct2}%) — vector PDF rasterized at ${outputDpi} DPI.`
+        : `✓ ${this._fmtSize(inputSize)} → ${this._fmtSize(outputSize)} (${pct2}% smaller)`;
+
+      if (bigger && !confirm(`The compressed file is larger than the original (${this._fmtSize(inputSize)} → ${this._fmtSize(outputSize)}).\n\nThis PDF likely contains vector content. Save anyway?`)) {
+        this.setState({ progressPercent: 0, progressText: '', sizeResult: sizeMsg, generating: false });
+        return;
+      }
+
+      const blob = new Blob([outputData], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.currentFile.name.replace(/\.pdf$/i, '') + '_compressed.pdf';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.setState({ progressPercent: 100, progressText: 'Done! Download started.', sizeResult: sizeMsg });
+    } catch(err) {
+      console.error(err);
+      this.setState({ error: 'Error: ' + (err.message || 'Failed to compress PDF.'), progressPercent: 0, progressText: '' });
+    } finally {
+      this.setState({ generating: false });
+    }
+  }
+
+  renderVals() {
+    const { fileName, dpi, sourceDpi, generating, progressPercent, progressText,
+            sizeResult, error, dragOver, isMobile, pageCount } = this.state;
+
+    const outputDpi = parseInt(dpi, 10);
+    const compressDisabled = generating || !fileName;
+
+    // Source DPI notice
+    let sourceNote = '', sourceNoteColor = '', sourceNoteBg = '', sourceNoteBorder = '';
+    const hasSourceNote = sourceDpi !== null && !!fileName;
+    if (hasSourceNote) {
+      if (sourceDpi === 0) {
+        sourceNote = '⚠ Vector PDF detected — no raster images found. Compressing will rasterize the content and may increase the file size.';
+        sourceNoteColor = '#8a2c2c'; sourceNoteBg = '#fff5f5'; sourceNoteBorder = '#b23b3b';
+      } else if (outputDpi >= sourceDpi) {
+        sourceNote = `⚠ Source is ~${sourceDpi} DPI — select an output DPI below this to reduce size. The pre-selected option is a suggested starting point.`;
+        sourceNoteColor = '#6b4d00'; sourceNoteBg = '#fffbf0'; sourceNoteBorder = '#c8a820';
+      } else {
+        sourceNote = `✓ Source detected at ~${sourceDpi} DPI → compressing to ${outputDpi} DPI.`;
+        sourceNoteColor = '#2d5a3d'; sourceNoteBg = '#f0f7f0'; sourceNoteBorder = 'rgba(29,31,32,0.16)';
+      }
+    }
+
+    const mkBtn = (active) => ({
+      bg: active ? '#5980a6' : 'transparent',
+      color: active ? '#f2f2f3' : '#1d1f20',
+      borderColor: active ? '#5980a6' : 'rgba(29,31,32,0.2)',
+    });
+
+    const DPI_OPTIONS = [
+      { val: '72',  label: '72 DPI — smallest' },
+      { val: '100', label: '100 DPI — small' },
+      { val: '150', label: '150 DPI — medium' },
+      { val: '200', label: '200 DPI — good' },
+      { val: '300', label: '300 DPI — near-print' },
+    ];
+    const dpiOptions = DPI_OPTIONS.map((o) => ({
+      label: o.label,
+      checked: dpi === o.val,
+      onSelect: this.setDpi(o.val),
+      ...mkBtn(dpi === o.val),
+    }));
+
+    return {
+      isMobile, fileName, error, generating, progressPercent, progressText,
+      outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
+      dropBorderColor: dragOver ? '#5980a6' : 'rgba(29,31,32,0.16)',
+      dropBg: dragOver ? '#eef6ff' : '#f2f2f3',
+      fileInputRef: this.fileInputRef,
+      onDropzoneClick: this.onDropzoneClick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      onFileInput: this.onFileInput,
+      urlInput: this.state.urlInput,
+      onUrlInputChange: this.onUrlInputChange,
+      loadFromUrl: () => this.loadFromUrl(),
+      stopPropagation: this.stopPropagation,
+      onPasteClick: this.onPasteClick,
+      clearAll: this.clearAll,
+      hasSourceNote,
+      sourceNote, sourceNoteColor, sourceNoteBg, sourceNoteBorder,
+      dpiOptions,
+      compressDisabled,
+      compressLabel: generating ? 'COMPRESSING…' : 'COMPRESS & SAVE PDF',
+      compressCursor: compressDisabled ? 'not-allowed' : 'pointer',
+      compressOpacity: compressDisabled ? 0.45 : 1,
+      compress: () => this.compress(),
+      hasSizeResult: !!sizeResult,
+      sizeResult: sizeResult || '',
+      sizeResultBorder: (sizeResult || '').startsWith('⚠') ? '#b23b3b' : 'rgba(29,31,32,0.16)',
+      sizeResultBg: (sizeResult || '').startsWith('⚠') ? '#fff5f5' : '#f0f7f0',
+      sizeResultColor: (sizeResult || '').startsWith('⚠') ? '#8a2c2c' : '#2d5a3d',
+    };
+  }
+}
+</script>
+</body>
+</html>
