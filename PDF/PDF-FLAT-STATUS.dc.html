@@ -74,10 +74,10 @@
         </div>
         <div style="padding:0 14px 18px; display:flex; flex-direction:column; gap:6px;">
           <div style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(29,31,32,0.4); margin-bottom:2px;">Status scale</div>
-          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#3d6b4f; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>4 — NOT FLAT</b> · Live vector text and/or form fields. Fully editable.</div></div>
-          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#7a5c1e; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>3 — MIXED</b> · Mix of flat and live pages or content.</div></div>
-          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#2c455d; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>2 — OCR / SEARCHABLE SCAN</b> · Visually raster with invisible OCR text layer.</div></div>
-          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#8a2c2c; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>1 — FULL FLAT</b> · Pure raster. No text layer, nothing selectable.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#3d6b4f; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>1 — NOT FLAT</b> · Live vector text and/or form fields. Fully editable.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#7a5c1e; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>2 — MIXED</b> · Mix of flat and live pages or content.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#2c455d; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>3 — OCR / SEARCHABLE SCAN</b> · Visually raster with invisible OCR text layer.</div></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; background:#8a2c2c; flex-shrink:0;"></div><div style="font-size:12px; color:rgba(29,31,32,0.65);"><b>4 — FULL FLAT</b> · Pure raster. No text layer, nothing selectable.</div></div>
         </div>
       </div>
     </sc-if>
@@ -101,6 +101,9 @@
             </sc-for>
           </div>
         </sc-if>
+        <div style="padding:10px 20px; border-top:1px solid rgba(29,31,32,0.08); display:flex; justify-content:flex-end;">
+          <button onClick="{{ clearPage }}" style="border:1px solid rgba(29,31,32,0.2); background:none; padding:7px 18px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; color:rgba(29,31,32,0.55); text-transform:uppercase; cursor:pointer; letter-spacing:0.04em;" style-hover="color:#8a2c2c; border-color:#8a2c2c;">CLEAR / ANALYSE NEW FILE</button>
+        </div>
       </div>
     </sc-if>
 
@@ -112,32 +115,32 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
-const STATUS = { FULL_FLAT: 1, OCR_FLAT: 2, MIXED: 3, NOT_FLAT: 4 };
+const STATUS = { NOT_FLAT: 1, MIXED: 2, OCR_FLAT: 3, FULL_FLAT: 4 };
 
 const STATUS_INFO = {
-  [STATUS.FULL_FLAT]: {
-    label: 'STATUS 1 — FULL FLAT',
-    bg: '#8a2c2c',
+  [STATUS.NOT_FLAT]: {
+    label: 'STATUS 1 — NOT FLAT',
+    bg: '#3d6b4f',
     color: '#f2f2f3',
-    desc: 'Fully rasterized. All pages are images only — no text layer, no vector data, nothing selectable or searchable.',
-  },
-  [STATUS.OCR_FLAT]: {
-    label: 'STATUS 2 — OCR / SEARCHABLE SCAN',
-    bg: '#2c455d',
-    color: '#f2f2f3',
-    desc: 'Visually raster (scanned images), but carries an invisible OCR text layer. Text is searchable and copyable, but the visual content is pixel-based.',
+    desc: 'Fully live content. All pages contain vector text and/or form fields — fully editable and selectable.',
   },
   [STATUS.MIXED]: {
-    label: 'STATUS 3 — MIXED',
+    label: 'STATUS 2 — MIXED',
     bg: '#7a5c1e',
     color: '#f2f2f3',
     desc: 'Mix of flat and live content. Some pages or elements are rasterized; others contain live vector text or forms.',
   },
-  [STATUS.NOT_FLAT]: {
-    label: 'STATUS 4 — NOT FLAT',
-    bg: '#3d6b4f',
+  [STATUS.OCR_FLAT]: {
+    label: 'STATUS 3 — OCR / SEARCHABLE SCAN',
+    bg: '#2c455d',
     color: '#f2f2f3',
-    desc: 'Fully live content. All pages contain vector text and/or form fields — fully editable and selectable.',
+    desc: 'Visually raster (scanned images), but carries an invisible OCR text layer. Text is searchable and copyable, but the visual content is pixel-based.',
+  },
+  [STATUS.FULL_FLAT]: {
+    label: 'STATUS 4 — FULL FLAT',
+    bg: '#8a2c2c',
+    color: '#f2f2f3',
+    desc: 'Fully rasterized. All pages are images only — no text layer, no vector data, nothing selectable or searchable.',
   },
 };
 
