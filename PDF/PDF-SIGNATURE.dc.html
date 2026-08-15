@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./shared-file-store.js"></script>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+    #sigPad { touch-action: none; cursor: crosshair; display: block; width: 100%; }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
+  <div style="max-width:900px; width:100%;">
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-SIGNATURE</div>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="6px"
+      file-types-label="PDF"
+      accept-types=".pdf,application/pdf"
+      url-placeholder="Or paste a PDF URL…"
+      has-file-name="{{ true }}"
+      file-name="{{ fileName }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ urlInput }}"
+      on-url-input-change="{{ onUrlInputChange }}"
+      load-from-url="{{ loadFromUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onPasteClick }}"
+    ></dc-import>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; justify-content:center; min-height:44px; margin-bottom:6px;">
+        <button onClick="{{ clearAll }}" style="border:none; background:none; padding:12px 6px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase;" style-hover="color:#8a2c2c;">CLICK TO CLEAR</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:12px;">{{ error }}</div>
+    </sc-if>
+
+    <!-- Signature capture panel -->
+    <div style="border:1px solid rgba(29,31,32,0.16); margin-bottom:10px;">
+      <!-- Mode tabs -->
+      <div style="display:flex; border-bottom:1px solid rgba(29,31,32,0.16);">
+        <button onClick="{{ setModeDraw }}" style="flex:1; padding:10px; border:none; border-right:1px solid rgba(29,31,32,0.12); background:{{ drawTabBg }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; text-transform:uppercase; color:{{ drawTabColor }}; cursor:pointer; letter-spacing:0.04em;">✏ DRAW SIGNATURE</button>
+        <button onClick="{{ setModeUpload }}" style="flex:1; padding:10px; border:none; background:{{ uploadTabBg }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; text-transform:uppercase; color:{{ uploadTabColor }}; cursor:pointer; letter-spacing:0.04em;">⬆ UPLOAD IMAGE</button>
+      </div>
+
+      <!-- Draw pad -->
+      <div style="display:{{ drawDisplay }}; padding:14px; flex-direction:column; gap:8px;">
+        <div style="font-size:11px; color:rgba(29,31,32,0.5); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:2px;">Sign below using mouse or finger</div>
+        <div style="border:1px dashed rgba(29,31,32,0.25); background:#fafafa; position:relative;">
+          <canvas id="sigPad" height="160" style="height:160px;"></canvas>
+          <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:60%; height:1px; background:rgba(29,31,32,0.15); pointer-events:none;"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button onClick="{{ clearSig }}" style="border:1px solid rgba(29,31,32,0.2); background:none; padding:6px 16px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; cursor:pointer; color:rgba(29,31,32,0.6); text-transform:uppercase;" style-hover="color:#8a2c2c; border-color:#8a2c2c;">CLEAR</button>
+          <div style="font-size:12px; color:{{ sigStatusColor }};">{{ sigStatusLabel }}</div>
+        </div>
+      </div>
+
+      <!-- Upload pad -->
+      <div style="display:{{ uploadDisplay }}; padding:14px; flex-direction:column; gap:10px;">
+        <div style="font-size:11px; color:rgba(29,31,32,0.5); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:2px;">Upload a PNG or JPG of your signature</div>
+        <div style="border:1px dashed rgba(29,31,32,0.25); background:#fafafa; min-height:120px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; cursor:pointer;" onClick="{{ triggerSigUpload }}">
+          <sc-if value="{{ hasSigPreview }}" hint-placeholder-val="{{ false }}">
+            <img src="{{ sigPreviewUrl }}" style="max-height:100px; max-width:80%; object-fit:contain;" />
+          </sc-if>
+          <sc-if value="{{ noSigPreview }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13px; color:rgba(29,31,32,0.4);">Click to choose a signature image</div>
+            <div style="font-size:11px; color:rgba(29,31,32,0.3);">PNG with transparent background works best</div>
+          </sc-if>
+        </div>
+        <input type="file" id="sigUploadInput" accept="image/*" style="display:none;" />
+      </div>
+    </div>
+
+    <!-- Options: placement + size + pages -->
+    <div style="border:1px solid rgba(29,31,32,0.16); margin-bottom:10px; padding:14px 16px; display:{{ optionsDisplay }}; flex-direction:column; gap:14px;">
+
+      <!-- Placement grid -->
+      <div>
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:8px;">Placement on page</div>
+        <div style="display:grid; grid-template-columns:repeat(3,44px); gap:6px;">
+          <sc-for list="{{ placementGrid }}" as="cell" hint-placeholder-count="9">
+            <button onClick="{{ cell.select }}" title="{{ cell.label }}" style="width:44px; height:44px; border:1.5px solid {{ cell.borderColor }}; background:{{ cell.bg }}; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; color:{{ cell.color }};">{{ cell.icon }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Size -->
+      <div>
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:8px;">Signature size</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <sc-for list="{{ sizeOptions }}" as="sz" hint-placeholder-count="3">
+            <button onClick="{{ sz.select }}" style="padding:6px 18px; border:1.5px solid {{ sz.borderColor }}; background:{{ sz.bg }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; color:{{ sz.color }}; cursor:pointer; text-transform:uppercase;">{{ sz.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Apply to -->
+      <div>
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:8px;">Apply to</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <sc-for list="{{ applyOptions }}" as="ap" hint-placeholder-count="3">
+            <button onClick="{{ ap.select }}" style="padding:6px 18px; border:1.5px solid {{ ap.borderColor }}; background:{{ ap.bg }}; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px; color:{{ ap.color }}; cursor:pointer; text-transform:uppercase;">{{ ap.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <sc-if value="{{ hasPreview }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.5); margin-bottom:6px;">Preview · first affected page</div>
+        <div style="background:#1d2d3d; padding:16px; display:flex; justify-content:center;">
+          <img src="{{ previewDataUrl }}" style="max-width:100%; max-height:400px; object-fit:contain; box-shadow:0 4px 20px rgba(0,0,0,0.5);" />
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Progress -->
+    <sc-if value="{{ generating }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:10px;">
+        <div style="background:#e9e9ea; height:6px; margin-bottom:10px;">
+          <div style="background:#5980a6; height:100%; width:{{ progressPercent }}%; transition:width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; color:rgba(29,31,32,0.6); font-size:13px;">{{ progressText }}</div>
+      </div>
+    </sc-if>
+
+    <dc-import name="SaveBox" hint-size="100%,60px"
+      is-mobile="{{ isMobile }}"
+      label=""
+      radio-name="sigDpi"
+      options="{{ [] }}"
+      show-button="{{ true }}"
+      button-label="{{ saveLabel }}"
+      on-button-click="{{ sign }}"
+      button-disabled="{{ saveDisabled }}"
+      button-cursor="{{ saveCursor }}"
+      button-opacity="{{ saveOpacity }}"
+    ></dc-import>
+
+        <dc-import name="ToolHeader" activeTool="PDF-SIGNATURE" on-clear="{{ clearAll }}" clear-label="CLICK TO CLEAR" hint-size="100%,120px"></dc-import>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PLACEMENT_CELLS = [
+  { key:'TL', label:'Top left',     icon:'↖' },
+  { key:'TC', label:'Top centre',   icon:'↑' },
+  { key:'TR', label:'Top right',    icon:'↗' },
+  { key:'ML', label:'Middle left',  icon:'←' },
+  { key:'MC', label:'Centre',       icon:'·' },
+  { key:'MR', label:'Middle right', icon:'→' },
+  { key:'BL', label:'Bottom left',  icon:'↙' },
+  { key:'BC', label:'Bottom centre',icon:'↓' },
+  { key:'BR', label:'Bottom right', icon:'↘' },
+];
+
+const SIG_SIZE_PT = { small: 100, medium: 160, large: 220 }; // width in points
+
+function getOffset(pageW, pageH, sigW, sigH, placement) {
+  const m = 18;
+  const map = {
+    TL: [m, m],
+    TC: [(pageW - sigW) / 2, m],
+    TR: [pageW - sigW - m, m],
+    ML: [m, (pageH - sigH) / 2],
+    MC: [(pageW - sigW) / 2, (pageH - sigH) / 2],
+    MR: [pageW - sigW - m, (pageH - sigH) / 2],
+    BL: [m, pageH - sigH - m],
+    BC: [(pageW - sigW) / 2, pageH - sigH - m],
+    BR: [pageW - sigW - m, pageH - sigH - m],
+  };
+  return map[placement] || map.BR;
+}
+
+class Component extends DCLogic {
+  state = {
+    fileName: '',
+    pageCount: 0,
+    sigMode: 'draw',
+    hasSig: false,
+    sigDataUrl: '',
+    sigPreviewUrl: '',
+    placement: 'BR',
+    sigSize: 'medium',
+    applyTo: 'all',
+    previewDataUrl: '',
+    generating: false,
+    progressPercent: 0,
+    progressText: '',
+    error: null,
+    dragOver: false,
+    urlInput: '',
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+  };
+
+  fileInputRef = React.createRef();
+  currentFile = null;
+  _drawing = false;
+  _lastX = 0;
+  _lastY = 0;
+  _sigCanvas = null;
+  _sigCtx = null;
+
+  clearAll = () => {
+    if (!confirm('Clear file and signature? This cannot be undone.')) return;
+    this.currentFile = null;
+    this.clearSig();
+    this.setState({ fileName: '', pageCount: 0, sigDataUrl: '', sigPreviewUrl: '', hasSig: false, previewDataUrl: '', error: null });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('pdfsig');
+  };
+
+  componentDidMount() {
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    this._setupDrawPad();
+    this._setupSigUpload();
+    this.consumeHandoff();
+    if (window.SharedFileStore) {
+      window.SharedFileStore.loadSharedFile('pdfsig').then((f) => { if (f) this.handleFile(f, true); });
+    }
+    this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
+    window.addEventListener('dragover', this._blockNav);
+    window.addEventListener('drop', this._blockNav);
+    this._onResize = () => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile !== this.state.isMobile) this.setState({ isMobile });
+      this._resizePad();
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('dragover', this._blockNav);
+    window.removeEventListener('drop', this._blockNav);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  _resizePad() {
+    const canvas = document.getElementById('sigPad');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width > 0) canvas.width = Math.round(rect.width * (window.devicePixelRatio || 1));
+  }
+
+  _setupDrawPad() {
+    const attach = () => {
+      const canvas = document.getElementById('sigPad');
+      if (!canvas) { setTimeout(attach, 100); return; }
+      this._sigCanvas = canvas;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.round((rect.width || 600) * dpr);
+      canvas.height = Math.round(160 * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.strokeStyle = '#1d1f20';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      this._sigCtx = ctx;
+
+      const getPos = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const sx = (canvas.width / dpr) / r.width;
+        const sy = (canvas.height / dpr) / r.height;
+        const src = e.touches ? e.touches[0] : e;
+        return [(src.clientX - r.left) * sx, (src.clientY - r.top) * sy];
+      };
+
+      canvas.addEventListener('pointerdown', (e) => {
+        canvas.setPointerCapture(e.pointerId);
+        this._drawing = true;
+        [this._lastX, this._lastY] = getPos(e);
+        ctx.beginPath();
+        ctx.arc(this._lastX, this._lastY, 1, 0, Math.PI * 2);
+        ctx.fill();
+        this.setState({ hasSig: true });
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        if (!this._drawing) return;
+        e.preventDefault();
+        const [x, y] = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(this._lastX, this._lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        this._lastX = x; this._lastY = y;
+      });
+      canvas.addEventListener('pointerup', () => { this._drawing = false; this._captureSig(); });
+      canvas.addEventListener('pointercancel', () => { this._drawing = false; });
+    };
+    setTimeout(attach, 80);
+  }
+
+  _captureSig() {
+    if (!this._sigCanvas) return;
+    this.setState({ sigDataUrl: this._sigCanvas.toDataURL('image/png') });
+    setTimeout(() => this._updatePreview(), 50);
+  }
+
+  _setupSigUpload() {
+    const attach = () => {
+      const inp = document.getElementById('sigUploadInput');
+      if (!inp) { setTimeout(attach, 100); return; }
+      inp.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          this.setState({ sigDataUrl: ev.target.result, sigPreviewUrl: ev.target.result, hasSig: true });
+          setTimeout(() => this._updatePreview(), 50);
+        };
+        reader.readAsDataURL(file);
+        inp.value = '';
+      });
+    };
+    setTimeout(attach, 80);
+  }
+
+  triggerSigUpload = () => {
+    const inp = document.getElementById('sigUploadInput');
+    if (inp) inp.click();
+  };
+
+  clearSig = () => {
+    if (this._sigCtx && this._sigCanvas) {
+      this._sigCtx.clearRect(0, 0, this._sigCanvas.width, this._sigCanvas.height);
+    }
+    this.setState({ hasSig: false, sigDataUrl: '', sigPreviewUrl: '', previewDataUrl: '' });
+  };
+
+  setModeDraw   = () => this.setState({ sigMode: 'draw' });
+  setModeUpload = () => this.setState({ sigMode: 'upload' });
+  setPlacement  = (key) => () => { this.setState({ placement: key }); setTimeout(() => this._updatePreview(), 50); };
+  setSigSize    = (key) => () => { this.setState({ sigSize: key });    setTimeout(() => this._updatePreview(), 50); };
+  setApplyTo    = (key) => () => this.setState({ applyTo: key });
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const match = (data.files || []).find((f) => f.type === 'application/pdf');
+      if (!match) return;
+      const blob = await (await fetch(match.dataUrl)).blob();
+      this.handleFile(new File([blob], match.name, { type: match.type }));
+    } catch (err) { console.warn('Handoff load failed', err); }
+  }
+
+  onDropzoneClick = () => this.fileInputRef.current && this.fileInputRef.current.click();
+  onDragOver = (e) => { e.preventDefault(); this.setState({ dragOver: true }); };
+  onDragLeave = (e) => { e.preventDefault(); this.setState({ dragOver: false }); };
+  onDrop = (e) => {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) this.handleFile(file);
+  };
+  stopPropagation = (e) => e.stopPropagation();
+  onUrlInputChange = (e) => this.setState({ urlInput: e.target.value });
+
+  onPasteClick = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type === 'application/pdf') {
+              const blob = await item.getType(type);
+              this.handleFile(new File([blob], 'pasted.pdf', { type }));
+              return;
+            }
+          }
+        }
+      }
+      alert('No PDF found in clipboard.');
+    } catch (err) { alert('Could not read clipboard.'); }
+  };
+
+  async loadFromUrl() {
+    const url = (this.state.urlInput || '').trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const name = (url.split('/').pop() || 'file.pdf').split('?')[0] || 'file.pdf';
+      this.setState({ urlInput: '' });
+      this.handleFile(new File([blob], name, { type: blob.type || 'application/pdf' }));
+    } catch (err) { alert('Could not load that URL: ' + err.message); }
+  }
+
+  onFileInput = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) this.handleFile(file);
+  };
+
+  async handleFile(file, fromShared) {
+    this.setState({ error: null });
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      this.setState({ error: 'Please select a valid PDF file.' });
+      return;
+    }
+    this.currentFile = file;
+    this.setState({ fileName: file.name, previewDataUrl: '' });
+    try {
+      const ab = await file.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+      this.setState({ pageCount: pdf.numPages });
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.saveSharedFile(file, 'pdfsig');
+      setTimeout(() => this._updatePreview(), 100);
+    } catch (err) {
+      this.setState({ error: 'Error loading PDF: ' + (err.message || 'Could not read PDF.') });
+    }
+  }
+
+  // Render a preview of the first affected page with the signature overlaid
+  async _updatePreview() {
+    const { sigDataUrl, hasSig, placement, sigSize, applyTo, pageCount } = this.state;
+    if (!this.currentFile || !hasSig || !sigDataUrl) return;
+
+    const firstPage = applyTo === 'last' ? pageCount : 1;
+    try {
+      const ab = await this.currentFile.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+      const page = await pdf.getPage(firstPage);
+      const vp72 = page.getViewport({ scale: 1 });
+      const previewScale = Math.min(560 / vp72.width, 2);
+      const vp = page.getViewport({ scale: previewScale });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(vp.width);
+      canvas.height = Math.round(vp.height);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      page.cleanup();
+
+      await this._drawSigOnCanvas(ctx, vp72.width, vp72.height, previewScale, sigDataUrl, placement, sigSize);
+      this.setState({ previewDataUrl: canvas.toDataURL('image/jpeg', 0.9) });
+    } catch (e) { /* preview fails silently */ }
+  }
+
+  _drawSigOnCanvas(ctx, srcWpt, srcHpt, scale, sigDataUrl, placement, sigSize) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const sigWpt = SIG_SIZE_PT[sigSize] || 160;
+        const aspect = img.naturalHeight / (img.naturalWidth || 1);
+        const sigHpt = sigWpt * aspect;
+        const [offXpt, offYpt] = getOffset(srcWpt, srcHpt, sigWpt, sigHpt, placement);
+        ctx.drawImage(img, offXpt * scale, offYpt * scale, sigWpt * scale, sigHpt * scale);
+        resolve();
+      };
+      img.onerror = resolve;
+      img.src = sigDataUrl;
+    });
+  }
+
+  async sign() {
+    if (!this.currentFile || !this.state.hasSig) return;
+    const { sigDataUrl, placement, sigSize, applyTo, pageCount } = this.state;
+    this.setState({ error: null, generating: true, progressPercent: 5, progressText: 'Loading PDF…' });
+
+    try {
+      const ab = await this.currentFile.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+      const { jsPDF } = window.jspdf;
+      const DPI = 200;
+      const scale = DPI / 72;
+      let outputPdf = null;
+
+      const targetPages = new Set();
+      if (applyTo === 'all')   for (let i = 1; i <= pageCount; i++) targetPages.add(i);
+      if (applyTo === 'first') targetPages.add(1);
+      if (applyTo === 'last')  targetPages.add(pageCount);
+
+      for (let i = 1; i <= pageCount; i++) {
+        const pct = 5 + ((i - 1) / pageCount) * 90;
+        this.setState({ progressPercent: pct, progressText: `Signing page ${i} of ${pageCount}…` });
+
+        const page = await pdf.getPage(i);
+        const vp72 = page.getViewport({ scale: 1 });
+        const srcW = vp72.width, srcH = vp72.height;
+        const vp = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(vp.width);
+        canvas.height = Math.round(vp.height);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+        if (targetPages.has(i)) {
+          await this._drawSigOnCanvas(ctx, srcW, srcH, scale, sigDataUrl, placement, sigSize);
+        }
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        if (i === 1) {
+          outputPdf = new jsPDF({
+            orientation: srcW > srcH ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [srcW, srcH],
+            compress: true,
+          });
+        } else {
+          outputPdf.addPage([srcW, srcH], srcW > srcH ? 'landscape' : 'portrait');
+        }
+        outputPdf.addImage(imgData, 'JPEG', 0, 0, srcW, srcH, undefined, 'FAST');
+        page.cleanup();
+      }
+
+      this.setState({ progressPercent: 98, progressText: 'Finalizing…' });
+      const blob = new Blob([outputPdf.output('arraybuffer')], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.currentFile.name.replace(/\.pdf$/i, '') + '_signed.pdf';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.setState({ progressPercent: 100, progressText: 'Done! Download started.' });
+    } catch (err) {
+      console.error(err);
+      this.setState({ error: 'Error: ' + (err.message || 'Failed to sign PDF.'), progressPercent: 0, progressText: '' });
+    } finally {
+      this.setState({ generating: false });
+    }
+  }
+
+  renderVals() {
+    const { fileName, pageCount, sigMode, hasSig, sigPreviewUrl, placement, sigSize, applyTo,
+            previewDataUrl, generating, progressPercent, progressText, error, dragOver, isMobile } = this.state;
+
+    const saveDisabled = generating || !fileName || !hasSig;
+    const isActive = (v, key) => v === key;
+
+    const mkBtn = (active) => ({
+      bg: active ? '#5980a6' : 'transparent',
+      color: active ? '#f2f2f3' : '#1d1f20',
+      borderColor: active ? '#5980a6' : 'rgba(29,31,32,0.2)',
+    });
+
+    const placementGrid = PLACEMENT_CELLS.map((cell) => {
+      const active = placement === cell.key;
+      return {
+        ...cell,
+        ...mkBtn(active),
+        select: this.setPlacement(cell.key),
+      };
+    });
+
+    const sizeOptions = ['small','medium','large'].map((k) => {
+      const active = sigSize === k;
+      return { label: k, select: this.setSigSize(k), ...mkBtn(active) };
+    });
+
+    const applyOptions = [
+      { key: 'all',   label: 'All pages' },
+      { key: 'first', label: 'First page' },
+      { key: 'last',  label: 'Last page' },
+    ].map((o) => {
+      const active = applyTo === o.key;
+      return { ...o, select: this.setApplyTo(o.key), ...mkBtn(active) };
+    });
+
+    const isDraw = sigMode === 'draw';
+
+    return {
+      isMobile,
+      fileName, error, generating, progressPercent, progressText,
+      outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
+      dropBorderColor: dragOver ? '#5980a6' : 'rgba(29,31,32,0.16)',
+      dropBg: dragOver ? '#eef6ff' : '#f2f2f3',
+      fileInputRef: this.fileInputRef,
+      onDropzoneClick: this.onDropzoneClick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      onFileInput: this.onFileInput,
+      urlInput: this.state.urlInput,
+      onUrlInputChange: this.onUrlInputChange,
+      loadFromUrl: () => this.loadFromUrl(),
+      stopPropagation: this.stopPropagation,
+      onPasteClick: this.onPasteClick,
+      clearAll: this.clearAll,
+      setModeDraw: this.setModeDraw,
+      setModeUpload: this.setModeUpload,
+      drawTabBg: isDraw ? '#f2f2f3' : '#fff',
+      drawTabColor: isDraw ? '#1d1f20' : 'rgba(29,31,32,0.5)',
+      uploadTabBg: !isDraw ? '#f2f2f3' : '#fff',
+      uploadTabColor: !isDraw ? '#1d1f20' : 'rgba(29,31,32,0.5)',
+      drawDisplay: isDraw ? 'flex' : 'none',
+      uploadDisplay: !isDraw ? 'flex' : 'none',
+      clearSig: this.clearSig,
+      sigStatusLabel: hasSig ? '✓ Signature captured' : 'No signature yet',
+      sigStatusColor: hasSig ? '#3d6b4f' : 'rgba(29,31,32,0.35)',
+      hasSigPreview: !!sigPreviewUrl,
+      noSigPreview: !sigPreviewUrl,
+      sigPreviewUrl,
+      triggerSigUpload: this.triggerSigUpload,
+      optionsDisplay: 'flex',
+      placementGrid,
+      sizeOptions,
+      applyOptions,
+      hasPreview: !!previewDataUrl,
+      previewDataUrl,
+      saveDisabled,
+      saveLabel: generating ? 'SIGNING…' : 'SIGN & SAVE PDF',
+      saveCursor: saveDisabled ? 'not-allowed' : 'pointer',
+      saveOpacity: saveDisabled ? 0.45 : 1,
+    };
+  }
+}
+</script>
+</body>
+</html>
