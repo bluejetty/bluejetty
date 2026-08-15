@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./shared-file-store.js"></script>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
+  <div style="max-width:900px; width:100%;">
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-SCALE-TO-PRINT</div>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="6px"
+      file-types-label="PDF"
+      accept-types=".pdf,application/pdf"
+      url-placeholder="Or paste a PDF URL…"
+      has-file-name="{{ true }}"
+      file-name="{{ fileName }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ urlInput }}"
+      on-url-input-change="{{ onUrlInputChange }}"
+      load-from-url="{{ loadFromUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onPasteClick }}"
+    ></dc-import>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:14px; min-height:44px;">
+        <button onClick="{{ clearPage }}" style="border:none; background:none; padding:12px 6px; min-height:44px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:16px;">{{ error }}</div>
+    </sc-if>
+
+    <sc-if value="{{ generating }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:0;">
+        <div style="background:#e9e9ea; height:6px; margin-bottom:10px;">
+          <div style="background:#5980a6; height:100%; width:{{ progressPercent }}%; transition:width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; color:rgba(29,31,32,0.6); font-size:13px;">{{ progressText }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ noPages }}" hint-placeholder-val="{{ true }}">
+      <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; margin-bottom:0; display:flex; flex-direction:column; min-height:180px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); padding:14px 14px 0; margin-bottom:8px;">Preview window</div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 14px 14px;">
+          <div style="font-size:13px; color:rgba(29,31,32,0.45); text-align:center;">Drop a large-format PDF — pages are scaled proportionally to fit the chosen paper size, so the drawing scale is maintained throughout</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasPages }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:15px;">Preview <span style="font-weight:400; color:rgba(29,31,32,0.5); font-size:13px;">· scaled to target size</span></div>
+        <div style="font-size:11px; color:#2c455d; background:#eef6ff; padding:3px 10px;">{{ pageCountLabel }}</div>
+      </div>
+      <div style="background:#1d2d3d; border:1px solid rgba(29,31,32,0.16); padding:20px; min-height:200px; display:flex; justify-content:center; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <sc-for list="{{ visiblePages }}" as="page" hint-placeholder-count="2">
+          <div style="position:relative; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.4); overflow:hidden; flex:1 1 0; max-width:calc(50% - 8px); min-width:160px;">
+            <img src="{{ page.thumbDataUrl }}" style="display:block; width:100%; height:auto;" />
+            <div style="position:absolute; bottom:8px; right:10px; background:rgba(29,31,32,0.85); color:#f2f2f3; font-size:11px; padding:3px 10px; font-weight:600;">Page {{ page.displayIndex }} · {{ page.srcSize }} → {{ page.targetSize }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:14px;">
+        <button onClick="{{ prevPage }}" disabled="{{ prevDisabled }}" style="background:transparent; color:#1d1f20; border:1px solid rgba(29,31,32,0.16); padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">Prev</button>
+        <div style="font-size:13px; color:rgba(29,31,32,0.6); min-width:100px; text-align:center;">{{ navInfo }}</div>
+        <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" style="background:transparent; color:#1d1f20; border:1px solid rgba(29,31,32,0.16); padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">Next</button>
+      </div>
+      <p style="text-align:center; color:rgba(29,31,32,0.5); font-size:12px; margin-top:10px;">Pages are scaled proportionally — drawing scale is maintained. Source and target sizes shown on each page.</p>
+    </sc-if>
+
+    <dc-import name="SaveBox" hint-size="100%,60px"
+      is-mobile="{{ isMobile }}"
+      label="Target paper"
+      radio-name="scalePaper"
+      options="{{ paperOptions }}"
+      show-button="{{ true }}"
+      button-label="{{ saveLabel }}"
+      on-button-click="{{ generate }}"
+      button-disabled="{{ saveDisabled }}"
+      button-cursor="{{ saveCursor }}"
+      button-opacity="{{ saveOpacity }}"
+    ></dc-import>
+
+    <div style="margin-top:6px;">
+      <dc-import name="SaveBox" hint-size="100%,44px"
+        is-mobile="{{ isMobile }}"
+        label="Orientation"
+        radio-name="scaleOrientation"
+        options="{{ orientOptions }}"
+        show-button="{{ false }}"
+      ></dc-import>
+    </div>
+
+        <dc-import name="ToolHeader" activeTool="PDF-SCALE-TO-PRINT" on-clear="{{ clearPage }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+// Paper sizes in points (1pt = 1/72 inch)
+const PAPERS = {
+  'letter':   { label: 'Letter  8.5×11"',  w: 612,   h: 792   },
+  'legal':    { label: 'Legal  8.5×14"',   w: 612,   h: 1008  },
+  'tabloid':  { label: '11×17" Tabloid',   w: 792,   h: 1224  },
+  'a4':       { label: 'A4',               w: 595.28,h: 841.89 },
+  'a3':       { label: 'A3',               w: 841.89,h: 1190.55},
+};
+const MARGIN_PT = 18; // ~0.25 inch margin each side
+const RENDER_DPI = 200;
+
+class Component extends DCLogic {
+  state = {
+    fileName: '',
+    pages: [],
+    previewIndex: 0,
+    paper: 'tabloid',
+    orientation: 'auto',
+    generating: false,
+    progressPercent: 0,
+    progressText: '',
+    error: null,
+    dragOver: false,
+    urlInput: '',
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+  };
+
+  fileInputRef = React.createRef();
+  currentFile = null;
+  PAGES_PER_VIEW = 2;
+
+  clearPage = () => {
+    if (!confirm('Clear all dropped files and inputs? This cannot be undone.')) return;
+    this.currentFile = null;
+    this.setState({ fileName: '', pages: [], previewIndex: 0, error: null, progressPercent: 0, progressText: '' });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('scaletoprin');
+  };
+
+  componentDidMount() {
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    this.consumeHandoff();
+    if (window.SharedFileStore) {
+      window.SharedFileStore.loadSharedFile('scaletoprin').then((f) => { if (f) this.handleFile(f, true); });
+    }
+    this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
+    window.addEventListener('dragover', this._blockNav);
+    window.addEventListener('drop', this._blockNav);
+    this._onResize = () => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile !== this.state.isMobile) this.setState({ isMobile });
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('dragover', this._blockNav);
+    window.removeEventListener('drop', this._blockNav);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const match = (data.files || []).find((f) => f.type === 'application/pdf');
+      if (!match) return;
+      const blob = await (await fetch(match.dataUrl)).blob();
+      this.handleFile(new File([blob], match.name, { type: match.type }));
+    } catch (err) { console.warn('Handoff load failed', err); }
+  }
+
+  onDropzoneClick = () => this.fileInputRef.current && this.fileInputRef.current.click();
+  onDragOver = (e) => { e.preventDefault(); this.setState({ dragOver: true }); };
+  onDragLeave = (e) => { e.preventDefault(); this.setState({ dragOver: false }); };
+  onDrop = (e) => {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) this.handleFile(file);
+  };
+  stopPropagation = (e) => e.stopPropagation();
+  onUrlInputChange = (e) => this.setState({ urlInput: e.target.value });
+
+  onPasteClick = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type.startsWith('image/')) {
+              const blob = await item.getType(type);
+              const ext = type.split('/')[1] || 'png';
+              this.handleFile(new File([blob], `pasted_image.${ext}`, { type }));
+              return;
+            }
+          }
+        }
+      }
+      alert('Clipboard access denied or no image found.');
+    } catch (err) { alert('Could not read clipboard.'); }
+  };
+
+  async loadFromUrl() {
+    const url = (this.state.urlInput || '').trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const name = (url.split('/').pop() || 'file.pdf').split('?')[0] || 'file.pdf';
+      this.setState({ urlInput: '' });
+      this.handleFile(new File([blob], name, { type: blob.type || 'application/pdf' }));
+    } catch (err) { alert('Could not load that URL: ' + err.message); }
+  }
+
+  onFileInput = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) this.handleFile(file);
+  };
+
+  prevPage = () => {
+    if (this.state.previewIndex > 0) this.setState((s) => ({ previewIndex: s.previewIndex - this.PAGES_PER_VIEW }));
+  };
+  nextPage = () => {
+    if (this.state.previewIndex + this.PAGES_PER_VIEW < this.state.pages.length) {
+      this.setState((s) => ({ previewIndex: s.previewIndex + this.PAGES_PER_VIEW }));
+    }
+  };
+
+  setPaper = (key) => () => this.setState({ paper: key });
+  setOrient = (key) => () => this.setState({ orientation: key });
+
+  // Given source dims and paper key + orientation, return { targetW, targetH, scale, offsetX, offsetY }
+  fitCalc(srcW, srcH, paperKey, orientation) {
+    const p = PAPERS[paperKey];
+    let tW = p.w, tH = p.h;
+    if (orientation === 'landscape') { tW = Math.max(p.w, p.h); tH = Math.min(p.w, p.h); }
+    else if (orientation === 'portrait') { tW = Math.min(p.w, p.h); tH = Math.max(p.w, p.h); }
+    else { // auto — match source orientation
+      const srcLand = srcW > srcH;
+      tW = srcLand ? Math.max(p.w, p.h) : Math.min(p.w, p.h);
+      tH = srcLand ? Math.min(p.w, p.h) : Math.max(p.w, p.h);
+    }
+    const avW = tW - MARGIN_PT * 2;
+    const avH = tH - MARGIN_PT * 2;
+    const scale = Math.min(avW / srcW, avH / srcH);
+    const scaledW = srcW * scale;
+    const scaledH = srcH * scale;
+    const offX = MARGIN_PT + (avW - scaledW) / 2;
+    const offY = MARGIN_PT + (avH - scaledH) / 2;
+    return { tW, tH, scale, scaledW, scaledH, offX, offY };
+  }
+
+  ptToIn(pt) { return (pt / 72).toFixed(1) + '"'; }
+  sizeLabel(w, h) { return `${this.ptToIn(w)}×${this.ptToIn(h)}`; }
+
+  async handleFile(file, fromShared) {
+    this.setState({ error: null });
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      this.setState({ error: 'Please select a valid PDF file.' });
+      return;
+    }
+    this.currentFile = file;
+    this.setState({ fileName: file.name, pages: [], previewIndex: 0 });
+
+    try {
+      if (!window.pdfjsLib) throw new Error('PDF engine failed to load.');
+      const arrayBuffer = await file.arrayBuffer();
+      this.currentPdfData = arrayBuffer;
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const { paper, orientation } = this.state;
+      const maxThumbW = 400;
+      const pages = [];
+      const THUMB_LIMIT = 40;
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        if (pdf.numPages > THUMB_LIMIT && i > THUMB_LIMIT) {
+          if (!this._thumbPlaceholder) {
+            const ph = document.createElement('canvas');
+            ph.width = 120; ph.height = 155;
+            const pc = ph.getContext('2d');
+            pc.fillStyle = '#f2f2f3'; pc.fillRect(0, 0, 120, 155);
+            pc.strokeStyle = 'rgba(29,31,32,0.16)'; pc.strokeRect(0.5, 0.5, 119, 154);
+            this._thumbPlaceholder = ph.toDataURL('image/png');
+          }
+          pages.push({ index: i, thumbDataUrl: this._thumbPlaceholder, srcSize: '…', targetSize: '…' });
+          continue;
+        }
+
+        const page = await pdf.getPage(i);
+        const vp72 = page.getViewport({ scale: 1 });
+        const srcW = vp72.width, srcH = vp72.height;
+        const fit = this.fitCalc(srcW, srcH, paper, orientation);
+
+        // Render at thumb scale (fit to maxThumbW, representing the TARGET page)
+        const thumbScale = maxThumbW / fit.tW;
+        const thumbW = Math.round(fit.tW * thumbScale);
+        const thumbH = Math.round(fit.tH * thumbScale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = thumbW;
+        canvas.height = thumbH;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#e0e0e0'; // target page background (light grey = paper edge)
+        ctx.fillRect(0, 0, thumbW, thumbH);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(
+          Math.round(fit.offX * thumbScale),
+          Math.round(fit.offY * thumbScale),
+          Math.round(fit.scaledW * thumbScale),
+          Math.round(fit.scaledH * thumbScale)
+        );
+
+        // Render page into its scaled area
+        const renderScale = (fit.scaledW * thumbScale) / srcW;
+        const renderVP = page.getViewport({ scale: renderScale });
+        const offscreenC = document.createElement('canvas');
+        offscreenC.width = Math.round(renderVP.width);
+        offscreenC.height = Math.round(renderVP.height);
+        const offCtx = offscreenC.getContext('2d');
+        offCtx.fillStyle = '#ffffff';
+        offCtx.fillRect(0, 0, offscreenC.width, offscreenC.height);
+        await page.render({ canvasContext: offCtx, viewport: renderVP }).promise;
+        ctx.drawImage(offscreenC, Math.round(fit.offX * thumbScale), Math.round(fit.offY * thumbScale));
+
+        pages.push({
+          index: i,
+          thumbDataUrl: canvas.toDataURL('image/jpeg', 0.85),
+          srcSize: this.sizeLabel(srcW, srcH),
+          targetSize: this.sizeLabel(fit.tW, fit.tH),
+        });
+        page.cleanup();
+      }
+      this.setState({ pages });
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.saveSharedFile(file, 'scaletoprin');
+    } catch (err) {
+      console.error(err);
+      this.setState({ error: 'Error loading preview: ' + (err.message || 'Could not read PDF.') });
+    }
+  }
+
+  async generate() {
+    if (!this.currentFile) return;
+    const { paper, orientation } = this.state;
+    this.setState({ error: null, generating: true, progressPercent: 5, progressText: 'Loading PDF…' });
+    try {
+      const arrayBuffer = await this.currentFile.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const totalPages = pdf.numPages;
+      const { jsPDF } = window.jspdf;
+      let outputPdf = null;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const pct = 5 + ((i - 1) / totalPages) * 90;
+        this.setState({ progressPercent: pct, progressText: `Scaling page ${i} of ${totalPages}…` });
+
+        const page = await pdf.getPage(i);
+        const vp72 = page.getViewport({ scale: 1 });
+        const srcW = vp72.width, srcH = vp72.height;
+        const fit = this.fitCalc(srcW, srcH, paper, orientation);
+
+        // Render the source page at RENDER_DPI
+        const renderScale = RENDER_DPI / 72;
+        const renderVP = page.getViewport({ scale: renderScale });
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(renderVP.width);
+        canvas.height = Math.round(renderVP.height);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport: renderVP }).promise;
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+        if (i === 1) {
+          outputPdf = new jsPDF({
+            orientation: fit.tW > fit.tH ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [fit.tW, fit.tH],
+            compress: true,
+          });
+        } else {
+          outputPdf.addPage([fit.tW, fit.tH], fit.tW > fit.tH ? 'landscape' : 'portrait');
+        }
+
+        outputPdf.addImage(imgData, 'JPEG', fit.offX, fit.offY, fit.scaledW, fit.scaledH, undefined, 'FAST');
+        page.cleanup();
+      }
+
+      this.setState({ progressPercent: 98, progressText: 'Finalizing…' });
+      const outputData = outputPdf.output('arraybuffer');
+      const blob = new Blob([outputData], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const baseName = this.currentFile.name.replace(/\.pdf$/i, '');
+      const paperLabel = paper === 'tabloid' ? '11x17' : paper;
+      a.download = `${baseName}_${paperLabel}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.setState({ progressPercent: 100, progressText: 'Done! Download started.' });
+    } catch (err) {
+      console.error(err);
+      this.setState({ error: 'Error: ' + (err.message || 'Failed to scale PDF.'), progressPercent: 0, progressText: '' });
+    } finally {
+      this.setState({ generating: false });
+    }
+  }
+
+  renderVals() {
+    const { fileName, pages, previewIndex, paper, orientation, generating, progressPercent, progressText, error, dragOver, isMobile } = this.state;
+    const totalPages = pages.length;
+    const saveDisabled = generating || !fileName || totalPages === 0;
+
+    const mkPaper = (key) => ({
+      label: PAPERS[key].label,
+      checked: paper === key,
+      onSelect: this.setPaper(key),
+      bg: paper === key ? '#5980a6' : 'transparent',
+      color: paper === key ? '#f2f2f3' : '#1d1f20',
+    });
+    const mkOrient = (key, label) => ({
+      label,
+      checked: orientation === key,
+      onSelect: this.setOrient(key),
+      bg: orientation === key ? '#5980a6' : 'transparent',
+      color: orientation === key ? '#f2f2f3' : '#1d1f20',
+    });
+
+    return {
+      isMobile,
+      fileName, error, generating, progressPercent, progressText,
+      hasPages: totalPages > 0,
+      noPages: totalPages === 0,
+      outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
+      dropBorderColor: dragOver ? '#5980a6' : 'rgba(29,31,32,0.16)',
+      dropBg: dragOver ? '#eef6ff' : '#f2f2f3',
+      fileInputRef: this.fileInputRef,
+      onDropzoneClick: this.onDropzoneClick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      onFileInput: this.onFileInput,
+      urlInput: this.state.urlInput,
+      onUrlInputChange: this.onUrlInputChange,
+      loadFromUrl: () => this.loadFromUrl(),
+      stopPropagation: this.stopPropagation,
+      onPasteClick: this.onPasteClick,
+      clearPage: this.clearPage,
+      pageCountLabel: `${totalPages} page${totalPages === 1 ? '' : 's'}`,
+      paperOptions: ['letter','legal','tabloid','a4','a3'].map(mkPaper),
+      orientOptions: [
+        mkOrient('auto', 'Auto (match source)'),
+        mkOrient('landscape', 'Landscape'),
+        mkOrient('portrait', 'Portrait'),
+      ],
+      generate: () => this.generate(),
+      saveDisabled,
+      saveLabel: generating ? 'SAVING…' : 'SCALE & SAVE PDF',
+      saveCursor: saveDisabled ? 'not-allowed' : 'pointer',
+      saveOpacity: saveDisabled ? 0.45 : 1,
+      visiblePages: pages.slice(previewIndex, previewIndex + this.PAGES_PER_VIEW).map((p) => ({ ...p, displayIndex: p.index })),
+      navInfo: totalPages ? `Page ${previewIndex + 1}${previewIndex + this.PAGES_PER_VIEW > previewIndex + 1 ? '-' + Math.min(previewIndex + this.PAGES_PER_VIEW, totalPages) : ''} of ${totalPages}` : 'Page 0 of 0',
+      prevDisabled: previewIndex === 0,
+      nextDisabled: previewIndex + this.PAGES_PER_VIEW >= totalPages,
+      prevPage: this.prevPage,
+      nextPage: this.nextPage,
+    };
+  }
+}
+</script>
+</body>
+</html>
