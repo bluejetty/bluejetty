@@ -73,8 +73,11 @@
     }
 
     .links a:hover {
-      text-decoration: underline;
-    }
+  box-shadow: 
+    0 0 calc(var(--glow-spread) * 0.5) rgba(var(--glow-color), var(--glow-opacity)),
+    0 0 var(--glow-spread) rgba(var(--glow-color), calc(var(--glow-opacity) * 0.5));
+  border-radius: 4px; /* Softens the box edges so the glow looks smooth */
+}
   </style>
 </head>
 <body>
@@ -89,10 +92,10 @@
    
 
 <center> 
-
+<p>
 <a href="tel:1-306-649-0350"><font face="Arial" color="#2154b4" size="5">LANDLINE PHONE: 306 649-0350</font></a>
-
-<p><a href="https://bluejetty.ca/bluejetty.pdf"><font face="Arial" color="#1e90ff" size="4">-MORE INFORMATION</font></a></p>
+</p><br>
+<p><a href="https://bluejetty.ca/bluejetty.pdf"><font face="Arial" color="#1e90ff" size="4">-MORE INFORMATION</font></a></p><br>
 <p><a href="https://pdf.bluejetty.ca"><font face="Arial" color="#1e90ff" size="4">-PDF Management tools</font></a><br>
 <a href="https://mk.bluejetty.ca"><font face="Arial" color="#1e90ff" size="4">-test: PDF Markup Estimating tool / under construction</font></a></p>
 </center>
