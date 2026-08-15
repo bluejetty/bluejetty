@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./shared-file-store.js"></script>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: #5980a6; }
+    a:hover { color: #416180; }
+  </style>
+</helmet>
+<div style="min-height:100vh; background:#fff; font-family:'Barlow',system-ui,sans-serif; color:#1d1f20; display:flex; justify-content:center; padding:{{ outerPadding }}; font-size:15px;">
+  <div style="max-width:900px; width:100%;">
+<dc-import name="Notepad" hint-size="100%,60px" storage-key="sharedNotepad"></dc-import>
+
+<div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; color:#1d1f20; margin:2px 0 10px; text-align:center;">PDF-SIZE-ROTATE</div>
+
+<dc-import name="DropBox" hint-size="100%,165px"
+      headline="DROP-BOX"
+      box-padding="16px 20px"
+      box-margin-bottom="6px"
+      file-types-label="PDF"
+      accept-types=".pdf,application/pdf"
+      url-placeholder="Or paste a PDF URL…"
+      has-file-name="{{ true }}"
+      file-name="{{ fileName }}"
+      drop-border-color="{{ dropBorderColor }}"
+      drop-bg="{{ dropBg }}"
+      on-drag-over="{{ onDragOver }}"
+      on-drag-leave="{{ onDragLeave }}"
+      on-drop="{{ onDrop }}"
+      on-dropzone-click="{{ onDropzoneClick }}"
+      file-input-ref="{{ fileInputRef }}"
+      on-file-input="{{ onFileInput }}"
+      url-input="{{ urlInput }}"
+      on-url-input-change="{{ onUrlInputChange }}"
+      load-from-url="{{ loadFromUrl }}"
+      stop-propagation="{{ stopPropagation }}"
+      on-paste-click="{{ onPasteClick }}"
+    ></dc-import>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:14px; min-height:44px;">
+        <button onClick="{{ clearPage }}" style="border:none; background:none; padding:12px 6px; min-height:44px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:18px; color:#1d1f20; text-transform:uppercase; white-space:nowrap;" style-hover="color:#8a2c2c;">CLICK TO CLEAR DROP-BOX</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px; border:1px solid #b23b3b; color:#8a2c2c; font-size:14px; margin-bottom:16px;">{{ error }}</div>
+    </sc-if>
+
+    <sc-if value="{{ generating }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid rgba(29,31,32,0.16); padding:18px; margin-bottom:0;">
+        <div style="background:#e9e9ea; height:6px; margin-bottom:10px;">
+          <div style="background:#5980a6; height:100%; width:{{ progressPercent }}%; transition:width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; color:rgba(29,31,32,0.6); font-size:13px;">{{ progressText }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ noPages }}" hint-placeholder-val="{{ true }}">
+      <div style="position:relative; border:1px solid rgba(29,31,32,0.16); background:#fff; margin-top:2px; margin-bottom:0; display:flex; flex-direction:column; min-height:180px;">
+        <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(29,31,32,0.6); padding:14px 14px 0; margin-bottom:8px;">Page list</div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 14px 14px;">
+          <div style="font-size:13px; color:rgba(29,31,32,0.45); text-align:center;">Drop a PDF to see page sizes and rotate pages</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasPages }}" hint-placeholder-val="{{ false }}">
+      <!-- Bulk rotate bar -->
+      <div style="border:1px solid rgba(29,31,32,0.16); border-bottom:none; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#f7f7f8;">
+        <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; text-transform:uppercase; color:rgba(29,31,32,0.55); margin-right:4px;">Rotate all pages:</div>
+        <button onClick="{{ rotateAllCCW }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 14px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; cursor:pointer; color:#1d1f20;" style-hover="background:#eef6ff; border-color:#5980a6;">↺ 90° CCW</button>
+        <button onClick="{{ rotateAll180 }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 14px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; cursor:pointer; color:#1d1f20;" style-hover="background:#eef6ff; border-color:#5980a6;">↕ 180°</button>
+        <button onClick="{{ rotateAllCW }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 14px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; cursor:pointer; color:#1d1f20;" style-hover="background:#eef6ff; border-color:#5980a6;">↻ 90° CW</button>
+        <button onClick="{{ resetAll }}" style="border:1px solid rgba(29,31,32,0.12); background:none; padding:5px 14px; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:13px; cursor:pointer; color:rgba(29,31,32,0.45);" style-hover="color:#8a2c2c; border-color:#8a2c2c;">RESET ALL</button>
+        <div style="margin-left:auto; font-size:11px; color:rgba(29,31,32,0.4);">{{ pageCountLabel }}</div>
+      </div>
+
+      <!-- Page list -->
+      <div style="border:1px solid rgba(29,31,32,0.16); margin-bottom:0; max-height:420px; overflow-y:auto;">
+        <sc-for list="{{ pageRows }}" as="row" hint-placeholder-count="4">
+          <div style="display:grid; grid-template-columns:{{ rowGridCols }}; align-items:center; gap:10px; padding:8px 16px; border-bottom:1px solid rgba(29,31,32,0.06); background:{{ row.bg }};">
+            <!-- Thumbnail -->
+            <div style="width:{{ thumbSize }}px; height:{{ thumbSize }}px; overflow:hidden; border:1px solid rgba(29,31,32,0.12); background:#f2f2f3; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+              <img src="{{ row.thumbDataUrl }}" style="max-width:100%; max-height:100%; object-fit:contain; display:block;" />
+            </div>
+            <!-- Page info -->
+            <div>
+              <div style="font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; font-size:14px;">Page {{ row.index }}</div>
+              <div style="font-size:12px; color:rgba(29,31,32,0.55); margin-top:1px;">{{ row.sizeLabel }}</div>
+              <div style="display:inline-block; margin-top:3px; font-size:11px; font-weight:600; padding:2px 8px; background:{{ row.orientBg }}; color:{{ row.orientColor }}; font-family:'Barlow Condensed',system-ui,sans-serif; text-transform:uppercase; letter-spacing:0.04em;">{{ row.orientLabel }}</div>
+            </div>
+            <!-- Rotation controls -->
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <button onClick="{{ row.rotateCCW }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; color:#1d1f20; white-space:nowrap;" style-hover="background:#eef6ff; border-color:#5980a6;" title="Rotate 90° counter-clockwise">↺ CCW</button>
+              <button onClick="{{ row.rotate180 }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; color:#1d1f20; white-space:nowrap;" style-hover="background:#eef6ff; border-color:#5980a6;" title="Rotate 180°">↕ 180°</button>
+              <button onClick="{{ row.rotateCW }}" style="border:1px solid rgba(29,31,32,0.2); background:#fff; padding:5px 10px; font-size:13px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; color:#1d1f20; white-space:nowrap;" style-hover="background:#eef6ff; border-color:#5980a6;" title="Rotate 90° clockwise">↻ CW</button>
+              <sc-if value="{{ row.isRotated }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ row.reset }}" style="border:1px solid rgba(29,31,32,0.12); background:none; padding:5px 8px; font-size:11px; cursor:pointer; font-family:'Barlow Condensed',system-ui,sans-serif; font-weight:600; color:rgba(29,31,32,0.4);" style-hover="color:#8a2c2c; border-color:#8a2c2c;" title="Reset to original">✕</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <dc-import name="SaveBox" hint-size="100%,60px"
+      is-mobile="{{ isMobile }}"
+      label="Quality"
+      radio-name="sizeRotateDpi"
+      options="{{ dpiOptions }}"
+      show-button="{{ true }}"
+      button-label="{{ saveLabel }}"
+      on-button-click="{{ save }}"
+      button-disabled="{{ saveDisabled }}"
+      button-cursor="{{ saveCursor }}"
+      button-opacity="{{ saveOpacity }}"
+    ></dc-import>
+
+        <dc-import name="ToolHeader" activeTool="PDF-SIZE-ROTATE" on-clear="{{ clearPage }}" clear-label="CLICK TO CLEAR DROP-BOX" hint-size="100%,120px"></dc-import>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const RENDER_DPI = 200;
+
+function ptToInLabel(w, h) {
+  const wi = (w / 72).toFixed(1);
+  const hi = (h / 72).toFixed(1);
+  // Recognise common sizes
+  const eps = 3;
+  const near = (a, b) => Math.abs(a - b) < eps;
+  if (near(w, 612) && near(h, 792)) return '8.5×11" (Letter)';
+  if (near(w, 792) && near(h, 612)) return '11×8.5" (Letter L)';
+  if (near(w, 612) && near(h, 1008)) return '8.5×14" (Legal)';
+  if (near(w, 792) && near(h, 1224)) return '11×17" (Tabloid)';
+  if (near(w, 1224) && near(h, 792)) return '17×11" (Tabloid L)';
+  if (near(w, 595) && near(h, 842)) return 'A4';
+  if (near(w, 842) && near(h, 595)) return 'A4 Landscape';
+  if (near(w, 842) && near(h, 1190)) return 'A3';
+  if (near(w, 1190) && near(h, 842)) return 'A3 Landscape';
+  if (near(w, 1224) && near(h, 1584)) return '17×22" (Arch C)';
+  if (near(w, 1584) && near(h, 2448)) return '22×34" (Arch D)';
+  if (near(w, 2448) && near(h, 3168)) return '34×44" (Arch E)';
+  return `${wi}"×${hi}"`;
+}
+
+function orientLabel(w, h, rotation) {
+  const [ew, eh] = (rotation === 90 || rotation === 270) ? [h, w] : [w, h];
+  return ew > eh ? 'Landscape' : ew < eh ? 'Portrait' : 'Square';
+}
+
+class Component extends DCLogic {
+  state = {
+    fileName: '',
+    pages: [],   // { index, srcW, srcH, rotation, thumbDataUrl }
+    dpi: '150',
+    generating: false,
+    progressPercent: 0,
+    progressText: '',
+    error: null,
+    dragOver: false,
+    urlInput: '',
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+  };
+
+  fileInputRef = React.createRef();
+  currentFile = null;
+
+  clearPage = () => {
+    if (!confirm('Clear all dropped files? This cannot be undone.')) return;
+    this.currentFile = null;
+    this.setState({ fileName: '', pages: [], error: null, progressPercent: 0, progressText: '' });
+    if (window.SharedFileStore) window.SharedFileStore.clearSharedFile('sizerotate');
+  };
+
+  componentDidMount() {
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    this.consumeHandoff();
+    if (window.SharedFileStore) {
+      window.SharedFileStore.loadSharedFile('sizerotate').then((f) => { if (f) this.handleFile(f, true); });
+    }
+    this._blockNav = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; };
+    window.addEventListener('dragover', this._blockNav);
+    window.addEventListener('drop', this._blockNav);
+    this._onResize = () => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile !== this.state.isMobile) this.setState({ isMobile });
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('dragover', this._blockNav);
+    window.removeEventListener('drop', this._blockNav);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  async consumeHandoff() {
+    try {
+      const raw = localStorage.getItem('pdfImageManagerHandoff');
+      if (!raw) return;
+      localStorage.removeItem('pdfImageManagerHandoff');
+      const data = JSON.parse(raw);
+      const match = (data.files || []).find((f) => f.type === 'application/pdf');
+      if (!match) return;
+      const blob = await (await fetch(match.dataUrl)).blob();
+      this.handleFile(new File([blob], match.name, { type: match.type }));
+    } catch (err) { console.warn('Handoff load failed', err); }
+  }
+
+  onDropzoneClick = () => this.fileInputRef.current && this.fileInputRef.current.click();
+  onDragOver = (e) => { e.preventDefault(); this.setState({ dragOver: true }); };
+  onDragLeave = (e) => { e.preventDefault(); this.setState({ dragOver: false }); };
+  onDrop = (e) => {
+    e.preventDefault();
+    this.setState({ dragOver: false });
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) this.handleFile(file);
+  };
+  stopPropagation = (e) => e.stopPropagation();
+  onUrlInputChange = (e) => this.setState({ urlInput: e.target.value });
+
+  onPasteClick = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type.startsWith('image/')) {
+              const blob = await item.getType(type);
+              const ext = type.split('/')[1] || 'png';
+              this.handleFile(new File([blob], `pasted.${ext}`, { type }));
+              return;
+            }
+          }
+        }
+      }
+      alert('No file found in clipboard.');
+    } catch (err) { alert('Could not read clipboard.'); }
+  };
+
+  async loadFromUrl() {
+    const url = (this.state.urlInput || '').trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const name = (url.split('/').pop() || 'file.pdf').split('?')[0] || 'file.pdf';
+      this.setState({ urlInput: '' });
+      this.handleFile(new File([blob], name, { type: blob.type || 'application/pdf' }));
+    } catch (err) { alert('Could not load that URL: ' + err.message); }
+  }
+
+  onFileInput = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) this.handleFile(file);
+  };
+
+  rotatePage(index, delta) {
+    this.setState((s) => ({
+      pages: s.pages.map((p) =>
+        p.index === index ? { ...p, rotation: (p.rotation + delta + 360) % 360 } : p
+      ),
+    }));
+  }
+
+  resetPage(index) {
+    this.setState((s) => ({
+      pages: s.pages.map((p) => p.index === index ? { ...p, rotation: 0 } : p),
+    }));
+  }
+
+  rotateAllCCW = () => this.setState((s) => ({ pages: s.pages.map((p) => ({ ...p, rotation: (p.rotation + 270) % 360 })) }));
+  rotateAllCW  = () => this.setState((s) => ({ pages: s.pages.map((p) => ({ ...p, rotation: (p.rotation + 90)  % 360 })) }));
+  rotateAll180 = () => this.setState((s) => ({ pages: s.pages.map((p) => ({ ...p, rotation: (p.rotation + 180) % 360 })) }));
+  resetAll     = () => this.setState((s) => ({ pages: s.pages.map((p) => ({ ...p, rotation: 0 })) }));
+  setDpi150    = () => this.setState({ dpi: '150' });
+  setDpi200    = () => this.setState({ dpi: '200' });
+
+  async handleFile(file, fromShared) {
+    this.setState({ error: null });
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      this.setState({ error: 'Please select a valid PDF file.' });
+      return;
+    }
+    this.currentFile = file;
+    this.setState({ fileName: file.name, pages: [] });
+
+    try {
+      if (!window.pdfjsLib) throw new Error('PDF engine failed to load.');
+      const arrayBuffer = await file.arrayBuffer();
+      this.currentPdfData = arrayBuffer;
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pages = [];
+      const THUMB_LIMIT = 60;
+      const THUMB_SIZE = 60; // px
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const vp = page.getViewport({ scale: 1 });
+        const srcW = vp.width, srcH = vp.height;
+
+        let thumbDataUrl = '';
+        if (i <= THUMB_LIMIT) {
+          const thumbScale = THUMB_SIZE / Math.max(srcW, srcH);
+          const tvp = page.getViewport({ scale: thumbScale });
+          const tc = document.createElement('canvas');
+          tc.width = Math.round(tvp.width);
+          tc.height = Math.round(tvp.height);
+          const tctx = tc.getContext('2d');
+          tctx.fillStyle = '#ffffff';
+          tctx.fillRect(0, 0, tc.width, tc.height);
+          await page.render({ canvasContext: tctx, viewport: tvp }).promise;
+          thumbDataUrl = tc.toDataURL('image/jpeg', 0.8);
+        }
+
+        pages.push({ index: i, srcW, srcH, rotation: 0, thumbDataUrl });
+        page.cleanup();
+      }
+      this.setState({ pages });
+      if (!fromShared && window.SharedFileStore) window.SharedFileStore.saveSharedFile(file, 'sizerotate');
+    } catch (err) {
+      console.error(err);
+      this.setState({ error: 'Error loading PDF: ' + (err.message || 'Could not read PDF.') });
+    }
+  }
+
+  // Render a page canvas rotated by `rotation` degrees, returns a canvas
+  async renderPageRotated(pdfPage, srcW, srcH, rotation, dpi) {
+    const scale = dpi / 72;
+    const vp = pdfPage.getViewport({ scale });
+    const offC = document.createElement('canvas');
+    offC.width = Math.round(vp.width);
+    offC.height = Math.round(vp.height);
+    const offCtx = offC.getContext('2d');
+    offCtx.fillStyle = '#ffffff';
+    offCtx.fillRect(0, 0, offC.width, offC.height);
+    await pdfPage.render({ canvasContext: offCtx, viewport: vp }).promise;
+
+    if (rotation === 0) return { canvas: offC, outW: srcW, outH: srcH };
+
+    const rotC = document.createElement('canvas');
+    const sw = offC.width, sh = offC.height;
+    if (rotation === 90 || rotation === 270) {
+      rotC.width = sh; rotC.height = sw;
+    } else {
+      rotC.width = sw; rotC.height = sh;
+    }
+    const rctx = rotC.getContext('2d');
+    rctx.save();
+    rctx.translate(rotC.width / 2, rotC.height / 2);
+    rctx.rotate((rotation * Math.PI) / 180);
+    rctx.drawImage(offC, -sw / 2, -sh / 2);
+    rctx.restore();
+
+    const outW = (rotation === 90 || rotation === 270) ? srcH : srcW;
+    const outH = (rotation === 90 || rotation === 270) ? srcW : srcH;
+    return { canvas: rotC, outW, outH };
+  }
+
+  async save() {
+    if (!this.currentFile) return;
+    const { pages, dpi } = this.state;
+    const dpiVal = parseInt(dpi, 10);
+    this.setState({ error: null, generating: true, progressPercent: 5, progressText: 'Loading PDF…' });
+    try {
+      const arrayBuffer = await this.currentFile.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const { jsPDF } = window.jspdf;
+      let outputPdf = null;
+
+      for (let i = 0; i < pages.length; i++) {
+        const p = pages[i];
+        const pct = 5 + (i / pages.length) * 90;
+        this.setState({ progressPercent: pct, progressText: `Processing page ${p.index} of ${pages.length}…` });
+
+        const pdfPage = await pdf.getPage(p.index);
+        const { canvas, outW, outH } = await this.renderPageRotated(pdfPage, p.srcW, p.srcH, p.rotation, dpiVal);
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+        if (i === 0) {
+          outputPdf = new jsPDF({
+            orientation: outW > outH ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [outW, outH],
+            compress: true,
+          });
+        } else {
+          outputPdf.addPage([outW, outH], outW > outH ? 'landscape' : 'portrait');
+        }
+        outputPdf.addImage(imgData, 'JPEG', 0, 0, outW, outH, undefined, 'FAST');
+        pdfPage.cleanup();
+      }
+
+      this.setState({ progressPercent: 98, progressText: 'Finalizing…' });
+      const blob = new Blob([outputPdf.output('arraybuffer')], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.currentFile.name.replace(/\.pdf$/i, '') + '_rotated.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.setState({ progressPercent: 100, progressText: 'Done! Download started.' });
+    } catch (err) {
+      console.error(err);
+      this.setState({ error: 'Error: ' + (err.message || 'Failed to save PDF.'), progressPercent: 0, progressText: '' });
+    } finally {
+      this.setState({ generating: false });
+    }
+  }
+
+  renderVals() {
+    const { fileName, pages, dpi, generating, progressPercent, progressText, error, dragOver, isMobile } = this.state;
+    const saveDisabled = generating || pages.length === 0;
+
+    const pageRows = pages.map((p) => {
+      const { rotation, srcW, srcH, thumbDataUrl } = p;
+      const effW = (rotation === 90 || rotation === 270) ? srcH : srcW;
+      const effH = (rotation === 90 || rotation === 270) ? srcW : srcH;
+      const ol = orientLabel(srcW, srcH, rotation);
+      const isLand = effW > effH;
+      return {
+        index: p.index,
+        sizeLabel: ptToInLabel(effW, effH) + (rotation !== 0 ? ` (rotated ${rotation}°)` : ''),
+        orientLabel: ol,
+        orientBg: isLand ? '#eef6ff' : '#f0f4f0',
+        orientColor: isLand ? '#2c455d' : '#2d5a3d',
+        thumbDataUrl,
+        isRotated: rotation !== 0,
+        bg: rotation !== 0 ? '#fafbfc' : '#fff',
+        rotateCCW: () => this.rotatePage(p.index, 270),
+        rotateCW:  () => this.rotatePage(p.index, 90),
+        rotate180: () => this.rotatePage(p.index, 180),
+        reset:     () => this.resetPage(p.index),
+      };
+    });
+
+    return {
+      isMobile,
+      fileName, error, generating, progressPercent, progressText,
+      hasPages: pages.length > 0,
+      noPages: pages.length === 0,
+      outerPadding: isMobile ? '10px 14px 28px' : '18px 24px 56px',
+      dropBorderColor: dragOver ? '#5980a6' : 'rgba(29,31,32,0.16)',
+      dropBg: dragOver ? '#eef6ff' : '#f2f2f3',
+      fileInputRef: this.fileInputRef,
+      onDropzoneClick: this.onDropzoneClick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      onFileInput: this.onFileInput,
+      urlInput: this.state.urlInput,
+      onUrlInputChange: this.onUrlInputChange,
+      loadFromUrl: () => this.loadFromUrl(),
+      stopPropagation: this.stopPropagation,
+      onPasteClick: this.onPasteClick,
+      clearPage: this.clearPage,
+      pageRows,
+      pageCountLabel: `${pages.length} page${pages.length === 1 ? '' : 's'}`,
+      rowGridCols: isMobile ? '40px 1fr' : '56px 1fr auto',
+      thumbSize: isMobile ? 40 : 56,
+      rotateAllCCW: this.rotateAllCCW,
+      rotateAllCW: this.rotateAllCW,
+      rotateAll180: this.rotateAll180,
+      resetAll: this.resetAll,
+      dpiOptions: [
+        { label: '150 DPI (smaller file)', checked: dpi === '150', onSelect: this.setDpi150, bg: dpi === '150' ? '#5980a6' : 'transparent', color: dpi === '150' ? '#f2f2f3' : '#1d1f20' },
+        { label: '200 DPI (sharper)', checked: dpi === '200', onSelect: this.setDpi200, bg: dpi === '200' ? '#5980a6' : 'transparent', color: dpi === '200' ? '#f2f2f3' : '#1d1f20' },
+      ],
+      save: () => this.save(),
+      saveDisabled,
+      saveLabel: generating ? 'SAVING…' : 'SAVE ROTATED PDF',
+      saveCursor: saveDisabled ? 'not-allowed' : 'pointer',
+      saveOpacity: saveDisabled ? 0.45 : 1,
+    };
+  }
+}
+</script>
+</body>
+</html>

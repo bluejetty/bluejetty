@@ -85,7 +85,7 @@
         <sc-for list="{{ visiblePages }}" as="page" hint-placeholder-count="2">
           <div style="position:relative; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.4); overflow:hidden; flex:1 1 0; max-width:calc(50% - 8px); min-width:160px;">
             <img src="{{ page.thumbDataUrl }}" style="display:block; width:100%; height:auto;" />
-            <div style="position:absolute; bottom:8px; right:10px; background:rgba(29,31,32,0.85); color:#f2f2f3; font-size:11px; padding:3px 10px; font-weight:600;">Page {{ page.displayIndex }} · {{ page.srcSize }} → {{ page.targetSize }}</div>
+            <div style="position:absolute; bottom:8px; right:10px; background:rgba(29,31,32,0.85); color:#f2f2f3; font-size:11px; padding:3px 10px; font-weight:600;">Page {{ page.displayIndex }} · {{ page.srcSize }} → {{ page.targetSize }} · {{ page.scalePct }}%</div>
           </div>
         </sc-for>
       </div>
@@ -94,7 +94,7 @@
         <div style="font-size:13px; color:rgba(29,31,32,0.6); min-width:100px; text-align:center;">{{ navInfo }}</div>
         <button onClick="{{ nextPage }}" disabled="{{ nextDisabled }}" style="background:transparent; color:#1d1f20; border:1px solid rgba(29,31,32,0.16); padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">Next</button>
       </div>
-      <p style="text-align:center; color:rgba(29,31,32,0.5); font-size:12px; margin-top:10px;">Pages are scaled proportionally — drawing scale is maintained. Source and target sizes shown on each page.</p>
+      <p style="text-align:center; color:rgba(29,31,32,0.5); font-size:12px; margin-top:10px;">{{ scaleNote }}</p>
     </sc-if>
 
     <dc-import name="SaveBox" hint-size="100%,60px"
@@ -360,6 +360,7 @@ class Component extends DCLogic {
           thumbDataUrl: canvas.toDataURL('image/jpeg', 0.85),
           srcSize: this.sizeLabel(srcW, srcH),
           targetSize: this.sizeLabel(fit.tW, fit.tH),
+          scalePct: Math.round(fit.scale * 100),
         });
         page.cleanup();
       }
@@ -492,6 +493,19 @@ class Component extends DCLogic {
       saveLabel: generating ? 'SAVING…' : 'SCALE & SAVE PDF',
       saveCursor: saveDisabled ? 'not-allowed' : 'pointer',
       saveOpacity: saveDisabled ? 0.45 : 1,
+      scaleNote: (() => {
+        const pcts = [...new Set(pages.map(p => p.scalePct).filter(Boolean))];
+        if (!pcts.length) return 'Pages are scaled proportionally — drawing scale is maintained.';
+        const same = pcts.length === 1;
+        const pct = same ? pcts[0] : null;
+        const base = same
+          ? `All pages scaled to ${pct}% of original.`
+          : `Pages scaled ${Math.min(...pcts)}–${Math.max(...pcts)}% of original (mixed source sizes).`;
+        const example = same && pct
+          ? ` If original drawings were 1:100, printed scale is approx 1:${Math.round(100 / (pct / 100))}.`
+          : '';
+        return base + example + ' Scale is maintained proportionally throughout.';
+      })(),
       visiblePages: pages.slice(previewIndex, previewIndex + this.PAGES_PER_VIEW).map((p) => ({ ...p, displayIndex: p.index })),
       navInfo: totalPages ? `Page ${previewIndex + 1}${previewIndex + this.PAGES_PER_VIEW > previewIndex + 1 ? '-' + Math.min(previewIndex + this.PAGES_PER_VIEW, totalPages) : ''} of ${totalPages}` : 'Page 0 of 0',
       prevDisabled: previewIndex === 0,
