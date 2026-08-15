@@ -297,13 +297,15 @@ class Component extends DCLogic {
     }
   }
 
+
   async flatten() {
-    if (!this.currentFile || !this.currentPdfData) return;
+    if (!this.currentFile) return;
     this.setState({ error: null, generating: true, progressPercent: 5, progressText: 'Loading PDF...' });
     try {
+      const arrayBuffer = await this.currentFile.arrayBuffer();
       const dpi = parseInt(this.state.dpi, 10);
       const quality = 0.92;
-      const pdf = await window.pdfjsLib.getDocument({ data: this.currentPdfData }).promise;
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdf.numPages;
       const { jsPDF } = window.jspdf;
       let outputPdf = null;
@@ -357,6 +359,7 @@ class Component extends DCLogic {
       this.setState({ generating: false });
     }
   }
+  
 
   onMobileNav = (e) => { const v = e.target.value; if (v) window.location.href = v; };
 
