@@ -1,1 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lytton PD Evidence Desk v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #000;
+    font-family: 'VT323', monospace;
+    color: #0ff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
 
+  .pq-container {
+    width: 100%;
+    max-width: 800px;
+    border: 4px solid #0ff;
+    box-shadow: 0 0 20px rgba(0,255,255,0.3);
+    image-rendering: pixelated;
+    background: #000;
+  }
+
+  .pq-status {
+    background: #000080;
+    color: #fff;
+    padding: 4px 12px;
+    font-size: 18px;
+    border-bottom: 2px solid #0ff;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .pq-scene {
+    background: #000510;
+    min-height: 420px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pq-scene::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,255,255,0.03) 2px,
+      rgba(0,255,255,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .pq-scene > * { position: relative; z-index: 2; }
+
+  .pq-parser {
+    background: #000;
+    border-top: 4px solid #0ff;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pq-parser-label {
+    color: #ff0;
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .pq-input {
+    background: #000;
+    color: #0ff;
+    border: 2px solid #0ff;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    padding: 4px 8px;
+    flex: 1;
+    outline: none;
+  }
+
+  .pq-input::placeholder { color: #008888; }
+
+  .pq-btn {
+    background: #000080;
+    color: #0ff;
+    border: 2px solid #0ff;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    padding: 4px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  .pq-btn:hover {
+    background: #0ff;
+    color: #000;
+  }
+
+  .pq-btn.danger {
+    border-color: #f00;
+    color: #f00;
+  }
+  .pq-btn.danger:hover {
+    background: #f00;
+    color: #fff;
+  }
+
+  .pq-btn.gold {
+    border-color: #ff0;
+    color: #ff0;
+  }
+  .pq-btn.gold:hover {
+    background: #ff0;
+    color: #000;
+  }
+
+  .pq-text {
+    font-size: 20px;
+    line-height: 1.4;
+    color: #0ff;
+    text-shadow: 0 0 4px rgba(0,255,255,0.5);
+  }
+
+  .pq-text.yellow { color: #ff0; }
+  .pq-text.red { color: #f00; }
+  .pq-text.green { color: #0f0; }
+  .pq-text.white { color: #fff; }
+  .pq-text.magenta { color: #f0f; }
+  .pq-text.gray { color: #888; }
+
+  .pq-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 64px);
+    gap: 8px;
+    justify-content: center;
+    margin: 16px 0;
+  }
+
+  .pq-key {
+    width: 64px;
+    height: 48px;
+    background: #000080;
+    border: 2px solid #0ff;
+    color: #0ff;
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pq-key:hover {
+    background: #0ff;
+    color: #000;
+  }
+
+  .pq-key.red {
+    border-color: #f00;
+    color: #f00;
+  }
+  .pq-key.red:hover {
+    background: #f00;
+    color: #fff;
+  }
+
+  .pq-pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .pq-pin-box {
+    width: 48px;
+    height: 56px;
+    background: #000;
+    border: 3px solid #0ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #0ff;
+  }
+
+  .pq-dropzone {
+    border: 3px dashed #0ff;
+    background: rgba(0,255,255,0.05);
+    padding: 20px;
+    text-align: center;
+    margin: 12px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pq-dropzone.dragover {
+    background: rgba(0,255,255,0.15);
+    border-color: #ff0;
+  }
+
+  .pq-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 2px solid #004444;
+    padding: 10px;
+    margin: 12px 0;
+  }
+
+  .pq-file-card {
+    background: #000;
+    border: 2px solid #008888;
+    padding: 6px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .pq-file-card:hover {
+    border-color: #0ff;
+    background: rgba(0,255,255,0.08);
+  }
+
+  .pq-thumb {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    image-rendering: pixelated;
+    border: 1px solid #004444;
+    display: block;
+    margin: 0 auto 4px;
+    background: #000;
+  }
+
+  .pq-file-name {
+    font-size: 13px;
+    color: #0ff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90px;
+    margin: 0 auto;
+  }
+
+  .pq-file-size {
+    font-size: 11px;
+    color: #008888;
+  }
+
+  .pq-file-del {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #f00;
+    color: #fff;
+    border: none;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+
+  .pq-file-card:hover .pq-file-del { display: block; }
+
+  .pq-preview-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .pq-preview-overlay.active { display: flex; }
+
+  .pq-preview-img {
+    max-width: 90%;
+    max-height: 70vh;
+    border: 3px solid #0ff;
+    image-rendering: pixelated;
+  }
+
+  .pq-preview-video {
+    max-width: 90%;
+    max-height: 70vh;
+    border: 3px solid #0ff;
+  }
+
+  .pq-preview-close {
+    margin-top: 16px;
+    color: #f00;
+    font-size: 20px;
+    cursor: pointer;
+    border: 2px solid #f00;
+    padding: 4px 20px;
+    background: #000;
+    font-family: 'VT323', monospace;
+  }
+
+  .pq-preview-close:hover {
+    background: #f00;
+    color: #fff;
+  }
+
+  .pq-warning-box {
+    border: 2px solid #f00;
+    background: rgba(255,0,0,0.1);
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 15px;
+  }
+
+  .pq-scene-title {
+    text-align: center;
+    font-size: 24px;
+    color: #ff0;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .pq-divider {
+    border: none;
+    border-top: 2px solid #004444;
+    margin: 10px 0;
+  }
+
+  .pq-hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .pq-file-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+    .pq-keypad { grid-template-columns: repeat(3, 56px); }
+    .pq-key { width: 56px; height: 44px; font-size: 20px; }
+    .pq-status { font-size: 14px; }
+    .pq-scene-title { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PREVIEW OVERLAY -->
+<div class="pq-preview-overlay" id="pq-preview-overlay" onclick="pqClosePreview()">
+  <img id="pq-preview-img" class="pq-preview-img pq-hidden" src="" alt="">
+  <video id="pq-preview-video" class="pq-preview-video pq-hidden" controls></video>
+  <div style="color:#0ff; font-size:18px; margin-top:8px;" id="pq-preview-name"></div>
+  <button class="pq-preview-close" onclick="pqClosePreview()">[ CLOSE ]</button>
+</div>
+
+<div class="pq-container">
+  <!-- Status Bar -->
+  <div class="pq-status">
+    <span>SCORE: <span id="pq-score">0</span></span>
+    <span>LYTTON PD EVIDENCE DESK v2.0</span>
+    <span id="pq-mode-label">PUBLIC ACCESS</span>
+  </div>
+
+  <!-- Scene Area -->
+  <div class="pq-scene" id="pq-scene">
+
+    <!-- === PUBLIC DESK (Main) === -->
+    <div id="screen-public">
+      <div class="pq-scene-title">📂 General Evidence Desk</div>
+      <div class="pq-text gray" style="text-align:center; font-size:16px; margin-bottom:10px;">
+        NO PASSWORD REQUIRED • DROP FILES BELOW • EVERYONE SEES EVERYTHING
+      </div>
+
+      <div class="pq-dropzone" id="pq-dropzone-public" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'public')" onclick="document.getElementById('pq-file-input-public').click()">
+        <div class="pq-text yellow" style="font-size:22px;">📥 DROP FILES HERE</div>
+        <div class="pq-text" style="font-size:15px; margin-top:4px;">Images • Videos • Documents • Anything</div>
+        <div class="pq-text gray" style="font-size:13px; margin-top:4px;">(Files stored locally on this computer only)</div>
+        <input type="file" id="pq-file-input-public" multiple style="display:none" onchange="pqFileSelect(event, 'public')">
+      </div>
+
+      <div class="pq-text yellow" style="margin-top:10px;">📋 DESK CONTENTS:</div>
+      <div class="pq-file-grid" id="pq-public-grid">
+        <div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- DESK IS EMPTY --</div>
+      </div>
+
+      <hr class="pq-divider">
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <button class="pq-btn" onclick="pqShowHelp('public')">HELP</button>
+        <button class="pq-btn danger" onclick="pqNukeVault('public')">☠️ CLEAR DESK</button>
+        <button class="pq-btn gold" onclick="pqGoSecure()">🔒 ACCESS CLASSIFIED VAULT</button>
+      </div>
+
+      <div class="pq-text" id="pq-public-msg" style="margin-top:8px; min-height:22px; text-align:center;"></div>
+
+      <div class="pq-warning-box" style="margin-top:10px;">
+        <div class="pq-text red" style="text-align:center; font-size:16px;">⚠️ THIS IS NOT SECURE ⚠️</div>
+        <div class="pq-text" style="font-size:14px; margin-top:4px; text-align:center;">
+          All files sit in your browser cache. Anyone can find them. Use the Classified Vault for private compartments.
+        </div>
+      </div>
+    </div>
+
+    <!-- === PIN SCREEN (Secure Vault Gate) === -->
+    <div id="screen-pin" class="pq-hidden">
+      <div class="pq-scene-title">🔒 Classified Vault Access</div>
+      <div class="pq-text" style="text-align:center; margin-bottom:8px;">ENTER 4-DIGIT ACCESS CODE</div>
+      <div class="pq-pin-display" id="pq-pin-display">
+        <div class="pq-pin-box">_</div>
+        <div class="pq-pin-box">_</div>
+        <div class="pq-pin-box">_</div>
+        <div class="pq-pin-box">_</div>
+      </div>
+      <div class="pq-keypad">
+        <div class="pq-key" onclick="pqEnterDigit(1)">1</div>
+        <div class="pq-key" onclick="pqEnterDigit(2)">2</div>
+        <div class="pq-key" onclick="pqEnterDigit(3)">3</div>
+        <div class="pq-key" onclick="pqEnterDigit(4)">4</div>
+        <div class="pq-key" onclick="pqEnterDigit(5)">5</div>
+        <div class="pq-key" onclick="pqEnterDigit(6)">6</div>
+        <div class="pq-key" onclick="pqEnterDigit(7)">7</div>
+        <div class="pq-key" onclick="pqEnterDigit(8)">8</div>
+        <div class="pq-key" onclick="pqEnterDigit(9)">9</div>
+        <div class="pq-key red" onclick="pqClearPin()">CLR</div>
+        <div class="pq-key" onclick="pqEnterDigit(0)">0</div>
+        <div class="pq-key" onclick="pqCheckPin()" style="border-color:#0f0; color:#0f0;">GO</div>
+      </div>
+      <div class="pq-text" id="pq-pin-msg" style="text-align:center; min-height:24px;"></div>
+
+      <div style="text-align:center; margin-top:12px;">
+        <button class="pq-btn" onclick="pqBackToPublic()">← BACK TO PUBLIC DESK</button>
+      </div>
+
+      <div class="pq-warning-box" style="margin-top:10px;">
+        <div class="pq-text red" style="text-align:center; font-size:16px;">⚠️ SECURITY NOTICE ⚠️</div>
+        <div class="pq-text" style="font-size:14px; margin-top:4px; text-align:center;">
+          This vault provides ZERO actual security. All files are stored in your browser's local cache (IndexedDB). Anyone with access to this computer can view everything by pressing F12. This is privacy theater — a toy lock on a glass door.
+        </div>
+      </div>
+    </div>
+
+    <!-- === SECURE VAULT SCREEN === -->
+    <div id="screen-vault" class="pq-hidden">
+      <div class="pq-scene-title">🔐 CLASSIFIED LOCKER</div>
+      <div class="pq-text green" id="pq-vault-welcome" style="margin-bottom:8px; text-align:center;"></div>
+
+      <div class="pq-dropzone" id="pq-dropzone-secure" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'secure')" onclick="document.getElementById('pq-file-input-secure').click()">
+        <div class="pq-text yellow" style="font-size:22px;">📦 DROP FILES HERE</div>
+        <div class="pq-text" style="font-size:15px; margin-top:4px;">Private storage for PIN: <span id="pq-active-pin-display" class="pq-text magenta"></span></div>
+        <input type="file" id="pq-file-input-secure" multiple style="display:none" onchange="pqFileSelect(event, 'secure')">
+      </div>
+
+      <div class="pq-text yellow" style="margin-top:10px;">📋 YOUR PRIVATE EVIDENCE:</div>
+      <div class="pq-file-grid" id="pq-secure-grid">
+        <div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- LOCKER EMPTY --</div>
+      </div>
+
+      <hr class="pq-divider">
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <button class="pq-btn" onclick="pqShowHelp('secure')">HELP</button>
+        <button class="pq-btn" onclick="pqEmailBackup()">EMAIL BACKUP</button>
+        <button class="pq-btn danger" onclick="pqNukeVault('secure')">☠️ NUKE VAULT</button>
+        <button class="pq-btn" onclick="pqLogout()">LOGOUT</button>
+        <button class="pq-btn" onclick="pqBackToPublic()">← PUBLIC DESK</button>
+      </div>
+
+      <div class="pq-text" id="pq-vault-msg" style="margin-top:8px; min-height:22px; text-align:center;"></div>
+    </div>
+
+  </div>
+
+  <!-- Parser Bar -->
+  <div class="pq-parser">
+    <span class="pq-parser-label">&gt;</span>
+    <input type="text" class="pq-input" id="pq-parser-input" placeholder="Type a command..." onkeydown="if(event.key==='Enter')pqParse()">
+    <button class="pq-btn" onclick="pqParse()">ENTER</button>
+  </div>
+</div>
+
+<script>
+  // ===== STATE =====
+  let currentPin = '';
+  let activePin = null;
+  let publicFiles = [];
+  let secureFiles = [];
+  let db = null;
+  let currentScreen = 'public';
+
+  // ===== AUDIO (PC Speaker beeps) =====
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function pqBeep(freq, duration, type) {
+    try {
+      type = type || 'square';
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = 0.08;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      setTimeout(function() { osc.stop(); }, duration);
+    } catch(e) {}
+  }
+  function pqBeepError() { pqBeep(200, 200); setTimeout(function(){pqBeep(150, 200);}, 100); }
+  function pqBeepSuccess() { pqBeep(600, 100); setTimeout(function(){pqBeep(800, 100);}, 100); setTimeout(function(){pqBeep(1000, 150);}, 200); }
+  function pqBeepKey() { pqBeep(1100, 25); }
+
+  // ===== TYPEWRITER TEXT =====
+  function pqType(el, text, speed, colorClass) {
+    speed = speed || 20;
+    colorClass = colorClass || '';
+    el.innerHTML = '';
+    el.className = 'pq-text ' + colorClass;
+    var i = 0;
+    function typeChar() {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+        if (text.charAt(i-1) !== ' ') pqBeep(1400, 12, 'square');
+        setTimeout(typeChar, speed);
+      }
+    }
+    typeChar();
+  }
+
+  // ===== INIT DB =====
+  function pqInitDB() {
+    if (db) return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open('LyttonVaultDB_v2', 1);
+      req.onerror = function() { reject(req.error); };
+      req.onsuccess = function() { db = req.result; resolve(); };
+      req.onupgradeneeded = function(e) {
+        var d = e.target.result;
+        if (!d.objectStoreNames.contains('files')) {
+          d.createObjectStore('files');
+        }
+      };
+    });
+  }
+
+  function pqLoadPublic() {
+    return pqInitDB().then(function() {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('files', 'readonly');
+        var store = tx.objectStore('files');
+        var req = store.get('public_vault');
+        req.onsuccess = function() {
+          publicFiles = req.result || [];
+          resolve();
+        };
+        req.onerror = function() { publicFiles = []; resolve(); };
+      });
+    });
+  }
+
+  function pqSavePublic() {
+    var tx = db.transaction('files', 'readwrite');
+    var store = tx.objectStore('files');
+    store.put(publicFiles, 'public_vault');
+  }
+
+  function pqLoadSecure(pin) {
+    return pqInitDB().then(function() {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('files', 'readonly');
+        var store = tx.objectStore('files');
+        var req = store.get('user_' + pin);
+        req.onsuccess = function() {
+          secureFiles = req.result || [];
+          resolve();
+        };
+        req.onerror = function() { secureFiles = []; resolve(); };
+      });
+    });
+  }
+
+  function pqSaveSecure() {
+    var tx = db.transaction('files', 'readwrite');
+    var store = tx.objectStore('files');
+    store.put(secureFiles, 'user_' + activePin);
+  }
+
+  // ===== SCREEN SWITCHING =====
+  function pqShowScreen(name) {
+    document.getElementById('screen-public').classList.add('pq-hidden');
+    document.getElementById('screen-pin').classList.add('pq-hidden');
+    document.getElementById('screen-vault').classList.add('pq-hidden');
+    document.getElementById('screen-' + name).classList.remove('pq-hidden');
+    currentScreen = name;
+  }
+
+  function pqGoSecure() {
+    pqBeep(600, 60);
+    pqShowScreen('pin');
+    document.getElementById('pq-mode-label').textContent = 'SECURE GATE';
+    pqType(document.getElementById('pq-pin-msg'), 'ENTER PIN TO ACCESS CLASSIFIED STORAGE', 20, 'yellow');
+  }
+
+  function pqBackToPublic() {
+    pqBeep(400, 60);
+    pqShowScreen('public');
+    document.getElementById('pq-mode-label').textContent = 'PUBLIC ACCESS';
+    pqRenderPublicGrid();
+  }
+
+  // ===== PIN =====
+  function pqEnterDigit(n) {
+    pqBeepKey();
+    if (currentPin.length < 4) {
+      currentPin += n;
+      pqUpdatePinDisplay();
+      document.getElementById('pq-pin-msg').innerHTML = '';
+    }
+  }
+
+  function pqClearPin() {
+    pqBeep(400, 50);
+    currentPin = '';
+    pqUpdatePinDisplay();
+    document.getElementById('pq-pin-msg').innerHTML = '';
+  }
+
+  function pqUpdatePinDisplay() {
+    var boxes = document.querySelectorAll('#pq-pin-display .pq-pin-box');
+    for (var i = 0; i < 4; i++) {
+      boxes[i].textContent = currentPin[i] ? '*' : '_';
+      boxes[i].style.borderColor = currentPin[i] ? '#0f0' : '#0ff';
+    }
+  }
+
+  function pqCheckPin() {
+    if (currentPin.length !== 4) {
+      pqBeepError();
+      pqType(document.getElementById('pq-pin-msg'), 'ACCESS DENIED: ENTER 4 DIGITS', 25, 'red');
+      return;
+    }
+    pqBeep(800, 100);
+    pqLoadSecure(currentPin).then(function() {
+      activePin = currentPin;
+      document.getElementById('pq-mode-label').textContent = 'VAULT ' + activePin;
+      document.getElementById('pq-active-pin-display').textContent = activePin;
+      pqBeepSuccess();
+      pqShowVault();
+    });
+  }
+
+  function pqShowVault() {
+    pqShowScreen('vault');
+    pqType(document.getElementById('pq-vault-welcome'), 'CLASSIFIED VAULT ' + activePin + ' UNLOCKED', 18, 'green');
+    pqRenderSecureGrid();
+  }
+
+  function pqLogout() {
+    pqBeep(400, 80);
+    activePin = null;
+    currentPin = '';
+    secureFiles = [];
+    pqUpdatePinDisplay();
+    document.getElementById('pq-mode-label').textContent = 'PUBLIC ACCESS';
+    pqShowScreen('public');
+    pqRenderPublicGrid();
+  }
+
+  // ===== THUMBNAILS =====
+  function pqMakeThumbnail(file, dataUrl) {
+    return new Promise(function(resolve) {
+      if (file.type.startsWith('image/')) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = 80;
+          canvas.height = 60;
+          var ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(img, 0, 0, 80, 60);
+          resolve({ type: 'image', thumb: canvas.toDataURL('image/jpeg', 0.6) });
+        };
+        img.onerror = function() { resolve({ type: 'image', thumb: dataUrl }); };
+        img.src = dataUrl;
+      } else if (file.type.startsWith('video/')) {
+        var video = document.createElement('video');
+        video.src = dataUrl;
+        video.currentTime = 1;
+        video.onloadeddata = function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = 80;
+          canvas.height = 60;
+          var ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(video, 0, 0, 80, 60);
+          resolve({ type: 'video', thumb: canvas.toDataURL('image/jpeg', 0.6) });
+        };
+        video.onerror = function() { resolve({ type: 'video', thumb: null }); };
+      } else {
+        resolve({ type: 'file', thumb: null });
+      }
+    });
+  }
+
+  // ===== DRAG & DROP =====
+  function pqDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+  function pqDragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
+
+  function pqDrop(e, zone) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+    var files = Array.from(e.dataTransfer.files);
+    pqProcessFiles(files, zone);
+  }
+
+  function pqFileSelect(e, zone) {
+    var files = Array.from(e.target.files);
+    pqProcessFiles(files, zone);
+  }
+
+  function pqProcessFiles(files, zone) {
+    var msgEl = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
+    pqType(msgEl, 'PROCESSING ' + files.length + ' FILE(S)...', 18, 'yellow');
+
+    var processed = 0;
+    function processNext() {
+      if (processed >= files.length) {
+        if (zone === 'public') {
+          pqSavePublic();
+          pqRenderPublicGrid();
+        } else {
+          pqSaveSecure();
+          pqRenderSecureGrid();
+        }
+        pqBeepSuccess();
+        pqType(msgEl, 'FILES LOGGED SUCCESSFULLY.', 18, 'green');
+        pqUpdateScore();
+        return;
+      }
+      var file = files[processed];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var dataUrl = e.target.result;
+        pqMakeThumbnail(file, dataUrl).then(function(thumbInfo) {
+          var entry = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            data: dataUrl,
+            thumb: thumbInfo.thumb,
+            thumbType: thumbInfo.type,
+            date: Date.now()
+          };
+          if (zone === 'public') publicFiles.push(entry);
+          else secureFiles.push(entry);
+          processed++;
+          processNext();
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+    processNext();
+  }
+
+  // ===== RENDER GRIDS =====
+  function pqRenderPublicGrid() {
+    var grid = document.getElementById('pq-public-grid');
+    if (publicFiles.length === 0) {
+      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- DESK IS EMPTY --</div>';
+      return;
+    }
+    grid.innerHTML = publicFiles.map(function(f, idx) { return pqFileCard(f, idx, 'public'); }).join('');
+  }
+
+  function pqRenderSecureGrid() {
+    var grid = document.getElementById('pq-secure-grid');
+    if (secureFiles.length === 0) {
+      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- LOCKER EMPTY --</div>';
+      return;
+    }
+    grid.innerHTML = secureFiles.map(function(f, idx) { return pqFileCard(f, idx, 'secure'); }).join('');
+  }
+
+  function pqFileCard(f, idx, zone) {
+    var thumbHtml;
+    if (f.thumb && f.thumbType === 'image') {
+      thumbHtml = '<img class="pq-thumb" src="' + f.thumb + '" alt="" loading="lazy">';
+    } else if (f.thumb && f.thumbType === 'video') {
+      thumbHtml = '<img class="pq-thumb" src="' + f.thumb + '" alt="" loading="lazy" style="border-color:#f0f;">';
+    } else if (f.type && f.type.startsWith('video/')) {
+      thumbHtml = '<div class="pq-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#000;border:1px solid #004444;">📼</div>';
+    } else if (f.type && f.type.startsWith('image/')) {
+      thumbHtml = '<img class="pq-thumb" src="' + f.data + '" alt="" loading="lazy">';
+    } else {
+      thumbHtml = '<div class="pq-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#000;border:1px solid #004444;">📄</div>';
+    }
+
+    return '<div class="pq-file-card" onclick="pqPreviewFile(' + idx + ', '' + zone + '')">' +
+      '<button class="pq-file-del" onclick="event.stopPropagation(); pqDeleteFile(' + idx + ', '' + zone + '')">×</button>' +
+      thumbHtml +
+      '<div class="pq-file-name" title="' + f.name + '">' + f.name + '</div>' +
+      '<div class="pq-file-size">' + (f.size/1024).toFixed(0) + 'KB</div>' +
+      '</div>';
+  }
+
+  // ===== PREVIEW =====
+  function pqPreviewFile(idx, zone) {
+    var files = zone === 'public' ? publicFiles : secureFiles;
+    var f = files[idx];
+    if (!f) return;
+
+    var overlay = document.getElementById('pq-preview-overlay');
+    var img = document.getElementById('pq-preview-img');
+    var vid = document.getElementById('pq-preview-video');
+    var name = document.getElementById('pq-preview-name');
+
+    img.classList.add('pq-hidden');
+    vid.classList.add('pq-hidden');
+    vid.pause();
+    vid.src = '';
+
+    name.textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+
+    if (f.type && f.type.startsWith('video/')) {
+      vid.src = f.data;
+      vid.classList.remove('pq-hidden');
+    } else if (f.type && f.type.startsWith('image/')) {
+      img.src = f.data;
+      img.classList.remove('pq-hidden');
+    } else {
+      var a = document.createElement('a');
+      a.href = f.data;
+      a.download = f.name;
+      a.click();
+      return;
+    }
+
+    overlay.classList.add('active');
+    pqBeep(700, 60);
+  }
+
+  function pqClosePreview() {
+    var overlay = document.getElementById('pq-preview-overlay');
+    var vid = document.getElementById('pq-preview-video');
+    overlay.classList.remove('active');
+    vid.pause();
+    vid.src = '';
+    pqBeep(500, 40);
+  }
+
+  // ===== DELETE =====
+  function pqDeleteFile(idx, zone) {
+    pqBeep(300, 80);
+    if (zone === 'public') {
+      publicFiles.splice(idx, 1);
+      pqSavePublic();
+      pqRenderPublicGrid();
+      pqType(document.getElementById('pq-public-msg'), 'FILE DELETED FROM DESK.', 18, 'red');
+    } else {
+      secureFiles.splice(idx, 1);
+      pqSaveSecure();
+      pqRenderSecureGrid();
+      pqType(document.getElementById('pq-vault-msg'), 'FILE DESTROYED.', 18, 'red');
+    }
+    pqUpdateScore();
+  }
+
+  // ===== NUKE =====
+  function pqNukeVault(zone) {
+    pqBeep(200, 100);
+    setTimeout(function(){pqBeep(180, 100);}, 100);
+    setTimeout(function(){pqBeep(160, 100);}, 200);
+
+    var label = zone === 'public' ? 'CLEAR THE PUBLIC DESK' : 'DESTROY YOUR PRIVATE VAULT';
+    if (!confirm('☠️ ' + label + '? THIS CANNOT BE UNDONE.')) {
+      var msg = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
+      pqType(msg, 'OPERATION CANCELLED.', 18, 'green');
+      return;
+    }
+
+    if (zone === 'public') {
+      publicFiles = [];
+      pqSavePublic();
+      pqRenderPublicGrid();
+      pqType(document.getElementById('pq-public-msg'), 'DESK CLEARED. ALL EVIDENCE DESTROYED.', 18, 'red');
+    } else {
+      secureFiles = [];
+      pqSaveSecure();
+      pqRenderSecureGrid();
+      pqType(document.getElementById('pq-vault-msg'), 'VAULT PURGED. ALL EVIDENCE DESTROYED.', 18, 'red');
+    }
+    pqUpdateScore();
+    pqBeep(150, 400);
+  }
+
+  // ===== HELP =====
+  function pqShowHelp(zone) {
+    var msg = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
+    var text;
+    if (zone === 'public') {
+      text = 'PUBLIC DESK COMMANDS:
+• DROP FILE - Upload to shared desk
+• LIST FILES - View desk contents
+• DELETE [name] - Remove a file
+• PREVIEW [name] - View image/video
+• CLEAR DESK - Destroy everything
+• SECURE - Go to classified vault
+• HELP - Show this message';
+    } else {
+      text = 'CLASSIFIED VAULT COMMANDS:
+• DROP FILE - Upload to private locker
+• LIST FILES - View locker contents
+• DELETE [name] - Remove a file
+• PREVIEW [name] - View image/video
+• NUKE VAULT - Destroy everything
+• EMAIL BACKUP - Send to email
+• LOGOUT - Return to PIN screen
+• PUBLIC - Go to public desk
+• HELP - Show this message';
+    }
+    pqType(msg, text, 12, 'white');
+    pqBeep(600, 50);
+  }
+
+  function pqEmailBackup() {
+    pqType(document.getElementById('pq-vault-msg'), 'EMAIL BACKUP: Use your existing email-sender program. Select a file and attach it manually.', 18, 'yellow');
+    pqBeep(500, 100);
+  }
+
+  function pqUpdateScore() {
+    var total = publicFiles.length + secureFiles.length;
+    document.getElementById('pq-score').textContent = total * 10;
+  }
+
+  // ===== PARSER =====
+  function pqParse() {
+    var input = document.getElementById('pq-parser-input');
+    var raw = input.value.trim();
+    var cmd = raw.toUpperCase();
+    input.value = '';
+    pqBeep(900, 25);
+
+    if (currentScreen === 'pin') {
+      if (/^\d$/.test(raw)) pqEnterDigit(parseInt(raw));
+      else if (cmd === 'CLR') pqClearPin();
+      else if (cmd === 'GO' || cmd === 'ENTER') pqCheckPin();
+      else if (cmd === 'BACK' || cmd === 'PUBLIC') pqBackToPublic();
+      else pqType(document.getElementById('pq-pin-msg'), 'UNKNOWN COMMAND', 20, 'red');
+      return;
+    }
+
+    if (currentScreen === 'public') {
+      var msg = document.getElementById('pq-public-msg');
+      if (cmd === 'HELP') pqShowHelp('public');
+      else if (cmd === 'LIST FILES' || cmd === 'LS') pqRenderPublicGrid();
+      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') document.getElementById('pq-file-input-public').click();
+      else if (cmd === 'CLEAR DESK' || cmd === 'NUKE') pqNukeVault('public');
+      else if (cmd === 'SECURE' || cmd === 'VAULT') pqGoSecure();
+      else if (cmd.indexOf('DELETE ') === 0) {
+        var name = cmd.replace('DELETE ', '');
+        var idx = -1;
+        for (var i = 0; i < publicFiles.length; i++) {
+          if (publicFiles[i].name.toUpperCase() === name) { idx = i; break; }
+        }
+        if (idx >= 0) pqDeleteFile(idx, 'public');
+        else pqType(msg, 'FILE NOT FOUND: ' + name, 18, 'red');
+      }
+      else if (cmd.indexOf('PREVIEW ') === 0) {
+        var name2 = cmd.replace('PREVIEW ', '');
+        var idx2 = -1;
+        for (var j = 0; j < publicFiles.length; j++) {
+          if (publicFiles[j].name.toUpperCase() === name2) { idx2 = j; break; }
+        }
+        if (idx2 >= 0) pqPreviewFile(idx2, 'public');
+        else pqType(msg, 'FILE NOT FOUND: ' + name2, 18, 'red');
+      }
+      else pqType(msg, 'UNKNOWN COMMAND. TYPE "HELP" FOR OPTIONS.', 18, 'red');
+      return;
+    }
+
+    if (currentScreen === 'vault') {
+      var msg3 = document.getElementById('pq-vault-msg');
+      if (cmd === 'HELP') pqShowHelp('secure');
+      else if (cmd === 'LIST FILES' || cmd === 'LS') pqRenderSecureGrid();
+      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') document.getElementById('pq-file-input-secure').click();
+      else if (cmd === 'NUKE VAULT' || cmd === 'NUKE') pqNukeVault('secure');
+      else if (cmd === 'EMAIL BACKUP' || cmd === 'EMAIL') pqEmailBackup();
+      else if (cmd === 'LOGOUT' || cmd === 'EXIT') pqLogout();
+      else if (cmd === 'PUBLIC' || cmd === 'BACK') pqBackToPublic();
+      else if (cmd.indexOf('DELETE ') === 0) {
+        var name3 = cmd.replace('DELETE ', '');
+        var idx3 = -1;
+        for (var k = 0; k < secureFiles.length; k++) {
+          if (secureFiles[k].name.toUpperCase() === name3) { idx3 = k; break; }
+        }
+        if (idx3 >= 0) pqDeleteFile(idx3, 'secure');
+        else pqType(msg3, 'FILE NOT FOUND: ' + name3, 18, 'red');
+      }
+      else if (cmd.indexOf('PREVIEW ') === 0) {
+        var name4 = cmd.replace('PREVIEW ', '');
+        var idx4 = -1;
+        for (var m = 0; m < secureFiles.length; m++) {
+          if (secureFiles[m].name.toUpperCase() === name4) { idx4 = m; break; }
+        }
+        if (idx4 >= 0) pqPreviewFile(idx4, 'secure');
+        else pqType(msg3, 'FILE NOT FOUND: ' + name4, 18, 'red');
+      }
+      else pqType(msg3, 'UNKNOWN COMMAND. TYPE "HELP" FOR OPTIONS.', 18, 'red');
+    }
+  }
+
+  // ===== INIT =====
+  pqLoadPublic().then(function() {
+    pqRenderPublicGrid();
+    pqUpdateScore();
+    pqType(document.getElementById('pq-public-msg'), 'WELCOME TO THE EVIDENCE DESK. DROP FILES OR TYPE HELP.', 20, 'green');
+  });
+</script>
+
+</body>
+</html>
