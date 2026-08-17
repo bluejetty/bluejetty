@@ -384,12 +384,12 @@
         NO PASSWORD REQUIRED • DROP FILES BELOW • EVERYONE SEES EVERYTHING
       </div>
 
-      <div class="pq-dropzone" id="pq-dropzone-public" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'public')" onclick="document.getElementById('pq-file-input-public').click()">
+      <div class="pq-dropzone" id="pq-dropzone-public" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'public')" onclick="pqClickUpload('public')">
         <div class="pq-text yellow" style="font-size:22px;">📥 DROP FILES HERE</div>
         <div class="pq-text" style="font-size:15px; margin-top:4px;">Images • Videos • Documents • Anything</div>
         <div class="pq-text gray" style="font-size:13px; margin-top:4px;">(Files stored locally on this computer only)</div>
-        <input type="file" id="pq-file-input-public" multiple style="display:none" onchange="pqFileSelect(event, 'public')">
       </div>
+      <input type="file" id="pq-file-input-public" multiple style="display:none" onchange="pqFileSelect(event, 'public')">
 
       <div class="pq-text yellow" style="margin-top:10px;">📋 DESK CONTENTS:</div>
       <div class="pq-file-grid" id="pq-public-grid">
@@ -457,11 +457,11 @@
       <div class="pq-scene-title">🔐 CLASSIFIED LOCKER</div>
       <div class="pq-text green" id="pq-vault-welcome" style="margin-bottom:8px; text-align:center;"></div>
 
-      <div class="pq-dropzone" id="pq-dropzone-secure" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'secure')" onclick="document.getElementById('pq-file-input-secure').click()">
+      <div class="pq-dropzone" id="pq-dropzone-secure" ondragover="pqDragOver(event)" ondragleave="pqDragLeave(event)" ondrop="pqDrop(event, 'secure')" onclick="pqClickUpload('secure')">
         <div class="pq-text yellow" style="font-size:22px;">📦 DROP FILES HERE</div>
         <div class="pq-text" style="font-size:15px; margin-top:4px;">Private storage for PIN: <span id="pq-active-pin-display" class="pq-text magenta"></span></div>
-        <input type="file" id="pq-file-input-secure" multiple style="display:none" onchange="pqFileSelect(event, 'secure')">
       </div>
+      <input type="file" id="pq-file-input-secure" multiple style="display:none" onchange="pqFileSelect(event, 'secure')">
 
       <div class="pq-text yellow" style="margin-top:10px;">📋 YOUR PRIVATE EVIDENCE:</div>
       <div class="pq-file-grid" id="pq-secure-grid">
@@ -493,25 +493,33 @@
 
 <script>
   // ===== STATE =====
-  let currentPin = '';
-  let activePin = null;
-  let publicFiles = [];
-  let secureFiles = [];
-  let db = null;
-  let currentScreen = 'public';
+  var currentPin = '';
+  var activePin = null;
+  var publicFiles = [];
+  var secureFiles = [];
+  var db = null;
+  var dbReady = false;
+  var currentScreen = 'public';
 
   // ===== AUDIO (PC Speaker beeps) =====
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  var audioCtx = null;
+  function pqGetAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
   function pqBeep(freq, duration, type) {
     try {
       type = type || 'square';
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      var ctx = pqGetAudio();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
       osc.type = type;
       osc.frequency.value = freq;
       gain.gain.value = 0.08;
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
       osc.start();
       setTimeout(function() { osc.stop(); }, duration);
     } catch(e) {}
@@ -540,11 +548,19 @@
 
   // ===== INIT DB =====
   function pqInitDB() {
-    if (db) return Promise.resolve();
     return new Promise(function(resolve, reject) {
+      if (db && dbReady) { resolve(); return; }
       var req = indexedDB.open('LyttonVaultDB_v2', 1);
-      req.onerror = function() { reject(req.error); };
-      req.onsuccess = function() { db = req.result; resolve(); };
+      req.onerror = function() {
+        console.error('IndexedDB failed:', req.error);
+        reject(req.error);
+      };
+      req.onsuccess = function() {
+        db = req.result;
+        dbReady = true;
+        console.log('IndexedDB ready');
+        resolve();
+      };
       req.onupgradeneeded = function(e) {
         var d = e.target.result;
         if (!d.objectStoreNames.contains('files')) {
@@ -570,9 +586,14 @@
   }
 
   function pqSavePublic() {
-    var tx = db.transaction('files', 'readwrite');
-    var store = tx.objectStore('files');
-    store.put(publicFiles, 'public_vault');
+    if (!dbReady) return;
+    try {
+      var tx = db.transaction('files', 'readwrite');
+      var store = tx.objectStore('files');
+      store.put(publicFiles, 'public_vault');
+    } catch(e) {
+      console.error('Save public failed:', e);
+    }
   }
 
   function pqLoadSecure(pin) {
@@ -591,9 +612,14 @@
   }
 
   function pqSaveSecure() {
-    var tx = db.transaction('files', 'readwrite');
-    var store = tx.objectStore('files');
-    store.put(secureFiles, 'user_' + activePin);
+    if (!dbReady) return;
+    try {
+      var tx = db.transaction('files', 'readwrite');
+      var store = tx.objectStore('files');
+      store.put(secureFiles, 'user_' + activePin);
+    } catch(e) {
+      console.error('Save secure failed:', e);
+    }
   }
 
   // ===== SCREEN SWITCHING =====
@@ -677,12 +703,28 @@
     pqRenderPublicGrid();
   }
 
+  // ===== CLICK UPLOAD =====
+  function pqClickUpload(zone) {
+    var inputId = zone === 'public' ? 'pq-file-input-public' : 'pq-file-input-secure';
+    var input = document.getElementById(inputId);
+    if (input) {
+      input.value = ''; // Reset so same file can be selected again
+      input.click();
+    }
+  }
+
   // ===== THUMBNAILS =====
   function pqMakeThumbnail(file, dataUrl) {
     return new Promise(function(resolve) {
-      if (file.type.startsWith('image/')) {
+      // Safety timeout - always resolve within 3 seconds
+      var timeout = setTimeout(function() {
+        resolve({ type: 'file', thumb: null });
+      }, 3000);
+
+      if (file.type && file.type.startsWith('image/')) {
         var img = new Image();
         img.onload = function() {
+          clearTimeout(timeout);
           var canvas = document.createElement('canvas');
           canvas.width = 80;
           canvas.height = 60;
@@ -691,13 +733,21 @@
           ctx.drawImage(img, 0, 0, 80, 60);
           resolve({ type: 'image', thumb: canvas.toDataURL('image/jpeg', 0.6) });
         };
-        img.onerror = function() { resolve({ type: 'image', thumb: dataUrl }); };
+        img.onerror = function() {
+          clearTimeout(timeout);
+          resolve({ type: 'image', thumb: dataUrl });
+        };
         img.src = dataUrl;
-      } else if (file.type.startsWith('video/')) {
+      } else if (file.type && file.type.startsWith('video/')) {
         var video = document.createElement('video');
+        video.preload = 'metadata';
         video.src = dataUrl;
-        video.currentTime = 1;
-        video.onloadeddata = function() {
+        video.muted = true;
+        video.onloadedmetadata = function() {
+          video.currentTime = Math.min(1, video.duration / 2);
+        };
+        video.onseeked = function() {
+          clearTimeout(timeout);
           var canvas = document.createElement('canvas');
           canvas.width = 80;
           canvas.height = 60;
@@ -706,8 +756,12 @@
           ctx.drawImage(video, 0, 0, 80, 60);
           resolve({ type: 'video', thumb: canvas.toDataURL('image/jpeg', 0.6) });
         };
-        video.onerror = function() { resolve({ type: 'video', thumb: null }); };
+        video.onerror = function() {
+          clearTimeout(timeout);
+          resolve({ type: 'video', thumb: null });
+        };
       } else {
+        clearTimeout(timeout);
         resolve({ type: 'file', thumb: null });
       }
     });
@@ -729,57 +783,95 @@
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.classList.remove('dragover');
-    var files = Array.from(e.dataTransfer.files);
-    pqProcessFiles(files, zone);
+    var files = [];
+    if (e.dataTransfer && e.dataTransfer.files) {
+      files = Array.from(e.dataTransfer.files);
+    }
+    if (files.length > 0) {
+      pqProcessFiles(files, zone);
+    }
   }
 
   function pqFileSelect(e, zone) {
-    var files = Array.from(e.target.files);
-    pqProcessFiles(files, zone);
+    var files = [];
+    if (e.target && e.target.files) {
+      files = Array.from(e.target.files);
+    }
+    if (files.length > 0) {
+      pqProcessFiles(files, zone);
+    }
   }
 
   function pqProcessFiles(files, zone) {
     var msgEl = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
-    pqType(msgEl, 'PROCESSING ' + files.length + ' FILE(S)...', 18, 'yellow');
 
-    var processed = 0;
-    function processNext() {
-      if (processed >= files.length) {
-        if (zone === 'public') {
-          pqSavePublic();
-          pqRenderPublicGrid();
-        } else {
-          pqSaveSecure();
-          pqRenderSecureGrid();
+    // Ensure DB is ready before processing
+    pqInitDB().then(function() {
+      pqType(msgEl, 'PROCESSING ' + files.length + ' FILE(S)...', 18, 'yellow');
+
+      var processed = 0;
+      var failed = 0;
+
+      function processNext() {
+        if (processed + failed >= files.length) {
+          // All done
+          if (zone === 'public') {
+            pqSavePublic();
+            pqRenderPublicGrid();
+          } else {
+            pqSaveSecure();
+            pqRenderSecureGrid();
+          }
+          if (failed > 0) {
+            pqType(msgEl, 'DONE. ' + processed + ' LOGGED, ' + failed + ' FAILED.', 18, processed > 0 ? 'yellow' : 'red');
+          } else {
+            pqBeepSuccess();
+            pqType(msgEl, 'FILES LOGGED SUCCESSFULLY.', 18, 'green');
+          }
+          pqUpdateScore();
+          return;
         }
-        pqBeepSuccess();
-        pqType(msgEl, 'FILES LOGGED SUCCESSFULLY.', 18, 'green');
-        pqUpdateScore();
-        return;
-      }
-      var file = files[processed];
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var dataUrl = e.target.result;
-        pqMakeThumbnail(file, dataUrl).then(function(thumbInfo) {
-          var entry = {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            data: dataUrl,
-            thumb: thumbInfo.thumb,
-            thumbType: thumbInfo.type,
-            date: Date.now()
-          };
-          if (zone === 'public') publicFiles.push(entry);
-          else secureFiles.push(entry);
-          processed++;
+
+        var file = files[processed + failed];
+        var reader = new FileReader();
+
+        reader.onerror = function() {
+          console.error('FileReader error for:', file.name);
+          failed++;
           processNext();
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-    processNext();
+        };
+
+        reader.onload = function(e) {
+          var dataUrl = e.target.result;
+          pqMakeThumbnail(file, dataUrl).then(function(thumbInfo) {
+            var entry = {
+              name: file.name,
+              type: file.type || 'application/octet-stream',
+              size: file.size,
+              data: dataUrl,
+              thumb: thumbInfo.thumb,
+              thumbType: thumbInfo.type,
+              date: Date.now()
+            };
+            if (zone === 'public') publicFiles.push(entry);
+            else secureFiles.push(entry);
+            processed++;
+            processNext();
+          }).catch(function(err) {
+            console.error('Thumbnail error:', err);
+            failed++;
+            processNext();
+          });
+        };
+
+        reader.readAsDataURL(file);
+      }
+
+      processNext();
+    }).catch(function(err) {
+      console.error('DB init failed:', err);
+      pqType(msgEl, 'DATABASE ERROR: ' + (err.message || 'UNKNOWN'), 18, 'red');
+    });
   }
 
   // ===== RENDER GRIDS =====
@@ -789,7 +881,11 @@
       grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- DESK IS EMPTY --</div>';
       return;
     }
-    grid.innerHTML = publicFiles.map(function(f, idx) { return pqFileCard(f, idx, 'public'); }).join('');
+    var html = '';
+    for (var i = 0; i < publicFiles.length; i++) {
+      html += pqFileCard(publicFiles[i], i, 'public');
+    }
+    grid.innerHTML = html;
   }
 
   function pqRenderSecureGrid() {
@@ -798,7 +894,11 @@
       grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- LOCKER EMPTY --</div>';
       return;
     }
-    grid.innerHTML = secureFiles.map(function(f, idx) { return pqFileCard(f, idx, 'secure'); }).join('');
+    var html = '';
+    for (var i = 0; i < secureFiles.length; i++) {
+      html += pqFileCard(secureFiles[i], i, 'secure');
+    }
+    grid.innerHTML = html;
   }
 
   function pqFileCard(f, idx, zone) {
@@ -807,16 +907,16 @@
       thumbHtml = '<img class="pq-thumb" src="' + f.thumb + '" alt="" loading="lazy">';
     } else if (f.thumb && f.thumbType === 'video') {
       thumbHtml = '<img class="pq-thumb" src="' + f.thumb + '" alt="" loading="lazy" style="border-color:#f0f;">';
-    } else if (f.type && f.type.startsWith('video/')) {
+    } else if (f.type && f.type.indexOf('video/') === 0) {
       thumbHtml = '<div class="pq-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#000;border:1px solid #004444;">📼</div>';
-    } else if (f.type && f.type.startsWith('image/')) {
+    } else if (f.type && f.type.indexOf('image/') === 0) {
       thumbHtml = '<img class="pq-thumb" src="' + f.data + '" alt="" loading="lazy">';
     } else {
       thumbHtml = '<div class="pq-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#000;border:1px solid #004444;">📄</div>';
     }
 
-    return '<div class="pq-file-card" onclick="pqPreviewFile(' + idx + ', '' + zone + '')">' +
-      '<button class="pq-file-del" onclick="event.stopPropagation(); pqDeleteFile(' + idx + ', '' + zone + '')">×</button>' +
+    return '<div class="pq-file-card" onclick="pqPreviewFile(' + idx + ', \'' + zone + '\')">' +
+      '<button class="pq-file-del" onclick="event.stopPropagation(); pqDeleteFile(' + idx + ', \'' + zone + '\')">×</button>' +
       thumbHtml +
       '<div class="pq-file-name" title="' + f.name + '">' + f.name + '</div>' +
       '<div class="pq-file-size">' + (f.size/1024).toFixed(0) + 'KB</div>' +
@@ -841,10 +941,10 @@
 
     name.textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
 
-    if (f.type && f.type.startsWith('video/')) {
+    if (f.type && f.type.indexOf('video/') === 0) {
       vid.src = f.data;
       vid.classList.remove('pq-hidden');
-    } else if (f.type && f.type.startsWith('image/')) {
+    } else if (f.type && f.type.indexOf('image/') === 0) {
       img.src = f.data;
       img.classList.remove('pq-hidden');
     } else {
@@ -918,25 +1018,25 @@
     var msg = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
     var text;
     if (zone === 'public') {
-      text = 'PUBLIC DESK COMMANDS:
-• DROP FILE - Upload to shared desk
-• LIST FILES - View desk contents
-• DELETE [name] - Remove a file
-• PREVIEW [name] - View image/video
-• CLEAR DESK - Destroy everything
-• SECURE - Go to classified vault
-• HELP - Show this message';
+      text = 'PUBLIC DESK COMMANDS:\n' +
+        '• DROP FILE - Upload to shared desk\n' +
+        '• LIST FILES - View desk contents\n' +
+        '• DELETE [name] - Remove a file\n' +
+        '• PREVIEW [name] - View image/video\n' +
+        '• CLEAR DESK - Destroy everything\n' +
+        '• SECURE - Go to classified vault\n' +
+        '• HELP - Show this message';
     } else {
-      text = 'CLASSIFIED VAULT COMMANDS:
-• DROP FILE - Upload to private locker
-• LIST FILES - View locker contents
-• DELETE [name] - Remove a file
-• PREVIEW [name] - View image/video
-• NUKE VAULT - Destroy everything
-• EMAIL BACKUP - Send to email
-• LOGOUT - Return to PIN screen
-• PUBLIC - Go to public desk
-• HELP - Show this message';
+      text = 'CLASSIFIED VAULT COMMANDS:\n' +
+        '• DROP FILE - Upload to private locker\n' +
+        '• LIST FILES - View locker contents\n' +
+        '• DELETE [name] - Remove a file\n' +
+        '• PREVIEW [name] - View image/video\n' +
+        '• NUKE VAULT - Destroy everything\n' +
+        '• EMAIL BACKUP - Send to email\n' +
+        '• LOGOUT - Return to PIN screen\n' +
+        '• PUBLIC - Go to public desk\n' +
+        '• HELP - Show this message';
     }
     pqType(msg, text, 12, 'white');
     pqBeep(600, 50);
@@ -973,7 +1073,7 @@
       var msg = document.getElementById('pq-public-msg');
       if (cmd === 'HELP') pqShowHelp('public');
       else if (cmd === 'LIST FILES' || cmd === 'LS') pqRenderPublicGrid();
-      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') document.getElementById('pq-file-input-public').click();
+      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') pqClickUpload('public');
       else if (cmd === 'CLEAR DESK' || cmd === 'NUKE') pqNukeVault('public');
       else if (cmd === 'SECURE' || cmd === 'VAULT') pqGoSecure();
       else if (cmd.indexOf('DELETE ') === 0) {
@@ -1002,7 +1102,7 @@
       var msg3 = document.getElementById('pq-vault-msg');
       if (cmd === 'HELP') pqShowHelp('secure');
       else if (cmd === 'LIST FILES' || cmd === 'LS') pqRenderSecureGrid();
-      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') document.getElementById('pq-file-input-secure').click();
+      else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') pqClickUpload('secure');
       else if (cmd === 'NUKE VAULT' || cmd === 'NUKE') pqNukeVault('secure');
       else if (cmd === 'EMAIL BACKUP' || cmd === 'EMAIL') pqEmailBackup();
       else if (cmd === 'LOGOUT' || cmd === 'EXIT') pqLogout();
@@ -1030,12 +1130,10 @@
   }
 
   // ===== GLOBAL DROP PREVENTION =====
-  // Stop the browser from opening dragged files anywhere on the page
   window.addEventListener('dragover', function(e) {
     e.preventDefault();
   });
   window.addEventListener('drop', function(e) {
-    // Only allow drops on our designated dropzones
     var target = e.target;
     var isDropzone = false;
     while (target && target !== document.body) {
@@ -1055,6 +1153,9 @@
     pqRenderPublicGrid();
     pqUpdateScore();
     pqType(document.getElementById('pq-public-msg'), 'WELCOME TO THE EVIDENCE DESK. DROP FILES OR TYPE HELP.', 20, 'green');
+  }).catch(function(err) {
+    console.error('Init failed:', err);
+    document.getElementById('pq-public-msg').innerHTML = '<span class="pq-text red">DATABASE INIT FAILED. CHECK CONSOLE.</span>';
   });
 </script>
 
