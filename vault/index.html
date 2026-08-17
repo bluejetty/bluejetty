@@ -714,11 +714,20 @@
   }
 
   // ===== DRAG & DROP =====
-  function pqDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
-  function pqDragLeave(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
+  function pqDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add('dragover');
+  }
+  function pqDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('dragover');
+  }
 
   function pqDrop(e, zone) {
     e.preventDefault();
+    e.stopPropagation();
     e.currentTarget.classList.remove('dragover');
     var files = Array.from(e.dataTransfer.files);
     pqProcessFiles(files, zone);
@@ -1019,6 +1028,27 @@
       else pqType(msg3, 'UNKNOWN COMMAND. TYPE "HELP" FOR OPTIONS.', 18, 'red');
     }
   }
+
+  // ===== GLOBAL DROP PREVENTION =====
+  // Stop the browser from opening dragged files anywhere on the page
+  window.addEventListener('dragover', function(e) {
+    e.preventDefault();
+  });
+  window.addEventListener('drop', function(e) {
+    // Only allow drops on our designated dropzones
+    var target = e.target;
+    var isDropzone = false;
+    while (target && target !== document.body) {
+      if (target.classList && target.classList.contains('pq-dropzone')) {
+        isDropzone = true;
+        break;
+      }
+      target = target.parentNode;
+    }
+    if (!isDropzone) {
+      e.preventDefault();
+    }
+  });
 
   // ===== INIT =====
   pqLoadPublic().then(function() {
