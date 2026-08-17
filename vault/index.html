@@ -279,6 +279,124 @@
 
   .pq-file-card:hover .pq-file-del { display: block; }
 
+  .pq-file-move {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    background: #000080;
+    color: #0ff;
+    border: 1px solid #0ff;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    width: 18px;
+    height: 18px;
+    line-height: 15px;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+
+  .pq-file-card:hover .pq-file-move { display: block; }
+
+  .pq-folder-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    padding: 6px 10px;
+    border: 2px solid #004444;
+    background: rgba(0,255,255,0.04);
+  }
+
+  .pq-move-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+    padding: 20px;
+  }
+
+  .pq-move-overlay.active { display: flex; }
+
+  .pq-move-box {
+    background: #000510;
+    border: 3px solid #0ff;
+    padding: 16px;
+    width: 100%;
+    max-width: 280px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .pq-move-box .pq-btn {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    text-align: center;
+  }
+
+  .pq-slideshow-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.96);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 120;
+    padding: 20px;
+  }
+
+  .pq-slideshow-overlay.active { display: flex; }
+
+  .pq-slideshow-topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    max-width: 700px;
+    color: #0ff;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .pq-slideshow-stage {
+    width: 100%;
+    max-width: 700px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .pq-slideshow-stage img,
+  .pq-slideshow-stage video {
+    max-width: 100%;
+    max-height: 65vh;
+    border: 3px solid #0ff;
+    image-rendering: pixelated;
+  }
+
+  .pq-slideshow-audio-visual {
+    color: #ff0;
+    font-size: 26px;
+    text-align: center;
+  }
+
+  .pq-slideshow-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .pq-preview-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -366,6 +484,35 @@
   <button class="pq-preview-close" onclick="pqClosePreview()">[ CLOSE ]</button>
 </div>
 
+<!-- MOVE-TO-FOLDER OVERLAY -->
+<div class="pq-move-overlay" id="pq-move-overlay" onclick="if(event.target===this)pqCloseMoveMenu()">
+  <div class="pq-move-box">
+    <div class="pq-text yellow" style="text-align:center; margin-bottom:8px;">MOVE TO FOLDER</div>
+    <div id="pq-move-list"></div>
+    <button class="pq-btn danger" onclick="pqCloseMoveMenu()">CANCEL</button>
+  </div>
+</div>
+
+<!-- SLIDESHOW OVERLAY -->
+<div class="pq-slideshow-overlay" id="pq-slideshow-overlay">
+  <div class="pq-slideshow-topbar">
+    <span id="pq-slideshow-counter">1 / 1</span>
+    <span id="pq-slideshow-name" class="pq-text yellow" style="font-size:16px;"></span>
+  </div>
+  <div class="pq-slideshow-stage">
+    <img id="pq-slideshow-img" class="pq-hidden" src="" alt="">
+    <video id="pq-slideshow-video" class="pq-hidden"></video>
+    <div id="pq-slideshow-audio-visual" class="pq-slideshow-audio-visual pq-hidden">🎵 PLAYING AUDIO...</div>
+    <audio id="pq-slideshow-audio"></audio>
+  </div>
+  <div class="pq-slideshow-controls">
+    <button class="pq-btn" onclick="pqSlideshowPrev()">⏮ PREV</button>
+    <button class="pq-btn" id="pq-slideshow-playpause" onclick="pqSlideshowTogglePause()">⏸ PAUSE</button>
+    <button class="pq-btn" onclick="pqSlideshowNext()">NEXT ⏭</button>
+    <button class="pq-btn danger" onclick="pqSlideshowStop()">✕ STOP</button>
+  </div>
+</div>
+
 <div class="pq-container">
   <!-- Status Bar -->
   <div class="pq-status">
@@ -391,6 +538,12 @@
       </div>
       <input type="file" id="pq-file-input-public" multiple style="display:none" onchange="pqFileSelect(event, 'public')">
 
+      <div class="pq-folder-bar pq-hidden" id="pq-public-folder-bar">
+        <button class="pq-btn" onclick="pqBackToFolders('public')">← FOLDERS</button>
+        <span class="pq-text yellow" id="pq-public-folder-title"></span>
+        <button class="pq-btn gold" onclick="pqStartSlideshow('public', pqCurrentFolderPublic)">▶ PLAY FOLDER</button>
+      </div>
+
       <div class="pq-text yellow" style="margin-top:10px;">📋 DESK CONTENTS:</div>
       <div class="pq-file-grid" id="pq-public-grid">
         <div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- DESK IS EMPTY --</div>
@@ -400,6 +553,8 @@
 
       <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
         <button class="pq-btn" onclick="pqShowHelp('public')">HELP</button>
+        <button class="pq-btn" onclick="pqCreateFolder('public')">📁 NEW FOLDER</button>
+        <button class="pq-btn gold" onclick="pqStartSlideshow('public', null)">▶ PLAY ALL</button>
         <button class="pq-btn danger" onclick="pqNukeVault('public')">☠️ CLEAR DESK</button>
         <button class="pq-btn gold" onclick="pqGoSecure()">🔒 ACCESS CLASSIFIED VAULT</button>
       </div>
@@ -463,6 +618,12 @@
       </div>
       <input type="file" id="pq-file-input-secure" multiple style="display:none" onchange="pqFileSelect(event, 'secure')">
 
+      <div class="pq-folder-bar pq-hidden" id="pq-secure-folder-bar">
+        <button class="pq-btn" onclick="pqBackToFolders('secure')">← FOLDERS</button>
+        <span class="pq-text yellow" id="pq-secure-folder-title"></span>
+        <button class="pq-btn gold" onclick="pqStartSlideshow('secure', pqCurrentFolderSecure)">▶ PLAY FOLDER</button>
+      </div>
+
       <div class="pq-text yellow" style="margin-top:10px;">📋 YOUR PRIVATE EVIDENCE:</div>
       <div class="pq-file-grid" id="pq-secure-grid">
         <div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- LOCKER EMPTY --</div>
@@ -472,6 +633,8 @@
 
       <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
         <button class="pq-btn" onclick="pqShowHelp('secure')">HELP</button>
+        <button class="pq-btn" onclick="pqCreateFolder('secure')">📁 NEW FOLDER</button>
+        <button class="pq-btn gold" onclick="pqStartSlideshow('secure', null)">▶ PLAY ALL</button>
         <button class="pq-btn" onclick="pqEmailBackup()">EMAIL BACKUP</button>
         <button class="pq-btn danger" onclick="pqNukeVault('secure')">☠️ NUKE VAULT</button>
         <button class="pq-btn" onclick="pqLogout()">LOGOUT</button>
@@ -497,9 +660,16 @@
   var activePin = null;
   var publicFiles = [];
   var secureFiles = [];
+  var publicCustomFolders = [];
+  var secureCustomFolders = [];
+  var pqCurrentFolderPublic = null;
+  var pqCurrentFolderSecure = null;
   var db = null;
   var dbReady = false;
   var currentScreen = 'public';
+  var PQ_IMAGE_DURATION = 5000; // ms an image stays on screen during slideshow
+  var PQ_AUTO_FOLDERS = ['Video', 'Audio', 'Images', 'Documents', 'Files'];
+  var PQ_FOLDER_ICONS = { Video: '🎬', Audio: '🎵', Images: '🖼️', Documents: '📄', Files: '📦' };
 
   // ===== AUDIO (PC Speaker beeps) =====
   var audioCtx = null;
@@ -622,6 +792,48 @@
     }
   }
 
+  function pqLoadPublicFolders() {
+    return pqInitDB().then(function() {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('files', 'readonly');
+        var req = tx.objectStore('files').get('public_folders');
+        req.onsuccess = function() { publicCustomFolders = req.result || []; resolve(); };
+        req.onerror = function() { publicCustomFolders = []; resolve(); };
+      });
+    });
+  }
+
+  function pqSavePublicFolders() {
+    if (!dbReady) return;
+    try {
+      var tx = db.transaction('files', 'readwrite');
+      tx.objectStore('files').put(publicCustomFolders, 'public_folders');
+    } catch(e) {
+      console.error('Save public folders failed:', e);
+    }
+  }
+
+  function pqLoadSecureFolders(pin) {
+    return pqInitDB().then(function() {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('files', 'readonly');
+        var req = tx.objectStore('files').get('user_' + pin + '_folders');
+        req.onsuccess = function() { secureCustomFolders = req.result || []; resolve(); };
+        req.onerror = function() { secureCustomFolders = []; resolve(); };
+      });
+    });
+  }
+
+  function pqSaveSecureFolders() {
+    if (!dbReady) return;
+    try {
+      var tx = db.transaction('files', 'readwrite');
+      tx.objectStore('files').put(secureCustomFolders, 'user_' + activePin + '_folders');
+    } catch(e) {
+      console.error('Save secure folders failed:', e);
+    }
+  }
+
   // ===== SCREEN SWITCHING =====
   function pqShowScreen(name) {
     document.getElementById('screen-public').classList.add('pq-hidden');
@@ -677,7 +889,7 @@
       return;
     }
     pqBeep(800, 100);
-    pqLoadSecure(currentPin).then(function() {
+    Promise.all([pqLoadSecure(currentPin), pqLoadSecureFolders(currentPin)]).then(function() {
       activePin = currentPin;
       document.getElementById('pq-mode-label').textContent = 'VAULT ' + activePin;
       document.getElementById('pq-active-pin-display').textContent = activePin;
@@ -697,6 +909,8 @@
     activePin = null;
     currentPin = '';
     secureFiles = [];
+    secureCustomFolders = [];
+    pqCurrentFolderSecure = null;
     pqUpdatePinDisplay();
     document.getElementById('pq-mode-label').textContent = 'PUBLIC ACCESS';
     pqShowScreen('public');
@@ -874,31 +1088,204 @@
     });
   }
 
+  // ===== FOLDER CATEGORIZATION =====
+  function pqAutoFolderFor(f) {
+    var t = (f.type || '').toLowerCase();
+    var name = (f.name || '').toLowerCase();
+    if (t.indexOf('video/') === 0) return 'Video';
+    if (t.indexOf('audio/') === 0) return 'Audio';
+    if (t.indexOf('image/') === 0) return 'Images';
+    if (t === 'application/pdf' || /\.(pdf|docx?|odt|rtf|txt|xlsx?|pptx?|csv)$/.test(name)) return 'Documents';
+    return 'Files';
+  }
+
+  function pqEffectiveFolder(f) {
+    return f.folder || pqAutoFolderFor(f);
+  }
+
   // ===== RENDER GRIDS =====
-  function pqRenderPublicGrid() {
-    var grid = document.getElementById('pq-public-grid');
-    if (publicFiles.length === 0) {
-      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- DESK IS EMPTY --</div>';
+  function pqRenderPublicGrid() { pqRenderZone('public'); }
+  function pqRenderSecureGrid() { pqRenderZone('secure'); }
+
+  function pqRenderZone(zone) {
+    var files = zone === 'public' ? publicFiles : secureFiles;
+    var currentFolder = zone === 'public' ? pqCurrentFolderPublic : pqCurrentFolderSecure;
+    var barId = zone === 'public' ? 'pq-public-folder-bar' : 'pq-secure-folder-bar';
+    var titleId = zone === 'public' ? 'pq-public-folder-title' : 'pq-secure-folder-title';
+    var gridId = zone === 'public' ? 'pq-public-grid' : 'pq-secure-grid';
+    var bar = document.getElementById(barId);
+    var grid = document.getElementById(gridId);
+
+    if (currentFolder === null) {
+      bar.classList.add('pq-hidden');
+      pqRenderFolderList(zone);
       return;
     }
+
+    bar.classList.remove('pq-hidden');
+    document.getElementById(titleId).textContent = (PQ_FOLDER_ICONS[currentFolder] || '📁') + ' ' + currentFolder;
+
+    var indices = [];
+    for (var i = 0; i < files.length; i++) {
+      if (pqEffectiveFolder(files[i]) === currentFolder) indices.push(i);
+    }
+
+    if (indices.length === 0) {
+      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- FOLDER EMPTY --</div>';
+      return;
+    }
+
     var html = '';
-    for (var i = 0; i < publicFiles.length; i++) {
-      html += pqFileCard(publicFiles[i], i, 'public');
+    for (var j = 0; j < indices.length; j++) {
+      html += pqFileCard(files[indices[j]], indices[j], zone);
     }
     grid.innerHTML = html;
   }
 
-  function pqRenderSecureGrid() {
-    var grid = document.getElementById('pq-secure-grid');
-    if (secureFiles.length === 0) {
-      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- LOCKER EMPTY --</div>';
+  function pqRenderFolderList(zone) {
+    var files = zone === 'public' ? publicFiles : secureFiles;
+    var customFolders = zone === 'public' ? publicCustomFolders : secureCustomFolders;
+    var gridId = zone === 'public' ? 'pq-public-grid' : 'pq-secure-grid';
+    var grid = document.getElementById(gridId);
+
+    var counts = {};
+    for (var i = 0; i < files.length; i++) {
+      var fold = pqEffectiveFolder(files[i]);
+      counts[fold] = (counts[fold] || 0) + 1;
+    }
+
+    var folders = [];
+    for (var a = 0; a < PQ_AUTO_FOLDERS.length; a++) {
+      var an = PQ_AUTO_FOLDERS[a];
+      if (counts[an]) folders.push({ name: an, count: counts[an], auto: true });
+    }
+    for (var c = 0; c < customFolders.length; c++) {
+      var cn = customFolders[c];
+      if (PQ_AUTO_FOLDERS.indexOf(cn) === -1) folders.push({ name: cn, count: counts[cn] || 0, auto: false });
+    }
+
+    if (folders.length === 0) {
+      var label = zone === 'public' ? 'DESK IS EMPTY' : 'LOCKER EMPTY';
+      grid.innerHTML = '<div class="pq-text gray" style="text-align:center; grid-column: 1 / -1; padding: 20px;">-- ' + label + ' --</div>';
       return;
     }
+
     var html = '';
-    for (var i = 0; i < secureFiles.length; i++) {
-      html += pqFileCard(secureFiles[i], i, 'secure');
+    for (var k = 0; k < folders.length; k++) {
+      html += pqFolderCard(folders[k], zone);
     }
     grid.innerHTML = html;
+  }
+
+  function pqFolderCard(fd, zone) {
+    var icon = PQ_FOLDER_ICONS[fd.name] || '📁';
+    var safeName = fd.name.replace(/'/g, "\\'");
+    var delBtn = fd.auto ? '' :
+      '<button class="pq-file-del" onclick="event.stopPropagation(); pqDeleteFolder(\'' + zone + '\', \'' + safeName + '\')">×</button>';
+    return '<div class="pq-file-card" onclick="pqOpenFolder(\'' + zone + '\', \'' + safeName + '\')">' +
+      delBtn +
+      '<div class="pq-thumb" style="display:flex;align-items:center;justify-content:center;font-size:30px;">' + icon + '</div>' +
+      '<div class="pq-file-name">' + fd.name + '</div>' +
+      '<div class="pq-file-size">' + fd.count + ' item' + (fd.count === 1 ? '' : 's') + '</div>' +
+      '</div>';
+  }
+
+  function pqOpenFolder(zone, name) {
+    pqBeep(700, 40);
+    if (zone === 'public') { pqCurrentFolderPublic = name; pqRenderPublicGrid(); }
+    else { pqCurrentFolderSecure = name; pqRenderSecureGrid(); }
+  }
+
+  function pqBackToFolders(zone) {
+    pqBeep(500, 40);
+    if (zone === 'public') { pqCurrentFolderPublic = null; pqRenderPublicGrid(); }
+    else { pqCurrentFolderSecure = null; pqRenderSecureGrid(); }
+  }
+
+  function pqCreateFolder(zone) {
+    var name = prompt('NEW FOLDER NAME:');
+    if (!name) return;
+    name = name.trim();
+    if (!name) return;
+    if (PQ_AUTO_FOLDERS.indexOf(name) !== -1) {
+      alert('"' + name + '" is a reserved automatic folder name.');
+      return;
+    }
+    var customFolders = zone === 'public' ? publicCustomFolders : secureCustomFolders;
+    if (customFolders.indexOf(name) === -1) customFolders.push(name);
+    if (zone === 'public') pqSavePublicFolders(); else pqSaveSecureFolders();
+    pqBeepSuccess();
+    if (zone === 'public') pqRenderPublicGrid(); else pqRenderSecureGrid();
+  }
+
+  function pqDeleteFolder(zone, name) {
+    if (!confirm('DELETE FOLDER "' + name + '"? Files inside move back to their automatic category.')) return;
+    var files = zone === 'public' ? publicFiles : secureFiles;
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].folder === name) files[i].folder = null;
+    }
+    var customFolders = zone === 'public' ? publicCustomFolders : secureCustomFolders;
+    var idx = customFolders.indexOf(name);
+    if (idx !== -1) customFolders.splice(idx, 1);
+    if (zone === 'public') { pqSavePublic(); pqSavePublicFolders(); }
+    else { pqSaveSecure(); pqSaveSecureFolders(); }
+    pqBeep(300, 80);
+    if (zone === 'public') pqRenderPublicGrid(); else pqRenderSecureGrid();
+  }
+
+  // ===== MOVE FILE TO FOLDER =====
+  var pqMoveContext = null;
+
+  function pqOpenMoveMenu(idx, zone) {
+    pqMoveContext = { idx: idx, zone: zone };
+    var customFolders = zone === 'public' ? publicCustomFolders : secureCustomFolders;
+    var allFolders = PQ_AUTO_FOLDERS.concat(customFolders.filter(function(n) { return PQ_AUTO_FOLDERS.indexOf(n) === -1; }));
+    var list = document.getElementById('pq-move-list');
+    var html = '';
+    for (var i = 0; i < allFolders.length; i++) {
+      var safeName = allFolders[i].replace(/'/g, "\\'");
+      html += '<button class="pq-btn" onclick="pqMoveFileTo(\'' + safeName + '\')">' +
+        (PQ_FOLDER_ICONS[allFolders[i]] || '📁') + ' ' + allFolders[i] + '</button>';
+    }
+    html += '<button class="pq-btn gold" onclick="pqMoveFileNewFolder()">+ NEW FOLDER...</button>';
+    list.innerHTML = html;
+    document.getElementById('pq-move-overlay').classList.add('active');
+    pqBeep(700, 40);
+  }
+
+  function pqCloseMoveMenu() {
+    document.getElementById('pq-move-overlay').classList.remove('active');
+    pqMoveContext = null;
+  }
+
+  function pqMoveFileTo(folderName) {
+    if (!pqMoveContext) return;
+    var zone = pqMoveContext.zone;
+    var idx = pqMoveContext.idx;
+    var files = zone === 'public' ? publicFiles : secureFiles;
+    var f = files[idx];
+    if (f) {
+      f.folder = folderName;
+      if (zone === 'public') pqSavePublic(); else pqSaveSecure();
+    }
+    pqCloseMoveMenu();
+    pqBeepSuccess();
+    if (zone === 'public') pqRenderPublicGrid(); else pqRenderSecureGrid();
+  }
+
+  function pqMoveFileNewFolder() {
+    if (!pqMoveContext) return;
+    var name = prompt('NEW FOLDER NAME:');
+    if (!name) return;
+    name = name.trim();
+    if (!name) return;
+    var zone = pqMoveContext.zone;
+    if (PQ_AUTO_FOLDERS.indexOf(name) === -1) {
+      var customFolders = zone === 'public' ? publicCustomFolders : secureCustomFolders;
+      if (customFolders.indexOf(name) === -1) customFolders.push(name);
+      if (zone === 'public') pqSavePublicFolders(); else pqSaveSecureFolders();
+    }
+    pqMoveFileTo(name);
   }
 
   function pqFileCard(f, idx, zone) {
@@ -916,6 +1303,7 @@
     }
 
     return '<div class="pq-file-card" onclick="pqPreviewFile(' + idx + ', \'' + zone + '\')">' +
+      '<button class="pq-file-move" onclick="event.stopPropagation(); pqOpenMoveMenu(' + idx + ', \'' + zone + '\')">📁</button>' +
       '<button class="pq-file-del" onclick="event.stopPropagation(); pqDeleteFile(' + idx + ', \'' + zone + '\')">×</button>' +
       thumbHtml +
       '<div class="pq-file-name" title="' + f.name + '">' + f.name + '</div>' +
@@ -924,6 +1312,23 @@
   }
 
   // ===== PREVIEW =====
+  var pqCurrentVideoBlobUrl = null;
+
+  function pqDataUrlToBlobUrl(dataUrl) {
+    var parts = dataUrl.split(',');
+    var meta = parts[0];
+    var mimeMatch = meta.match(/data:(.*?);base64/);
+    var mime = mimeMatch ? mimeMatch[1] : 'video/mp4';
+    var binary = atob(parts[1]);
+    var len = binary.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    var blob = new Blob([bytes], { type: mime });
+    return URL.createObjectURL(blob);
+  }
+
   function pqPreviewFile(idx, zone) {
     var files = zone === 'public' ? publicFiles : secureFiles;
     var f = files[idx];
@@ -938,11 +1343,16 @@
     vid.classList.add('pq-hidden');
     vid.pause();
     vid.src = '';
+    if (pqCurrentVideoBlobUrl) {
+      URL.revokeObjectURL(pqCurrentVideoBlobUrl);
+      pqCurrentVideoBlobUrl = null;
+    }
 
     name.textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
 
     if (f.type && f.type.indexOf('video/') === 0) {
-      vid.src = f.data;
+      pqCurrentVideoBlobUrl = pqDataUrlToBlobUrl(f.data);
+      vid.src = pqCurrentVideoBlobUrl;
       vid.classList.remove('pq-hidden');
     } else if (f.type && f.type.indexOf('image/') === 0) {
       img.src = f.data;
@@ -965,8 +1375,156 @@
     overlay.classList.remove('active');
     vid.pause();
     vid.src = '';
+    if (pqCurrentVideoBlobUrl) {
+      URL.revokeObjectURL(pqCurrentVideoBlobUrl);
+      pqCurrentVideoBlobUrl = null;
+    }
     pqBeep(500, 40);
   }
+
+  // ===== SLIDESHOW (PLAY ALL / PLAY FOLDER) =====
+  var pqSlideshow = {
+    files: [],
+    index: 0,
+    paused: false,
+    timer: null,
+    blobUrl: null,
+    msgEl: null
+  };
+
+  function pqStartSlideshow(zone, folder) {
+    var source = zone === 'public' ? publicFiles : secureFiles;
+    var list = [];
+    for (var i = 0; i < source.length; i++) {
+      var f = source[i];
+      if (folder && pqEffectiveFolder(f) !== folder) continue;
+      var t = f.type || '';
+      if (t.indexOf('video/') === 0 || t.indexOf('image/') === 0 || t.indexOf('audio/') === 0) {
+        list.push(f);
+      }
+    }
+
+    var msgEl = zone === 'public' ? document.getElementById('pq-public-msg') : document.getElementById('pq-vault-msg');
+    if (list.length === 0) {
+      pqType(msgEl, 'NOTHING PLAYABLE HERE (VIDEO / IMAGE / AUDIO ONLY).', 18, 'red');
+      return;
+    }
+
+    pqSlideshow.files = list;
+    pqSlideshow.index = 0;
+    pqSlideshow.paused = false;
+    pqSlideshow.msgEl = msgEl;
+
+    document.getElementById('pq-slideshow-overlay').classList.add('active');
+    document.getElementById('pq-slideshow-playpause').textContent = '⏸ PAUSE';
+    pqSlideshowShow(0);
+    pqBeep(700, 60);
+  }
+
+  function pqSlideshowCleanupMedia() {
+    clearTimeout(pqSlideshow.timer);
+    var vid = document.getElementById('pq-slideshow-video');
+    var aud = document.getElementById('pq-slideshow-audio');
+    vid.onended = null;
+    aud.onended = null;
+    vid.pause();
+    vid.src = '';
+    aud.pause();
+    aud.src = '';
+    if (pqSlideshow.blobUrl) {
+      URL.revokeObjectURL(pqSlideshow.blobUrl);
+      pqSlideshow.blobUrl = null;
+    }
+  }
+
+  function pqSlideshowShow(i) {
+    pqSlideshowCleanupMedia();
+    var f = pqSlideshow.files[i];
+    if (!f) { pqSlideshowStop(); return; }
+
+    document.getElementById('pq-slideshow-counter').textContent = (i + 1) + ' / ' + pqSlideshow.files.length;
+    document.getElementById('pq-slideshow-name').textContent = f.name;
+
+    var img = document.getElementById('pq-slideshow-img');
+    var vid = document.getElementById('pq-slideshow-video');
+    var aud = document.getElementById('pq-slideshow-audio');
+    var audioVisual = document.getElementById('pq-slideshow-audio-visual');
+    img.classList.add('pq-hidden');
+    vid.classList.add('pq-hidden');
+    audioVisual.classList.add('pq-hidden');
+
+    var t = f.type || '';
+    if (t.indexOf('image/') === 0) {
+      img.src = f.data;
+      img.classList.remove('pq-hidden');
+      if (!pqSlideshow.paused) {
+        pqSlideshow.timer = setTimeout(pqSlideshowNext, PQ_IMAGE_DURATION);
+      }
+    } else if (t.indexOf('video/') === 0) {
+      pqSlideshow.blobUrl = pqDataUrlToBlobUrl(f.data);
+      vid.src = pqSlideshow.blobUrl;
+      vid.classList.remove('pq-hidden');
+      vid.onended = pqSlideshowNext;
+      if (!pqSlideshow.paused) vid.play().catch(function() {});
+    } else if (t.indexOf('audio/') === 0) {
+      pqSlideshow.blobUrl = pqDataUrlToBlobUrl(f.data);
+      aud.src = pqSlideshow.blobUrl;
+      audioVisual.classList.remove('pq-hidden');
+      aud.onended = pqSlideshowNext;
+      if (!pqSlideshow.paused) aud.play().catch(function() {});
+    }
+  }
+
+  function pqSlideshowNext() {
+    if (pqSlideshow.index < pqSlideshow.files.length - 1) {
+      pqSlideshow.index++;
+      pqSlideshowShow(pqSlideshow.index);
+    } else {
+      pqSlideshowStop();
+    }
+  }
+
+  function pqSlideshowPrev() {
+    if (pqSlideshow.index > 0) {
+      pqSlideshow.index--;
+      pqSlideshowShow(pqSlideshow.index);
+    }
+  }
+
+  function pqSlideshowTogglePause() {
+    pqSlideshow.paused = !pqSlideshow.paused;
+    var btn = document.getElementById('pq-slideshow-playpause');
+    var vid = document.getElementById('pq-slideshow-video');
+    var aud = document.getElementById('pq-slideshow-audio');
+    if (pqSlideshow.paused) {
+      btn.textContent = '▶ PLAY';
+      clearTimeout(pqSlideshow.timer);
+      vid.pause();
+      aud.pause();
+    } else {
+      btn.textContent = '⏸ PAUSE';
+      var f = pqSlideshow.files[pqSlideshow.index];
+      var t = f ? (f.type || '') : '';
+      if (t.indexOf('image/') === 0) {
+        pqSlideshow.timer = setTimeout(pqSlideshowNext, PQ_IMAGE_DURATION);
+      } else if (t.indexOf('video/') === 0) {
+        vid.play().catch(function() {});
+      } else if (t.indexOf('audio/') === 0) {
+        aud.play().catch(function() {});
+      }
+    }
+    pqBeep(600, 30);
+  }
+
+  function pqSlideshowStop() {
+    pqSlideshowCleanupMedia();
+    document.getElementById('pq-slideshow-overlay').classList.remove('active');
+    if (pqSlideshow.msgEl) {
+      pqType(pqSlideshow.msgEl, 'PLAYBACK FINISHED.', 18, 'green');
+    }
+    pqBeep(500, 60);
+  }
+
 
   // ===== DELETE =====
   function pqDeleteFile(idx, zone) {
@@ -1021,6 +1579,9 @@
       text = 'PUBLIC DESK COMMANDS:\n' +
         '• DROP FILE - Upload to shared desk\n' +
         '• LIST FILES - View desk contents\n' +
+        '• FOLDERS - Back to folder view\n' +
+        '• NEW FOLDER - Create a custom folder\n' +
+        '• PLAY ALL - Play current view in order\n' +
         '• DELETE [name] - Remove a file\n' +
         '• PREVIEW [name] - View image/video\n' +
         '• CLEAR DESK - Destroy everything\n' +
@@ -1030,6 +1591,9 @@
       text = 'CLASSIFIED VAULT COMMANDS:\n' +
         '• DROP FILE - Upload to private locker\n' +
         '• LIST FILES - View locker contents\n' +
+        '• FOLDERS - Back to folder view\n' +
+        '• NEW FOLDER - Create a custom folder\n' +
+        '• PLAY ALL - Play current view in order\n' +
         '• DELETE [name] - Remove a file\n' +
         '• PREVIEW [name] - View image/video\n' +
         '• NUKE VAULT - Destroy everything\n' +
@@ -1076,6 +1640,9 @@
       else if (cmd === 'DROP FILE' || cmd === 'UPLOAD') pqClickUpload('public');
       else if (cmd === 'CLEAR DESK' || cmd === 'NUKE') pqNukeVault('public');
       else if (cmd === 'SECURE' || cmd === 'VAULT') pqGoSecure();
+      else if (cmd === 'PLAY ALL' || cmd === 'PLAY') pqStartSlideshow('public', pqCurrentFolderPublic);
+      else if (cmd === 'NEW FOLDER') pqCreateFolder('public');
+      else if (cmd === 'FOLDERS') pqBackToFolders('public');
       else if (cmd.indexOf('DELETE ') === 0) {
         var name = cmd.replace('DELETE ', '');
         var idx = -1;
@@ -1107,6 +1674,9 @@
       else if (cmd === 'EMAIL BACKUP' || cmd === 'EMAIL') pqEmailBackup();
       else if (cmd === 'LOGOUT' || cmd === 'EXIT') pqLogout();
       else if (cmd === 'PUBLIC' || cmd === 'BACK') pqBackToPublic();
+      else if (cmd === 'PLAY ALL' || cmd === 'PLAY') pqStartSlideshow('secure', pqCurrentFolderSecure);
+      else if (cmd === 'NEW FOLDER') pqCreateFolder('secure');
+      else if (cmd === 'FOLDERS') pqBackToFolders('secure');
       else if (cmd.indexOf('DELETE ') === 0) {
         var name3 = cmd.replace('DELETE ', '');
         var idx3 = -1;
@@ -1149,7 +1719,7 @@
   });
 
   // ===== INIT =====
-  pqLoadPublic().then(function() {
+  Promise.all([pqLoadPublic(), pqLoadPublicFolders()]).then(function() {
     pqRenderPublicGrid();
     pqUpdateScore();
     pqType(document.getElementById('pq-public-msg'), 'WELCOME TO THE EVIDENCE DESK. DROP FILES OR TYPE HELP.', 20, 'green');
